@@ -610,12 +610,13 @@ struct GameShellReq {
 #define SHELLMODE_HELP     10   // nur fuer den Fall der Faelle
 
 /*** Confirm-Flags ***/
-#define CONFIRM_NONE            0   // zur Zeit nicht aktiviert
-#define CONFIRM_LOADFROMMAP     1   // wirklich das Savegame von der Map laden?
-#define CONFIRM_NETSTARTALONE   2   // Netzspiel allein starten
-#define CONFIRM_SAVEANDOVERWRITE 3  // Savegame in DiskReq ueberschreiben
-#define CONFIRM_MORECDS         4   // CDs reichen nicht
-#define CONFIRM_CHANGEVIDEOMODE 5   // wirklich Aufloesung aendern?
+#define CONFIRM_NONE                0   // zur Zeit nicht aktiviert
+#define CONFIRM_LOADFROMMAP         1   // wirklich das Savegame von der Map laden?
+#define CONFIRM_NETSTARTALONE       2   // Netzspiel allein starten
+#define CONFIRM_SAVEANDOVERWRITE    3   // Savegame in DiskReq ueberschreiben
+#define CONFIRM_MORECDS             4   // CDs reichen nicht
+#define CONFIRM_CHANGEVIDEOMODE     5   // wirklich Aufloesung aendern?
+#define CONFIRM_CREATEANDOVERWRITE  6   // neues Spiel unter altem Namen?
 
 /* ---------------------------------------------------------------------
 ** OBSOLET: Sollte nur noch für die Vehicleoffsets genommen werden,
