@@ -79,6 +79,7 @@ struct roboattacker *yr_GetFreeAttackerSlot( struct yparobo_data *yrd );
 void yr_ControlRoboAttacker( struct OBNode *Commander, struct roboattacker *ra );
 void yr_SetBactTarget( struct Bacterium *commander, struct Bacterium *targetbact );
 void yr_SetSectorTarget( struct Bacterium *commander, FLOAT x, FLOAT z );
+void yr_SwitchEscape( struct Bacterium *com, UBYTE wat_n_nu );
 
 
 void yr_Service( struct yparobo_data *yrd, struct trigger_logic_msg *msg)
@@ -230,7 +231,7 @@ void yr_CheckCommander( struct yparobo_data *yrd, struct trigger_logic_msg *msg,
                     }
 
                 /*** Flucht weg ***/
-                Commander->bact->ExtraState &= ~EXTRA_ESCAPE;
+                yr_SwitchEscape( Commander->bact , 0 );
 
                 /*** Erholung bekanntgeben ***/
                 if( USER_ROBO ) {
@@ -259,7 +260,7 @@ void yr_CheckCommander( struct yparobo_data *yrd, struct trigger_logic_msg *msg,
         if( !_methoda( Commander->o, YBM_HOWDOYOUDO, &how) ) {
 
             /*** Rückzug wegen Schwäche ***/
-            Commander->bact->ExtraState |= EXTRA_ESCAPE;
+            yr_SwitchEscape( Commander->bact, 1 );
 
             /*** Wegpunkte aus ***/
             Commander->bact->ExtraState &= ~(EXTRA_DOINGWAYPOINT|
@@ -2632,7 +2633,7 @@ switch( af->job ) {
         yrd->dock_time     = bact->scale_time + YR_DeltaDockTime;
 
         /*** keine Flucht mehr und vorerst warten ***/
-        bact->ExtraState  &= ~EXTRA_ESCAPE;
+        yr_SwitchEscape( bact, 0);
         state.main_state   = ACTION_CREATE;
         state.extra_off    = state.extra_on = 0;
         _methoda( com, YBM_SETSTATE, &state );
@@ -3007,3 +3008,26 @@ void yr_ClearRoboAttackerSlots( struct yparobo_data *yrd )
             }
         }
 }
+
+
+void yr_SwitchEscape( struct Bacterium *com, UBYTE wat_n_nu )
+{
+    /*** Setzt beim Commander und allen Untergebenen den EscapeZustand ***/
+    struct OBNode *slave;
+    
+    if( wat_n_nu )
+        com->ExtraState |=  EXTRA_ESCAPE;
+    else
+        com->ExtraState &= ~EXTRA_ESCAPE;
+        
+    slave = (struct OBNode *) com->slave_list.mlh_Head;
+    while( slave->nd.mln_Succ ) {
+    
+        if( wat_n_nu )
+            slave->bact->ExtraState |=  EXTRA_ESCAPE;
+        else
+            slave->bact->ExtraState &= ~EXTRA_ESCAPE;
+        slave = (struct OBNode *)slave->nd.mln_Succ;
+        }
+}
+        

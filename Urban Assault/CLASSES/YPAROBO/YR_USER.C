@@ -68,6 +68,7 @@ BOOL yr_AreThereGroundVehicles( struct Bacterium *commander );
 void yr_SetBactTarget( struct Bacterium *commander, struct Bacterium *targetbact );
 void yr_SetSectorTarget( struct Bacterium *commander, FLOAT tarpoint_x, FLOAT tarpoint_z );
 void yb_TakeCommandersTarget( struct Bacterium *slave, struct Bacterium *chief, Object *world );
+void yr_SwitchEscape( struct Bacterium *com, UBYTE wat_n_nu );
 
 
 /*-----------------------------------------------------------------*/
@@ -706,7 +707,7 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
             yr_ClearSecondaryTargets( msg->selbact );
 
             /*** ESCAPE ausschalten ***/
-            msg->selbact->ExtraState &= ~EXTRA_ESCAPE;
+            yr_SwitchEscape( msg->selbact, 0 );
             break;
 
         case YW_ACTION_WAYPOINT_START:
@@ -773,6 +774,9 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
 
             /*** Slaves Nebenziele loeschen ***/
             yr_ClearSecondaryTargets( msg->selbact );
+
+            /*** ESCAPE ausschalten ***/
+            yr_SwitchEscape( msg->selbact, 0 );
 
             /*** und raus ***/
             break;

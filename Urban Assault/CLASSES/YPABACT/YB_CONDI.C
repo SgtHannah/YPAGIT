@@ -752,12 +752,13 @@ _dispatcher( BOOL, yb_YBM_HOWDOYOUDO, struct howdoyoudo_msg *how )
 
     struct ypabact_data *ybd;
     struct sumparameter_msg sum;
-    FLOAT  energy, maximum, aggr_factor;
+    FLOAT  energy, maximum;
 
     ybd = INST_DATA( cl, o);
 
     /*** Gleich raus ?? ***/
     if( ybd->bact.Aggression == 100 ) return( TRUE );
+    if( ybd->bact.Aggression == 0 )   return( FALSE );  
 
     /*** Erstmal durchschnittliche Energie berechnen ***/
     sum.value = 0;
@@ -773,9 +774,7 @@ _dispatcher( BOOL, yb_YBM_HOWDOYOUDO, struct howdoyoudo_msg *how )
     /*** durch Maximum dividieren, wir wollen ja was prozentuales ***/
     energy /= maximum;
 
-    /*** Die Aggression verändert diesen Wert ***/
-    aggr_factor = ((FLOAT) ybd->bact.Aggression) / 60.0;
-    energy *= aggr_factor;
+    /*** Die Aggression nicht mehr mit einrechnen ***/
 
     /*** Für exaktere Auswertung außerhalb ***/
     if( how ) how->value = energy;

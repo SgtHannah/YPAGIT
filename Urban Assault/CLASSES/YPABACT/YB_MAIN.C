@@ -553,7 +553,7 @@ _dispatcher(BOOL, yb_OM_DISPOSE, void *ignored)
 //    };
 
     /*** den umstaendlichen, aber sicheren DIE-Aufruf ***/
-    ybd->bact.ExtraState & EXTRA_CLEANUP;
+    ybd->bact.ExtraState |= EXTRA_CLEANUP;
     if( !(ybd->bact.ExtraState & EXTRA_LOGICDEATH))
         _methoda( o, YBM_DIE, NULL );
 

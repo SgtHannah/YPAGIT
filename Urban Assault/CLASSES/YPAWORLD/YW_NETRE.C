@@ -71,9 +71,9 @@ BOOL yw_InitMW( struct ypaworld_data *ywd )
     MW.max_height = 2 * ywd->FontH;
 
     /*** Default-Einstellungen ***/
-    MW.Req.req_cbox.rect.x = ywd->DspXRes / 5;
+    MW.Req.req_cbox.rect.x = 0;
     MW.Req.req_cbox.rect.y = 2 * ywd->DspYRes / 3;
-    MW.Req.req_cbox.rect.w = ywd->DspXRes/3;
+    MW.Req.req_cbox.rect.w = ywd->DspXRes-1;
     MW.Req.req_cbox.rect.h = 2*ywd->FontH + 2;
 
     MW.Req.req_cbox.num_buttons = 2;
@@ -304,12 +304,12 @@ void yw_HandleInputMW( struct ypaworld_data *ywd, struct VFMInput *input )
         sprintf( headline, "%s %s", ypa_GetStr( GlobalLocaleHandle, STR_NET_MESSAGETO,
                                                 "MESSAGE TO"), MsgName );
         
-        #ifdef __DBCS__
+        //#ifdef __DBCS__
         breite  = ywd->DspXRes -1;
-        #else                                                
-        breite  = max( strlen( headline ) + 1, strlen( MW.msg ) ) + 1;
-        breite *= fnt->fchars[ 'W' ].width;
-        #endif
+        //#else                                                
+        //breite  = max( strlen( headline ) + 1, strlen( MW.msg ) ) + 1;
+        //breite *= fnt->fchars[ 'W' ].width;
+        //#endif
         
         /*** Korrektur ***/
         if( breite > ywd->DspXRes - 1 ) {

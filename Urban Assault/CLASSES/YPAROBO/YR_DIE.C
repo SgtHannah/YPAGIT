@@ -94,7 +94,8 @@ _dispatcher(void, yr_YBM_DIE, void *nix)
     #endif
 
     /*** Wenn es einen Killer gab, dann NOTIFY. auch in yw_network.c !!! ***/
-    if( yrd->bact->killer_owner ) {
+    if( (yrd->bact->killer_owner) &&
+        (!(yrd->bact->ExtraState & EXTRA_CLEANUP)) ) {
 
         struct notifydeadrobo_msg ndr;
 

@@ -156,7 +156,10 @@ _dispatcher(void, yb_YBM_MODVEHICLEENERGY, struct modvehicleenergy_msg *mve)
         /*** Energie richtig abziehen ***/
         ybd->bact.Energy += mve->energy;
 
-        ybd->bact.killer_owner = mve->killer->Owner;
+        if(mve->killer)
+            ybd->bact.killer_owner = mve->killer->Owner;
+        else
+            ybd->bact.killer_owner = 0;
 
         /*** ist der Kandidat unter 0, dann setzen wir den VP ***/
         if( ybd->bact.Energy <= 0 ) {

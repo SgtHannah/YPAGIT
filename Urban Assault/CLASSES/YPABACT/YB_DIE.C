@@ -524,7 +524,8 @@ _dispatcher(void, yb_YBM_DIE, void *nix)
     #endif
 
     /*** Todesmeldung für die History, wenn es kein Brocken war... ***/
-    if( ybd->bact.Owner ) {
+    if( (ybd->bact.Owner) && 
+        (!(ybd->bact.ExtraState & EXTRA_CLEANUP)) ) {
         UBYTE owner;
         if( ybd->bact.killer ) {
             ULONG is_user;

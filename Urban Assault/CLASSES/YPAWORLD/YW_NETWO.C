@@ -2960,7 +2960,6 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
             ndr.killer_id = rd->killerowner;
             ndr.victim    = robo->bact;
             _methoda( ywd->world, YWM_NOTIFYDEADROBO, &ndr );
-_LogMsg("KILLER IST OWNER %d\n", rd->killerowner);
 
             //blog.ID     = LOGMSG_ROBODEAD;
             //blog.para1  = robo->bact->Owner;
