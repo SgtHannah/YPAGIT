@@ -53,12 +53,12 @@ void w3d_DrawLine(struct windd_data *wdd, struct win3d_data *w3d,
         long dy = abs(y1-y0);
         long d, incrE, incrNE;
 
-        unsigned long mask;
-
-        mask = w3d_ColorConvert(0x80, 0x80, 0x80, 0x0,
-                                px->r_shift, px->g_shift, px->b_shift, px->a_shift,
-                                px->r_mask, px->g_mask, px->b_mask, px->a_mask);
-        mask = ~((mask<<1)|1);
+        // FIXME: Transparency 
+        //unsigned long mask;
+        //mask = w3d_ColorConvert(0x80, 0x80, 0x80, 0x0,
+        //                        px->r_shift, px->g_shift, px->b_shift, px->a_shift,
+        //                        px->r_mask, px->g_mask, px->b_mask, px->a_mask);
+        //mask = ~((mask<<1)|1);
         color = w3d_ColorConvert(r0, g0, b0, 0x0,
                                  px->r_shift, px->g_shift, px->b_shift, px->a_shift,
                                  px->r_mask, px->g_mask, px->b_mask, px->a_mask);
@@ -87,15 +87,17 @@ void w3d_DrawLine(struct windd_data *wdd, struct win3d_data *w3d,
         incrNE = (dy-dx)<<1;
 
         /*** Rendering ***/
-        color &= mask;
+        // color &= mask;
         if (pix_size == 2) {
 
             unsigned short *pnt;
-            unsigned long src_col;
+            //unsigned long src_col;
 
-            pnt = ((unsigned short *)wdd->back_ptr) + y0*pitch + x0;
-            src_col = (unsigned long) (*pnt);
-            *pnt    = ((src_col & mask) + color)>>1;
+            pnt  = ((unsigned short *)wdd->back_ptr) + y0*pitch + x0;
+            *pnt = color;
+            
+            //src_col = (unsigned long) (*pnt);
+            //*pnt    = ((src_col & mask) + color)>>1;
 
             for (i=0; i<dx; i++) {
                 if (d<=0) d+=incrE;
@@ -103,9 +105,10 @@ void w3d_DrawLine(struct windd_data *wdd, struct win3d_data *w3d,
                     d   += incrNE;
                     pnt += oddAdd;
                 };
-                pnt    += evenAdd;
-                src_col = (unsigned long) (*pnt);
-                *pnt    = ((src_col & mask) + color)>>1;
+                pnt += evenAdd;
+                *pnt = color; 
+                //src_col = (unsigned long) (*pnt);
+                //*pnt    = ((src_col & mask) + color)>>1;
             };
         };
     };
