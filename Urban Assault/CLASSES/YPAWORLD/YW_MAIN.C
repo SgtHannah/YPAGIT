@@ -521,8 +521,8 @@ _dispatcher(Object *, yw_OM_NEW, struct TagItem *attrs)
     
     /*** CD-Check ***/
     if (!yw_CheckCD(TRUE,TRUE,
-            ypa_GetStr(ywd->LocHandle,STR_APPNAME,"YOUR PERSONAL AMOK"),
-            ypa_GetStr(ywd->LocHandle,STR_CDREQUEST_BODYTEXT,"THE YPA CD IS REQUIRED FOR COMPACT AND TYPICAL INSTALL.")))
+            ypa_GetStr(ywd->LocHandle,STR_APPNAME,"21 == YOUR PERSONAL AMOK"),
+            ypa_GetStr(ywd->LocHandle,STR_CDREQUEST_BODYTEXT,"2466 == THE YPA CD IS REQUIRED FOR COMPACT AND TYPICAL INSTALL.")))
     {
         _methoda(newo, OM_DISPOSE, NULL);
         return(NULL);
