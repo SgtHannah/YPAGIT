@@ -726,8 +726,7 @@ static UBYTE *ypa_GetStr(UBYTE **loc, ULONG id, UBYTE *def)
 
 /*** Platz fuer je ueber 256 Vehikel-, Building-, Level-Namen ***/
 #define STR_NAME_VEHICLES                               (1200)
-#define STR_NAME_BUILDINGS                              (1500)      // Single-Player-Gebaeude-Namen
-#define STR_NAME_MP_BUILDINGS                           (1750)      // Multiplayer-Gebaeude-Namen
+#define STR_NAME_BUILDINGS                              (1500)
 #define STR_NAME_LEVELS                                 (1800)
 #define STR_MISSION_TEXTS                               (2100)
 
