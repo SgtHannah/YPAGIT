@@ -837,6 +837,8 @@ void w3d_TxtCacheBeginSession(struct windd_data *wdd, struct win3d_data *w3d)
 **  FUNCTION
 **      Flusht den gesamten Texturcache, damit keine Kollisionen
 **      mit neu geladenen Texturen auftreten.
+**      Ausserdem wird dadurch verhindert, dass freigegebene Texturen
+**      referenziert werden koennen (konnte zum Absturz fuehren)     
 **
 **  CHANGED
 **      03-Apr-97   floh    created
