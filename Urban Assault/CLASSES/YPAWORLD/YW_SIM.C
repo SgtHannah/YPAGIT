@@ -1059,6 +1059,7 @@ _dispatcher(void, yw_BSM_TRIGGER, struct trigger_msg *msg)
 **      11-Feb-98   floh    + yw_TriggerSuperItems()
 **      18-Apr-98   floh    + yw_TriggerEventCatcher()
 **      16-Jun-98   floh    + ywd->ClearEnterEscape Handling
+**      09-Jul-98   floh    + kein Cheating mehr moeglich 
 */
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
@@ -1416,7 +1417,7 @@ _dispatcher(void, yw_BSM_TRIGGER, struct trigger_msg *msg)
         prof_rendering = yw_StartProfile();
         if (!((ywd->UVBact->SectX==0) && (ywd->UVBact->SectY==0))) {
             yw_RenderFrame(o, ywd, msg, TRUE);
-            yw_PutDebugInfo(ywd, msg->input);
+            // yw_PutDebugInfo(ywd, msg->input);
 
             if( ywd->playing_network )
                 yw_DrawNetworkStatusInfo( ywd );
