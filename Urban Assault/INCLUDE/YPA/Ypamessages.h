@@ -272,6 +272,7 @@ struct ypamessage_sectorenergy {
     //++++++++++++++++++++++++++++++++++
     struct flt_triple pos;
     LONG   energy;
+    ULONG  hitman;              // ident des Schuetzen
     UBYTE  sectorowner;         // mse kann auf unt. maschinen zu unterschiedlichen
                                 // Resultaten kommen. Deshalb gebe ich den Owner mit
                                 // rüber, auch wenn das nicht immer hilft

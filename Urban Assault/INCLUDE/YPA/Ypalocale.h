@@ -770,6 +770,7 @@ static UBYTE *ypa_GetStr(UBYTE **loc, ULONG id, UBYTE *def)
 #define STR_CONFIRM_LOADANDOVERWRITE    (2434)
 #define STR_CONFIRM_NETSTARTALONE       (2435)
 #define STR_CONFIRM_SAVEANDOVERWRITE    (2436)
+#define STR_NGADGET_TCPIP               (2437)
 
 #define STR_DEBRIEF_KILLS               (2450)
 #define STR_DEBRIEF_KILLSBYPLAYER       (2451)
