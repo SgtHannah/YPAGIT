@@ -52,8 +52,6 @@ unsigned long wdp_InitWinStuff( struct windp_data *wdp)
     win_NewList( &(wdp->win_data->recv_list) );
     win_NewList( &(wdp->win_data->send_list) );
     InitializeCriticalSection( &critical_section );
-    wdp->win_data->test1 = 0xcdcdcdcd;
-    wdp->win_data->test2 = 0xbfbfbfbf;
 
     /*** Sendebuffer anlegen ***/
     if( wdp->win_data->sendbuffer      = malloc( WDP_NORMALBLOCKSIZE ) )

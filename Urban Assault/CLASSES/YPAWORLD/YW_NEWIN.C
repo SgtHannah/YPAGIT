@@ -1889,6 +1889,7 @@ _dispatcher(void, yw_YWM_KILLLEVEL, void *ignored)
 */
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
+    UBYTE   user_owner;
 
     /*** Network-Session aufräumen ***/
     if (ywd->Level->Status == LEVELSTAT_FINISHED) ywd->DoDebriefing = TRUE;
@@ -1916,9 +1917,9 @@ _dispatcher(void, yw_YWM_KILLLEVEL, void *ignored)
 
     /*** Anzeigen, das was passiert... ***/
     yw_ShowDiskAccess(ywd);
-	
+    
     /*** EventCatcher killen ***/
-	yw_KillEventCatcher(ywd);	
+    yw_KillEventCatcher(ywd);   
 
     /*** VoiceOver System aufräumen ***/
     yw_KillVoiceOverSystem(ywd);
@@ -1936,8 +1937,23 @@ _dispatcher(void, yw_YWM_KILLLEVEL, void *ignored)
     };
 
     /*** alle Objects im Deathcache killen ***/
+    user_owner = ywd->URBact->Owner;    // merken bevor er freigegeben wird
     while (ywd->DeathCache.mlh_Head->mln_Succ) {
+    
+        struct OBNode *robo = (struct OBNode *) ywd->DeathCache.mlh_Head;
         Object *death = ((struct OBNode *)ywd->DeathCache.mlh_Head)->o;
+        
+        if( (ywd->WasNetworkSession) &&
+            (robo->bact->Owner       != user_owner) &&
+            (robo->bact->BactClassID == BCLID_YPAROBO) ) {
+                    
+            /*** Freigabe ohne DIE, weil ein Schatten ***/
+            yw_RemoveAllShadows( ywd, robo );
+            
+            /*** Flags sind gesetzt, nun erfolgt dispose Aufruf ohne DIE ***/
+        }
+            
+        /*** OriginalVehicle klassisch aufraeumen ***/ 
         _dispose(death);
     };
 
@@ -2205,8 +2221,8 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
     yw_InitHistory(ywd);
     _AE_GetAttrs(AET_MasterVolume,&(ywd->MasterVolume),TAG_DONE);
     yw_InitVoiceOverSystem(ywd);
-	yw_InitEventCatcher(ywd);
-	
+    yw_InitEventCatcher(ywd);
+    
     /*** Level-Description-File parsen ***/
     _SetAssign("rsrc","data:");
     if (yw_ParseLDF(ywd,ld,ywd->LevelNet->Levels[ywd->Level->Num].ldf)) {

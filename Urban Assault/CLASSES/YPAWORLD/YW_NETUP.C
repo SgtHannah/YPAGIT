@@ -510,6 +510,16 @@ void yw_ReleaseWeapon( struct ypaworld_data *ywd, struct Bacterium *bact )
 
         struct Node   *node;
         struct OBNode *waffe = (struct OBNode *) bact->auto_list.mlh_Head;
+        
+        /*** Raketen sind original, koennen also BactZiele haben ***/
+        if( TARTYPE_BACTERIUM == waffe->bact->PrimTargetType ) {
+        
+            struct Node *attck_node;
+            _get( waffe->o, YBA_PtAttckNode, &attck_node );
+            
+            _Remove( (struct Node *) attck_node );
+            waffe->bact->PrimTargetType = TARTYPE_NONE;
+            }
 
         /*** Abmelden von Angreifern ***/
         yw_RemoveAttacker( waffe->bact );
@@ -520,8 +530,37 @@ void yw_ReleaseWeapon( struct ypaworld_data *ywd, struct Bacterium *bact )
 
         /*** Freigeben ***/
         _methoda( ywd->world, YWM_RELEASEVEHICLE, waffe->o);
+        
+        /*** Auch Weapons "Logic-deathen" ! ***/
+        waffe->bact->ExtraState |= EXTRA_LOGICDEATH;
         }
 }
+
+
+void yw_DisConnectFromRobo( struct ypaworld_data *ywd, struct OBNode *vehicle )
+{
+    /* ----------------------------------------------------------------
+    ** Testet, ob es sich um eine Bordflak handelt, die sich natuerlich
+    ** aus dem RoboArray verabschieden muss
+    ** --------------------------------------------------------------*/
+    if( BCLID_YPAGUN == vehicle->bact->BactClassID ) {
+    
+        ULONG rgun;
+    
+        _get( vehicle->o, YGA_RoboGun, &rgun );
+        if( rgun ) {
+        
+            struct gun_data *g_array;
+            int    i;
+    
+            _get( vehicle->bact->robo, YRA_GunArray, &g_array );
+    
+            for( i = 0; i < NUMBER_OF_GUNS; i++ )
+                if( g_array[ i ].go == vehicle->o )  g_array[ i ].go = NULL;
+            }
+        }
+}
+
 
 
 void yw_InsertVehicleData( struct Bacterium *bact,

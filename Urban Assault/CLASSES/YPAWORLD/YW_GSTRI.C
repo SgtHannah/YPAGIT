@@ -5824,6 +5824,7 @@ void yw_CleanupNetworkData( struct ypaworld_data *ywd )
         GSR->network_trouble     = NETWORKTROUBLE_NONE;
         GSR->network_trouble_count = 0;
         GSR->tacs_time           = 0;
+        GSR->dont_send           = FALSE;
         
         GSR->FreeRaces = (FREERACE_KYTERNESER | FREERACE_MYKONIER |
                           FREERACE_TAERKASTEN);

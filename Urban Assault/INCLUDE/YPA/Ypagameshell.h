@@ -243,6 +243,9 @@ struct playerdata {                 // Owner ist offset
     LONG  latency;                  // derzeitige  latency in ms
 };
 
+#define WASKILLED_NORMAL    (1<<0)  // wurde getoetet, normal eben
+#define WASKILLED_SHOWIT    (1<<1)  // zeige das bitte auch mit an
+
 #define NWS_NOTHERE         0       // dieser Owner spielt nicht mit
 #define NWS_INGAME          1       // normal ohne Probleme im Spiel
 #define NWS_TROUBLE         2       // zu diesem derzeit keine Verbindung
@@ -281,6 +284,9 @@ struct netlevel {
 #define LATENCY_COUNT_HOST      (200)   // Achtung, Frametime ist 1, so ist es Zahl der Fr.
 #define LATENCY_COUNT_CLIENT    (500)
 #define ENDTROUBLE_COUNT        (3000)  // solange Grund fuer Loesung anzeigen
+#define KICKOFF_YOU_COUNT       (10000)
+#define KICKOFF_PLAYER_COUNT    (15000)
+#define WAITINGFORPLAYER_TIME   (20000) // ab dann Message, dass kein Kontakt, wenn nicht Host
 
 struct GameShellReq {
 
@@ -474,7 +480,11 @@ struct GameShellReq {
 
     struct  netlevel netlevel[128]; // weil MAXNUM_LEVEL hier noch nicht definiert ist
     WORD    num_netlevels;
-
+    
+    BOOL    dont_send;              // dann werden keine Messages mehr verschickt.
+                                    // nur zum Behandeln von Problemen
+    UBYTE   network_trouble_owner;  // zum merken fuer spaeteres aufraeumen                              
+    char    network_trouble_name[ STANDARD_NAMELEN ];                                
     WORD    network_trouble;        // der derzeitige Problemstatus, siehe ypamessages.h
     WORD    network_allok;          // Art der Loesung des problems
     ULONG   update_time_normal;     // wird bei providerwahl ausgefuellt
@@ -723,6 +733,8 @@ struct GameShellReq {
 #define GSID_SETTINGSHEADLINE3 1170
 #define GSID_SETTINGSHEADLINE4 1171
 #define GSID_3DMENU_BUTTON  1172
+#define GSID_SAVED3D        1173
+#define GSID_D3DMODUS       1174
 
 #define GSID_NETSTRING      1200    // das Netzwerkstringgadget
 #define GSID_NETOK          1201
@@ -843,6 +855,10 @@ struct GameShellReq {
 #define GS_NOSOFTMOUSE          1133
 #define GS_3DMENU_OPEN          1134
 #define GS_3DMENU_CLOSE         1135
+#define GS_SAVED3D_YES          1136
+#define GS_SAVED3D_NO           1137
+#define GS_D3DPRIM_YES          1138
+#define GS_D3DPRIM_NO           1139
 
 #define GS_LOAD                 1160    // los, laden
 #define GS_DELETE               1161    // Löschen des Eintrages

@@ -48,8 +48,8 @@ UBYTE  **GlobalLocaleHandle;
 struct ConfigItem yw_ConfigItems[YW_NUM_CONFIG_ITEMS] = {
     {"netgame.exclusivegem", CONFIG_BOOL, TRUE},
     {"net.waitstart", CONFIG_INTEGER, 150000},
-    {"net.kickoff", CONFIG_INTEGER, 10000},
-    {"game.debug", CONFIG_BOOL, TRUE}
+    {"net.kickoff", CONFIG_INTEGER, 20000},
+    {"game.debug", CONFIG_BOOL, FALSE}
 };
 /*** Designdaten sind global ***/
 WORD ReqDeltaX;
@@ -121,9 +121,6 @@ _dispatcher( BOOL, yw_YWM_INITGAMESHELL, struct GameShellReq *GSR )
     ** Diverses, was mit wenig Worten erledigt ist
     ** -----------------------------------------*/
     _get( o, YWA_LocaleHandle, &GlobalLocaleHandle );
-
-    // FIXME_FLOH
-    yw_PlayIntroMovie(ywd);
 
     _NewList( (struct List *) &( GSR->flist ) );
     _NewList( (struct List *) &( GSR->videolist ) );
@@ -497,6 +494,11 @@ _dispatcher( BOOL, yw_YWM_INITGAMESHELL, struct GameShellReq *GSR )
 ///
 
     GSR->wait_til_demo = WAIT_TIL_DEMO;
+
+    /*** Das IntroMovie spielen, aber nur, wenn es kein LobbyStart war ***/
+    if( 0 == GSR->remotestart )
+        yw_PlayIntroMovie(ywd);
+
 
     return( TRUE );
 }
@@ -2021,7 +2023,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
                            nb.flags         = 0;
 
                            if( _methoda(GSR->bvideo, BTM_NEWBUTTON, &nb ) ) {
-
+                               
                             /*** Zerstoerungseffekte ***/
                             restbreite = VReqWidth - 5 * ReqDeltaX;
                            
@@ -4136,6 +4138,9 @@ void yw_InitVideoList( struct GameShellReq *GSR )
     /*** erstmal aufraeumen ***/
     while( node = (struct video_node *) _RemHead( (struct List *) &(GSR->videolist) ) )
         _FreeVec( (APTR) node );
+    
+    /*** Zur Sicherheit, neuerdings gibt es wieder Abstuerze ***/
+    _OVE_GetAttrs( OVET_Object, &(GSR->ywd->GfxObject), TAG_DONE );
 
     /* -------------------------------------------------------------------
     ** Modi abfragen 
@@ -4366,9 +4371,10 @@ void yw_ScanLocaleDirectory( struct GameShellReq *GSR, char *dirname, Object *Wo
 
     /*** Erste Sache Default ***/
     if( found_english ) {
+    
         /*** English wird defaultsprache, kann spSter nberschrieben werden ***/
         GSR->lsel = found_english;
-    }
+        }
 }
 ///
 

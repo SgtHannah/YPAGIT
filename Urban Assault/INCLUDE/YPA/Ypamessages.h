@@ -677,6 +677,9 @@ struct ypamessage_starttrouble {              // uebergeben wird der Grund, der 
 #define NETWORKTROUBLE_NONE         (0)     // is doch gar nuescht los
 #define NETWORKTROUBLE_LATENCY      (1)     // Latency Probleme, Host entscheidet
 #define NETWORKTROUBLE_HELPSTARTED  (2)     // ich Klops habe die Hilfe aufgemacht
+#define NETWORKTROUBLE_KICKOFF_YOU  (3)     // du bsit rausgeschmissen worden
+#define NETWORKTROUBLE_KICKOFF_PLAYER (4)   // ein anderer muss raus
+#define NETWORKTROUBLE_WAITINGFORPLAYER (5)
 
 
 #define YPAM_ENDTROUBLE         (YPAM_BASE+41) // Probleme haben aufgehoert

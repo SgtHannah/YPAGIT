@@ -98,29 +98,6 @@ void yw_KillNetwork( struct ypaworld_data *ywd )
 
 void yw_CleanupNetworkSession( struct ypaworld_data *ywd )
 {
-    // /* --------------------------------------------------------------------
-    // ** Direct-Play müßte eigentlich DESTROYPLAYER-Messages verschicken
-    // ** beim Schließen einer Session. Das macht es aber nicht. Hm. Deshalb
-    // ** machen wir hier alles nochmal. Zuerst wird der Player gekillt.
-    // ** Verschickt auch dies keine Message, müssen die Aufräumarbeiten
-    // ** auf den anderen Maschinen durch eine Extra-Message initiiert werden.
-    // ** ------------------------------------------------------------------*/
-    // struct destroyplayer_msg dp;
-    // int    i;
-    //
-    // /*** Mich kaputtmachen ***/
-    // dp.name = ywd->gsr->NPlayerName;
-    // _methoda( ywd->nwo, NWM_DESTROYPLAYER, &dp );
-    //
-    // /*** Session schließen ***/
-    // _methoda( ywd->nwo, NWM_CLOSESESSION, NULL );
-    // ywd->playing_network = FALSE;
-    // ywd->netgamestartet  = FALSE;
-    //
-    // /*** Für nächsten Start vorbereiten ***/
-    // for( i=0; i<8; i++ )
-    //      ywd->gsr->player2[ i ].ready_to_start = 0;
-    // ywd->gsr->ReadyToStart = 0;
 
     /*** Nur noch Schale für CleanupNetworkData ***/
     yw_CleanupNetworkData( ywd );

@@ -208,7 +208,7 @@ unsigned long wdp_OpenLogScript(void)
     ** auch keine Messages durch. GetConfigItem wurde schon in
     ** gsinit.c gemacht.
     ** ---------------------------------------------------------*/
-    //if( !yw_ConfigItems[3].data ) return( TRUE );
+    
 
     /*** Wenn Verzeichnis noch nicht existiert, dann erzeugen ***/
     memset( wd, 0, 300 );

@@ -63,6 +63,7 @@ unsigned long wdp_CheckRemoteStart( void *wdata, char *name, unsigned char *is_h
                                     unsigned char *remote );
 void wdp_SetGuaranteedMode( struct windp_win_data *wdata, unsigned long data );
 void wdp_SetVersionCheck(   struct windp_win_data *wdata, BOOL data );
+void wdp_SetDebug(          struct windp_win_data *wdata, BOOL data );
 void wdp_SetVersionIdent(   struct windp_win_data *wdata, char *string );
 unsigned long wdp_GetProviderType( struct windp_win_data *wdata );
 unsigned long wdp_SRThread( void *t );
@@ -199,8 +200,9 @@ unsigned long wdp_SetProvider( struct windp_win_data *wdata, char *name )
     int     count;
     DPCAPS  caps;
     
-    /*** in dieses File gehen nun alle fehlermeldungen....***/ 
-    wdp_OpenLogScript();    
+    /*** in dieses File gehen nun alle fehlermeldungen....***/
+    if( wdata->debug ) 
+        wdp_OpenLogScript();    
 
     /*** Provider ermitteln ***/
     count = 0;
@@ -823,7 +825,7 @@ unsigned long wdp_DestroyPlayer( struct windp_win_data *wdata, char *name )
         SetEvent( srthread.win_data->mevent );
         
         /*** auf abmeldung warten ***/
-        Wait(srthread.thread);
+        WaitForSingleObject(srthread.thread, INFINITE);
 
         hr = wdata->dpo2->lpVtbl->DestroyPlayer( wdata->dpo2,
                     (DPID) wdata->player[ p ].dpid );
@@ -1506,6 +1508,16 @@ void wdp_SetVersionCheck( struct windp_win_data *wdata, BOOL data )
 }
 
 
+void wdp_SetDebug( struct windp_win_data *wdata, BOOL data )
+{
+    /* ---------------------------------------------------------------
+    ** Schaltet den Versionscheck fuer Sessionnamen ein. Jede Session, 
+    ** die nicht den speziellen String entaelt, fliegt raus.
+    ** -------------------------------------------------------------*/
+    wdata->debug = data;
+}
+
+
 void wdp_SetVersionIdent( struct windp_win_data *wdata, char *version )
 {
     /*** Setzt dann genau diesen Identifizierungsstring ***/
@@ -1851,16 +1863,12 @@ unsigned long wdp_SRThread( LPVOID t )
         struct message_node *mns;
         
         event = WaitForSingleObject( srthread.win_data->mevent, INFINITE );
-if(srthread.quit) 
-    wdp_Log("Quit in zentraler Thread schleife\n");
 
         /*** Senden angefordert? Sendebuffer leerraeumen ***/
         num_send = 0;
         num_recv = 0;
         while( 1 ) {
 
-if(srthread.quit) 
-    wdp_Log("Quit in sende schleife\n");
             /*** Listenzugriff absichern ***/
             EnterCriticalSection( &critical_section );
             mns = (struct message_node *)
@@ -1926,8 +1934,6 @@ if(srthread.quit)
                 struct message_node *mnr;
                 int node_size;
                 
-if(srthread.quit) 
-    wdp_Log("Quit in empfangs schleife\n");
                 num_recv++;
 
                 node_size = sizeof( struct message_node ) + srthread.recv_size;
@@ -1966,26 +1972,24 @@ if(srthread.quit)
         if( srthread.quit )
             break;
         }
-wdp_Log("Threadschleife verlassen\n");
+
     /*** buffer freigeben ***/
     free( srthread.send_buffer );
     free( srthread.recv_buffer );
-wdp_Log("nach free\n");
 
     /*** Empfansliste aufraeumen ***/
     EnterCriticalSection( &critical_section );
     while( n = win_RemHead( &(srthread.win_data->recv_list)) )
         wdp_FreeMem( n );
-wdp_Log("nach recvlist\n");
+
     while( n = win_RemHead( &(srthread.win_data->send_list)) )
         wdp_FreeMem( n );
-wdp_Log("nach sendlist\n");
+
     LeaveCriticalSection( &critical_section );
 
     /*** Als beendet markieren ***/
     srthread.quit = 0;
 
-wdp_Log("Thread total am ende\n");
     ExitThread(0);
 }
 

@@ -224,6 +224,9 @@ void yw_RemoveAllShadows( struct ypaworld_data *ywd, struct OBNode *robo )
             /*** Tschüss zu de Angreifers ***/
             yw_RemoveAttacker( slave->bact );
                     
+            /*** als Bordflak abmelden ***/
+            yw_DisConnectFromRobo( ywd, slave );
+            
             /*** Als tot markieren, weil dispose auch DIE verwendet ***/
             slave->bact->ExtraState |= EXTRA_LOGICDEATH;
 
@@ -239,6 +242,9 @@ void yw_RemoveAllShadows( struct ypaworld_data *ywd, struct OBNode *robo )
         /*** Von Angreifern abmelden ***/
         yw_RemoveAttacker( com->bact );
 
+        /*** als Bordflak abmelden ***/
+        yw_DisConnectFromRobo( ywd, com );
+            
         /*** Als tot markieren, weil dispose auch DIE verwendet ***/
         com->bact->ExtraState |= EXTRA_LOGICDEATH;
 
@@ -279,8 +285,10 @@ void yw_RemovePlayerStuff( struct ypaworld_data *ywd, char *name,
         /*** Aus seinem Namen Owner ermitteln ***/
         found = FALSE;
         for( i = 0; i < 8; i++ ) {
-
-            if( stricmp( ywd->gsr->player[ i ].name, name ) == 0 ) {
+        
+            /*** Er sollte natuerlich noch nicht tot sein... ***/
+            if( (stricmp( ywd->gsr->player[ i ].name, name ) == 0) &&
+                (ywd->gsr->player[ i ].was_killed == 0) ){
                 owner = (UBYTE) i;
                 found = TRUE;
                 break;
@@ -304,9 +312,9 @@ void yw_RemovePlayerStuff( struct ypaworld_data *ywd, char *name,
     yw_RemoveAllShadows( ywd, robo );
 
     /*** Diesen Player für das Spiel (nicht bloß inner Engine) abmelden ***/
-    ywd->gsr->player[ owner ].name[0]    = 0;
+    //ywd->gsr->player[ owner ].name[0]    = 0;
 
-    ywd->gsr->player[ owner ].was_killed = 1;
+    ywd->gsr->player[ owner ].was_killed = WASKILLED_NORMAL | WASKILLED_SHOWIT;
 }
 
 
@@ -427,6 +435,14 @@ BOOL yw_PlayersInGame( struct ypaworld_data *ywd )
                 _methoda( ywd->world, YWM_SENDMESSAGE, &sm );
 
                 yw_DestroyPlayer( ywd, rp.name );
+                
+                /*** Als fehler kennzeichnen, wenn ich nicht schon raus bin! ***/
+                if( NETWORKTROUBLE_KICKOFF_YOU != ywd->gsr->network_trouble ) {
+                  
+                    strcpy( ywd->gsr->network_trouble_name, rp.name );
+                    ywd->gsr->network_trouble       = NETWORKTROUBLE_KICKOFF_PLAYER;
+                    ywd->gsr->network_trouble_count = KICKOFF_PLAYER_COUNT;
+                    }
 
                 yw_NetLog(">>> I have kicked off %s because I didn't heard anything after loading (time %d)\n",
                            rp.name, ywd->TimeStamp/1000 );
@@ -490,6 +506,7 @@ BOOL yw_PlayersOK( struct ypaworld_data *ywd)
 {
     struct getplayerdata_msg gpd;
     int i;
+    BOOL problems = FALSE;
 
     /* -------------------------------------------------------------
     ** Ich teste in einer Schleife alle Spieler, deren Namen ich von
@@ -533,7 +550,7 @@ BOOL yw_PlayersOK( struct ypaworld_data *ywd)
 
             /*** Nun mal gucken ***/
             if( ywd->netgamestartet &&
-                (ywd->TLMsg.global_time - pd->lastmsgtime > 2000) ) {
+                (ywd->TLMsg.global_time - pd->lastmsgtime > 4000) ) {
 
                 /*** Datenrate reduzieren, um anderen nicht zuzumüllen ***/
                 REDUCE_DATA_RATE = TRUE;
@@ -576,6 +593,14 @@ BOOL yw_PlayersOK( struct ypaworld_data *ywd)
                     /*** ... dann rausschmeißen, den Arsch. ***/
                     rp.generic.owner      = owner;
                     rp.generic.message_id = YPAM_REMOVEPLAYER;
+                    
+                    /*** nur wenn ich nicht schon rausgeschmissen wurde ***/
+                    if( NETWORKTROUBLE_KICKOFF_YOU != ywd->gsr->network_trouble ) {
+                    
+                        strcpy( ywd->gsr->network_trouble_name, rp.name );
+                        ywd->gsr->network_trouble       = NETWORKTROUBLE_KICKOFF_PLAYER;
+                        ywd->gsr->network_trouble_count = KICKOFF_PLAYER_COUNT;
+                        }
 
                     /* -------------------------------------------------
                     ** Ich schicke an den Player ein REMOVE und dessen
@@ -597,55 +622,47 @@ BOOL yw_PlayersOK( struct ypaworld_data *ywd)
                     ** --------------------------------------------*/
                     yw_DestroyPlayer( ywd, rp.name );
 
-                    /*** Meldung ***/
-                    sprintf( text, "%s %s", ypa_GetStr( GlobalLocaleHandle,
-                             STR_NET_REMOVEPLAYER, "TROUBLE! REMOVE PLAYER "),
-                             rp.name );
-                    log.pri  = 10;
-                    log.msg  = text;
-                    log.bact = NULL;
-                    log.code = 0;
-                    _methoda( ywd->world, YWM_LOGMSG, &log );
-
                     yw_NetLog(">>> I have kicked off %s because I haven't heard anything for %d sec (at time %d)\n",
                                rp.name, ywd->gsr->kickoff_time / 1000, ywd->TimeStamp/1000 );
+                    problems = TRUE;
                     }
 
                 /*** Nicht Host... ***/
-                if( (ywd->TLMsg.global_time - pd->lastmsgtime > 20000) &&
+                if( (ywd->TLMsg.global_time - pd->lastmsgtime > WAITINGFORPLAYER_TIME) &&
                     (!ywd->gsr->is_host) ) {
 
-                    /* ---------------------------------------------------
+                    /* -------------------------------------------------------
                     ** Wenn ich nicht Host bin, sollte ich zumindest eine
-                    ** Meldung bringen, daß es probleme bringt (aller 10s)
-                    ** -------------------------------------------------*/
-                    if( ( ywd->TimeStamp / 10000) !=
-                        ((ywd->TimeStamp - ywd->TLMsg.frame_time)/10000) ) {
-
-                        char   text[ 200 ];
-                        struct logmsg_msg log;
-
-                        sprintf( text, "%s %s", ypa_GetStr( GlobalLocaleHandle,
-                                 STR_NET_NOCONNECTION, "NO CONNECTION TO PLAYER "),
-                                 pd->name );
-                        log.pri  = 10;
-                        log.msg  = text;
-                        log.bact = NULL;
-                        log.code = 0;
-                        _methoda( ywd->world, YWM_LOGMSG, &log );
+                    ** Meldung bringen, daß es probleme bringt.
+                    ** Namen und Zeiten koennen aus dem Array genommen werden.
+                    ** Wenn natuerlich gerade ein Rausschmissverfahren laeuft,
+                    ** dann nicht! 
+                    ** -----------------------------------------------------*/
+                    if( (NETWORKTROUBLE_KICKOFF_PLAYER != ywd->gsr->network_trouble) &&
+                        (NETWORKTROUBLE_KICKOFF_YOU    != ywd->gsr->network_trouble) ) {
+                         
+                        ywd->gsr->network_trouble       = NETWORKTROUBLE_WAITINGFORPLAYER;
+                        ywd->gsr->network_trouble_count = 10; // nicht runterzaehlen
+                        problems = TRUE;
                         }
                     }
 
                 pd->no_answer = 1;
                 }
-            else
+            else {
+            
                 pd->no_answer = 0;
+                }
             }
         else yw_NetLog("Warning: No Playerdata for player %s in PlayersOK() (%ds)\n",
                       gpd.name, ywd->TimeStamp / 1000 );
 
         gpd.number++;
         }
+        
+    if( (ywd->gsr->network_trouble == NETWORKTROUBLE_WAITINGFORPLAYER) &&
+        (FALSE == problems) )
+        ywd->gsr->network_trouble = NETWORKTROUBLE_NONE;
 
     /*** vorerst... ***/
     return( TRUE );
@@ -664,9 +681,16 @@ void yw_CheckLatency( struct ypaworld_data *ywd )
     ** gehen als durch die Leitung passen. Dann sollte das Spiel
     ** gestoppt werden, um all die daten abzuarbeiten.
     ** ------------------------------------------------------------*/
+    BOOL ok_for_test;
+    
+    if( (NETWORKTROUBLE_NONE    == ywd->gsr->network_trouble) ||
+        (NETWORKTROUBLE_LATENCY == ywd->gsr->network_trouble))
+        ok_for_test = TRUE;
+    else
+        ok_for_test = FALSE;
     
     if( (ywd->gsr->latency_check <= 0) &&
-        (ywd->gsr->is_host) ) {
+        (ywd->gsr->is_host) && (ok_for_test)) {
     
         struct ypamessage_requestlatency rl;
         struct sendmessage_msg sm;
@@ -777,6 +801,46 @@ void yw_HandleNetworkTrouble( struct ypaworld_data *ywd )
                 }
                                        
             break;
+            
+        case NETWORKTROUBLE_KICKOFF_YOU:
+        
+            /*** Die Anzeige erfolgt in der NetzStatusanzeige ***/
+            ywd->gsr->network_trouble_count -= ywd->TLMsg.frame_time;            
+            
+            /*** Schon fertig? ***/
+            if( ywd->gsr->network_trouble_count < 0 ) {
+            
+                /*** nun alles freigeben ***/
+                yw_RemovePlayerStuff( ywd, NULL, ywd->gsr->network_trouble_owner, 1 );
+                yw_DestroyPlayer( ywd, ywd->gsr->network_trouble_name );
+                ywd->Level->Status = LEVELSTAT_ABORTED;
+                ywd->gsr->network_trouble = NETWORKTROUBLE_NONE;
+                }
+            break;
+            
+            
+        case NETWORKTROUBLE_KICKOFF_PLAYER:
+        
+            /*** nur runterzaehlen... ***/
+            ywd->gsr->network_trouble_count -= ywd->TLMsg.frame_time;            
+            if( ywd->gsr->network_trouble_count < 0 ) {
+            
+                ywd->gsr->network_trouble = NETWORKTROUBLE_NONE;
+            
+                /* ------------------------------------------------------------
+                ** Es wurden die angezeigt, deren Flag WASKILLED_SHOWIT gesetzt
+                ** ist. Die sollen beim naechsten problem natuerlich nicht
+                ** gezeigt werden. Deshalb Flag ruecksetzen.
+                ** ----------------------------------------------------------*/
+                for( i = 0; i < MAXNUM_OWNERS; i++ )
+                    ywd->gsr->player[ i ].was_killed &= (UBYTE)(~WASKILLED_SHOWIT);
+                }    
+            break;
+            
+        case NETWORKTROUBLE_WAITINGFORPLAYER:
+        
+            /*** nicht runterzaehlen, denn das problem bleibt ja ***/
+            break;
         }
 }
 
@@ -858,7 +922,7 @@ void yw_HandleNetMessages( struct ypaworld_data *ywd )
         update_time = GSR->update_time_normal;
 
     if( ((ywd->TimeStamp - ywd->update_time) > update_time ) &&
-        (FALSE == GSR->network_trouble) ) {
+        (NETWORKTROUBLE_LATENCY != GSR->network_trouble) ) {
 
         struct sendmessage_msg sm;
         struct ypamessage_vehicledata_i vdm_i, *vdm;
@@ -2900,48 +2964,60 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
 
         case YPAM_REMOVEPLAYER:
 
-            /* ----------------------------------------------------------
-            ** Ein Player wird abgemeldet. Da gibt es eigentlich eine
-            ** Systemmessage, das Problem geht aber dann los, wenn die
-            ** Entscheidung jemand anderes trifft, zum beispiel, wenn der
-            ** Spieler (vielleicht auch bloß scheinbar) abgestürzt ist.
-            ** Genau dafür nehmen wir das Zeug.
-            ** --------------------------------------------------------*/
+            /* ------------------------------------------------------------
+            ** Ein Player wird abgemeldet. Das kann auch der eigene sein, 
+            ** wenn der Host mich rausschmeisst. Ist es ein Fremder, raeume
+            ** ich sofort auf, ansonsten setze ich ihn nur auf tot, damit
+            ** er keine Messages mehr sendet und empfaengt und gehe dann
+            ** in eine Warteschleife, die von HandleNetworkTrouble bearbei-
+            ** tet wird, um dem Spieler noch mal kurz zu zeigen, dass er im
+            ** arsch ist.
+            ** ----------------------------------------------------------*/
             rp = (struct ypamessage_removeplayer *)( rm->data );
             size = sizeof( struct ypamessage_removeplayer );
             if( ywd->gsr->player[ owner ].was_killed ) break;
+            
+            /*** daten merken ***/
+            ywd->gsr->network_trouble_owner = rp->generic.owner;
+            strcpy( ywd->gsr->network_trouble_name, rp->name );
 
-            /*** Dreck wegräumen ***/
-            yw_RemovePlayerStuff( ywd, NULL, rp->generic.owner, 1 );
-
-            /* ----------------------------------------------------
-            ** Abknallen.
-            ** Auch wenn der Wirtsrechner eine Message an alle noch
-            ** einmal losschickt, das ist egal, weil keiner weiß,
-            ** ob er überhaupt noch ordnungsgemäß funktioniert.
-            ** --------------------------------------------------*/
-            yw_DestroyPlayer( ywd, rp->name );
-
-            sprintf( text, "%s %s", rp->name,  ypa_GetStr( GlobalLocaleHandle,
-                     STR_NET_REMOVEPLAYER, " LEFT THE GAME") );
-            log.pri  = 10;
-            log.msg  = text;
-            log.bact = NULL;
-            log.code = 0;
-            _methoda( ywd->world, YWM_LOGMSG, &log );
-
-            /*** Wenn eigener Player-> Spiel beenden ***/
             if( stricmp( rp->name, ywd->gsr->NPlayerName ) == 0 ) {
-                ywd->Level->Status = LEVELSTAT_ABORTED;
-                yw_NetLog(">>> I was kicked off by the host! (time %d)\n",
-                           ywd->TimeStamp/1000);
+            
+                /*** nur anschieben ***/
+                ywd->gsr->player[ owner ].was_killed = TRUE;
+                ywd->gsr->dont_send                  = TRUE;
+                
+                ywd->gsr->network_trouble       = NETWORKTROUBLE_KICKOFF_YOU;
+                ywd->gsr->network_trouble_count = KICKOFF_YOU_COUNT;
                 }
             else {
-
-                yw_NetLog(">>> Host told me he has kicked off %s (time %d)\n",
-                           rp->name, ywd->TimeStamp/1000 );
+                        
+                /*** Dreck wegräumen ***/
+                yw_RemovePlayerStuff( ywd, NULL, rp->generic.owner, 1 );
+    
+                /* ----------------------------------------------------
+                ** Abknallen.
+                ** Auch wenn der Wirtsrechner eine Message an alle noch
+                ** einmal losschickt, das ist egal, weil keiner weiß,
+                ** ob er überhaupt noch ordnungsgemäß funktioniert.
+                ** --------------------------------------------------*/
+                yw_DestroyPlayer( ywd, rp->name );
+                
+                if( NETWORKTROUBLE_KICKOFF_YOU != ywd->gsr->network_trouble ) {
+                
+                    ywd->gsr->network_trouble       = NETWORKTROUBLE_KICKOFF_PLAYER;
+                    ywd->gsr->network_trouble_count = KICKOFF_PLAYER_COUNT;
+                    }
                 }
 
+            /*** Wenn eigener Player-> Spiel beenden ***/
+            if( stricmp( rp->name, ywd->gsr->NPlayerName ) == 0 ) 
+                yw_NetLog(">>> I was kicked off by the host! (time %d)\n",
+                           ywd->TimeStamp/1000);
+            else 
+                yw_NetLog(">>> Host told me he has kicked off %s (time %d)\n",
+                           rp->name, ywd->TimeStamp/1000 );
+ 
             break;
 
         case YPAM_GEM:

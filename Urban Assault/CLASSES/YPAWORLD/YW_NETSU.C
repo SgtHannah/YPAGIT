@@ -240,6 +240,8 @@ _dispatcher( ULONG, yw_YWM_SENDMESSAGE, struct sendmessage_msg *sm )
 */
 
     struct ypaworld_data *ywd = INST_DATA( cl, o );
+    
+    if( ywd->gsr->dont_send ) return( 0L );
 
     /*** lokale Abschußzeit ***/
     ((struct ypamessage_generic *)(sm->data))->timestamp    = ywd->TimeStamp;
@@ -780,7 +782,8 @@ void yw_DrawNetworkStatusInfo( struct ypaworld_data *ywd )
     struct VFMFont *font;
     struct rast_text rt;
     BOOL    draw_something = FALSE;
-    char   t[300];
+    char   t[16][300];
+    int     draw_lines, i, j;
 
     str  = buffer;
     font = ywd->Fonts[ FONTID_TYPE_PS ];
@@ -813,21 +816,75 @@ void yw_DrawNetworkStatusInfo( struct ypaworld_data *ywd )
     
     /*** neues System ***/
     if( ywd->gsr->network_trouble ) {
-    
+
+        draw_something = TRUE;
+
         switch( ywd->gsr->network_trouble ) {
-        
+                
             case NETWORKTROUBLE_LATENCY:
             
-                draw_something = TRUE;
-                if( ywd->gsr->is_host )
-                    sprintf( t, "%s %d\0", ypa_GetStr( GlobalLocaleHandle, STR_YPAERROR_HOSTLATENCY,
-                             "HOST: LATENCY PROBLEMS. PLEASE WAIT! "), 
+                if( ywd->gsr->is_host ) {
+                    sprintf( t[0], "%s\0", ypa_GetStr( GlobalLocaleHandle, STR_YPAERROR_HOSTLATENCY1,
+                             "HOST: LATENCY PROBLEMS.")); 
+                    sprintf( t[1], "%s %d\0", ypa_GetStr( GlobalLocaleHandle, STR_YPAERROR_HOSTLATENCY2,
+                             "PLEASE WAIT"), 
                              ywd->gsr->network_trouble_count);
-                else
-                     sprintf( t, "%s %d\0", ypa_GetStr( GlobalLocaleHandle, STR_YPAERROR_CLIENTLATENCY,
-                             "CLIENT: LATENCY PROBLEMS. PLEASE WAIT! "), 
+                    }
+                else {
+                     sprintf( t[0], "%s\0", ypa_GetStr( GlobalLocaleHandle, STR_YPAERROR_CLIENTLATENCY1,
+                             "CLIENT: LATENCY PROBLEMS.")); 
+                     sprintf( t[1], "%s %d\0", ypa_GetStr( GlobalLocaleHandle, STR_YPAERROR_CLIENTLATENCY2,
+                             "PLEASE WAIT"), 
                              ywd->gsr->network_trouble_count);
-                   
+                    }
+                
+                draw_lines = 2;
+                             
+                break;
+                
+            case NETWORKTROUBLE_KICKOFF_YOU:
+            
+                sprintf( t[0], "%s",  ypa_GetStr( GlobalLocaleHandle,
+                     STR_YPAERROR_KICKOFF_YOU1, "YOU ARE KICKED OFF BECAUSE NETTROUBLE") );
+                sprintf( t[1], "%s %d\0", ypa_GetStr( GlobalLocaleHandle, STR_YPAERROR_KICKOFF_YOU2,
+                         "LEVEL FINISHES AUTOMATICALLY"), 
+                         ywd->gsr->network_trouble_count/1000);
+                         
+                draw_lines = 2;
+                break;
+                
+            case NETWORKTROUBLE_KICKOFF_PLAYER:
+            
+                sprintf( t[0], "%s", ypa_GetStr( GlobalLocaleHandle,
+                     STR_YPAERROR_KICKOFF_PLAYER1, "FOLLOWING PLAYERES WERE REMOVED") );
+                sprintf( t[1], "%s\0", ypa_GetStr( GlobalLocaleHandle, STR_YPAERROR_KICKOFF_PLAYER2,
+                         "BECAUSE THEY HAD NETWORK PROBLEMS"));
+                j = 2;
+                for( i = 0; i < MAXNUM_OWNERS; i++ ) {
+                
+                    if( ywd->gsr->player[ i ].was_killed & WASKILLED_SHOWIT ) {
+                        strcpy( t[j++], ywd->gsr->player[ i ].name );
+                        }
+                    }
+                    
+                draw_lines = j;          
+                break;
+                
+            case NETWORKTROUBLE_WAITINGFORPLAYER:
+            
+                sprintf( t[0], "%s",  ypa_GetStr( GlobalLocaleHandle,
+                     STR_YPAERROR_WAITINGFORPLAYER1, "NO CONNECTION TO FOLLOWING PLAYERS") );
+                sprintf( t[1], "%s\0", ypa_GetStr( GlobalLocaleHandle, STR_YPAERROR_WAITINGFORPLAYER2,
+                         "FINISH IF PROBLEM CANNOT NE SOLVED"));
+                
+                j = 2;
+                for( i = 0; i < MAXNUM_OWNERS; i++ ) {
+                    if( ((ywd->TLMsg.global_time - ywd->gsr->player[i].lastmsgtime) > WAITINGFORPLAYER_TIME) &&
+                        (ywd->gsr->player[i].ready_to_play) &&
+                        (stricmp(ywd->gsr->player[i].name, ywd->gsr->NPlayerName) != 0))  
+                        strcpy( t[j++],ywd->gsr->player[i].name );
+                    }              
+                draw_lines = j;
                 break;
             }    
         }
@@ -837,31 +894,32 @@ void yw_DrawNetworkStatusInfo( struct ypaworld_data *ywd )
         if( ywd->gsr->network_allok_count > 0 ) {
         
             draw_something = TRUE;
+            draw_lines     = 1;
                 
             switch( ywd->gsr->network_allok ) {
             
                 case ENDTROUBLE_ALLOK:
                 
-                    strcpy( t, ypa_GetStr( GlobalLocaleHandle, STR_YPAERROR_ALLOK,
+                    strcpy( t[0], ypa_GetStr( GlobalLocaleHandle, STR_YPAERROR_ALLOK,
                                "NETWORK IS NOW OK" ));
                     break;
                     
                 case ENDTROUBLE_TIMEDOUT:
                 
-                    strcpy( t, ypa_GetStr( GlobalLocaleHandle, STR_YPAERROR_TIMEDOUT,
+                    strcpy( t[0], ypa_GetStr( GlobalLocaleHandle, STR_YPAERROR_TIMEDOUT,
                                "THERE WAS NO CHANCE TO SOLVE THIS PROBLEM" ));
                     break;
                     
                 case ENDTROUBLE_UNKNOWN:
                     
                     /*** Loesung hat keinen speziellen Text ***/
-                    strcpy( t, " ");
+                    strcpy( t[0], " ");
                     draw_something = FALSE;
                     break;
                     
                 default:
                 
-                    strcpy( t,"???");
+                    strcpy( t[0],"???");
                     break;
                 }
             }
@@ -878,7 +936,7 @@ void yw_DrawNetworkStatusInfo( struct ypaworld_data *ywd )
         new_font( str, FONTID_DEFAULT );
         breite = ywd->DspXRes/2;
         xpos   = (ywd->DspXRes - breite)/2 - (ywd->DspXRes>>1);
-        ypos   = 10 - (ywd->DspYRes>>1);
+        ypos   = 12 - (ywd->DspYRes>>1);
         pos_abs(str, xpos, ypos);                
         
         h = ypa_GetStr( GlobalLocaleHandle, STR_YPAERROR_NETSTATUS, "NETZWERKSTATUS");
@@ -886,27 +944,30 @@ void yw_DrawNetworkStatusInfo( struct ypaworld_data *ywd )
         /*** Erste zeile mit Überschrift ***/
         str = yw_BuildReqTitle( ywd, xpos, ypos, breite,  h, str, 0, 0 );
         new_line( str );
-
-        /*** Zeile mit Message ***/
         new_font( str, FONTID_DEFAULT );
-        put( str, '{' );
-        
-        #ifdef __DBCS__
-        freeze_dbcs_pos( str );
-        #else
-        str = yw_StpCpy( t, str );
-        #endif
-        
-        lstretch_to( str, breite - fnt->fchars[ '}' ].width);
-        put( str, ' ');
-        put( str, '}'); 
-        
-        /*** jetzt erst den DBCS-Text ***/
-        #ifdef __DBCS__
-        put_dbcs( str, breite - 2 * fnt->fchars[ 'W' ].width, DBCSF_CENTER, t );
-        #endif
-        new_line( str );
 
+        /*** Zeilen mit Messages ***/
+        for( i = 0; i < draw_lines; i++ ) {
+        
+            put( str, '{' );
+            
+            #ifdef __DBCS__
+            freeze_dbcs_pos( str );
+            #else
+            str = yw_StpCpy( t[i], str );
+            #endif
+            
+            lstretch_to( str, breite - fnt->fchars[ '}' ].width);
+            put( str, ' ');
+            put( str, '}'); 
+            
+            /*** jetzt erst den DBCS-Text ***/
+            #ifdef __DBCS__
+            put_dbcs( str, breite - 2 * fnt->fchars[ 'W' ].width, DBCSF_CENTER, t[i] );
+            #endif
+            new_line( str );
+            }
+                        
         /*** Zeile mit abschluß ***/
         off_vert( str, fnt->height - 1 );
         put( str, 'x');

@@ -12,7 +12,7 @@ LIB
 3
 WString
 5
-n_2sn
+n_2s9
 1
 0
 1
@@ -263,10 +263,10 @@ WString
 WCC
 67
 WString
-24
-?????Full debugging info
+29
+?????No debugging information
 1
-0
+1
 68
 MRState
 69
@@ -275,10 +275,10 @@ WString
 WCC
 70
 WString
-32
-?????Full info plus unused types
+24
+?????Full debugging info
 1
-1
+0
 71
 MRState
 72

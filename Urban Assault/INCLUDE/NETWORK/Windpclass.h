@@ -178,10 +178,9 @@ DEFINE_GUID( YPA_GUID, 0x381f0620, 0xfc68, 0x11d0, 0x8a, 0xf9, 0x0,
         unsigned long sendbufferoffset; // der Füllstand des Buffers
         unsigned long guaranteed_mode;
         struct WinList recv_list;
-        unsigned long test1;
         struct WinList send_list;
-        unsigned long test2;
-        HANDLE          mevent;     // fuer receive/WaitForSingleObject
+        HANDLE          mevent;       // fuer receive/WaitForSingleObject
+        unsigned long debug;        // Flag ob ein debug script angelegt werden soll
         };
 
     /*** Die LID aus Sicht der WinBox ***/
