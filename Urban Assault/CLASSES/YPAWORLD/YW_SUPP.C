@@ -472,25 +472,13 @@ void yw_ShowDiskAccess(struct ypaworld_data *ywd)
 **  CHANGED
 **      31-May-97   floh    created
 **      17-Sep-97   floh    + CD-Player-Support
+**      18-May-98   floh    + kein CD Track mehr...
 */
 {
     UBYTE *filename;
     Object *pic;
     UBYTE old_path[128];
     struct snd_cdcontrol_msg cd;
-
-    /*** AudioTrack für Loading ***/
-    cd.command = SND_CD_STOP;
-    _ControlCDPlayer(&cd);
-    if( ywd->gsr && ywd->gsr->loadingtrack ) {
-        cd.command   = SND_CD_SETTITLE;
-        cd.para      = ywd->gsr->loadingtrack;
-        cd.min_delay = ywd->gsr->loading_min_delay;
-        cd.max_delay = ywd->gsr->loading_max_delay;
-        _ControlCDPlayer(&cd);
-        cd.command = SND_CD_PLAY;
-        _ControlCDPlayer(&cd);
-    };
 
     /*** wähle Mipmap-Stufe des Disk-Access-Bild ***/
     if (ywd->DspXRes <= 360)      filename="disk320.ilbm";
