@@ -186,6 +186,10 @@ BOOL yw_MBLoadSet(struct ypaworld_data *ywd, ULONG set_num)
 **  CHANGED
 **      18-Oct-96   floh    created
 **      15-Jan-97   floh    + Cleanup Mauspointer
+**      18-May-98   floh    + DISPM_BeginSession war hier schon
+**                            zu spaet, weil beim Triggern
+**                            generell durch das 3D-Rendering
+**                            gegangen wurde (konnte crashen)
 */
 {
     Object *gfxo;
@@ -198,7 +202,6 @@ BOOL yw_MBLoadSet(struct ypaworld_data *ywd, ULONG set_num)
     dpm.pointer = ywd->MousePtrBmp[YW_MOUSE_DISK];
     dpm.type    = DISP_PTRTYPE_DISK;
     _methoda(gfxo,DISPM_SetPointer,&dpm);
-    _methoda(gfxo,DISPM_BeginSession,NULL);
 
     /*** Set-Pfad einstellen ***/
     strcpy(old_path,_GetAssign("rsrc"));
@@ -366,6 +369,9 @@ BOOL yw_InitMissionBriefing(struct ypaworld_data *ywd, ULONG lnum)
     /*** Text Listview initialisieren ***/
     if (!yw_MBInitListView(ywd)) return(FALSE);    
     
+    /*** Texturcache flushen ***/    
+    _methoda(ywd->GfxObject,DISPM_BeginSession,NULL);
+
     /*** aktuelle Level-Info-Struktur sichern ***/
     mb->LevelBackup   = *ywd->Level;
     mb->Status        = MBSTATUS_INVALID;
