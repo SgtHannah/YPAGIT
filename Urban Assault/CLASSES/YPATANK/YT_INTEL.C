@@ -1671,11 +1671,13 @@ _dispatcher( BOOL, yt_YBM_TESTSECTARGET, struct Bacterium *b )
     ** Ziele hinter Abgründen, die nicht zu mir kommen koennen,
     ** nicht bearbeiten.
     ** DiagonalSektoren
+    ** NEU: Tanks ignorieren nun alle Nebenziele, die sie
+    ** nicht erreichen koennen!
     ** ------------------------------------------------------*/
-    if( (BCLID_YPAGUN  == b->BactClassID) ||
-        (BCLID_YPACAR  == b->BactClassID) ||
-        (BCLID_YPATANK == b->BactClassID) ||
-        (BCLID_YPAROBO == b->BactClassID) ) {
+//    if( (BCLID_YPAGUN  == b->BactClassID) ||
+//        (BCLID_YPACAR  == b->BactClassID) ||
+//        (BCLID_YPATANK == b->BactClassID) ||
+//        (BCLID_YPAROBO == b->BactClassID) ) {
 
         /*** DiagonalSektoren unterscheiden ***/
         if( (ytd->bact->SectX != b->SectX) &&
@@ -1728,7 +1730,7 @@ _dispatcher( BOOL, yt_YBM_TESTSECTARGET, struct Bacterium *b )
             if( hdist >= SPV_WallHeight )
                 return( FALSE );
             }
-        }
+//        }
 
     return( TRUE );
 }

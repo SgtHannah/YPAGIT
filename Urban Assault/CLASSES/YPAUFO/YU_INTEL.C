@@ -310,9 +310,9 @@ _dispatcher(void, yu_YBM_AI_LEVEL3, struct trigger_logic_msg *msg)
                     }
 
                 /*** und tschüß ***/
-                return;
+//                return;
                 }
-            else {
+//            else {
 
                 /* ---------------------------------------------------------
                 ** Also normal weiter. Wenn wir gerade ein Ausweichmanöver 
@@ -442,7 +442,7 @@ _dispatcher(void, yu_YBM_AI_LEVEL3, struct trigger_logic_msg *msg)
                             }
                         }
                     }
-                }
+//                }
 
 
             /*** Fight fire with fire ***/
