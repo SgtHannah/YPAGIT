@@ -227,7 +227,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
         ip->Slider[0] += ip->Slider[10]; // Flugrichtung
         ip->Slider[1] += ip->Slider[11]; // Flughöhe
         ip->Slider[3] += ip->Slider[10]; // Fahrrichtung
-        ip->Slider[5] -= (ip->Slider[11]*2.5);  // -> Kanone hoch runter!!!
+        ip->Slider[5] -= (ip->Slider[11]*1.5);  // -> Kanone hoch runter!!!
         ip->Slider[4] += ip->Slider[2];  // Fahrspeed-Hack
 
         if (ci->flags & CIF_MOUSEHOLD)  ip->Buttons |= (1<<0);  // Fire

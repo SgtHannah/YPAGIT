@@ -1142,7 +1142,7 @@ void yw_SendCheckSum( struct ypaworld_data *ywd, ULONG levelnum )
     checksum += yw_CheckSumOfThisFile( "data:scripts/net_bldg.scr");
     checksum += yw_CheckSumOfThisFile( "data:scripts/flaks.scr");
     checksum += yw_CheckSumOfThisFile( "data:scripts/net_ypa.scr");
-    checksum += yw_CheckSumOfThisFile( "data:scripts/inet_robo.scr");
+    checksum += yw_CheckSumOfThisFile( "data:scripts/inetrobo.scr");
     
     sprintf( lt, "levels:multi/L%02d%02d.ldf", levelnum, levelnum );
     checksum += yw_CheckSumOfThisFile( lt );

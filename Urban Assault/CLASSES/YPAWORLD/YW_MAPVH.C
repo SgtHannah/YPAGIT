@@ -1529,6 +1529,8 @@ void yw_RenderMapVehicles(struct ypaworld_data *ywd)
 **      05-Jul-97   floh    + in größter Zoomstufe wieder Vehikel-Icons
 **      17-Jul-97   floh    + Overlay-Cursors werden jetzt vor den Vehicles
 **                            gerendert
+**      23-Jun-98   floh    + Sonderfall, falls Viewer in einer Robo-Flak
+**                            sitzt, wird diese nicht mehr ignoriert
 */
 {
     LONG sz_shift;
@@ -1632,12 +1634,13 @@ void yw_RenderMapVehicles(struct ypaworld_data *ywd)
                             new_font(str,font_id);
                             num_chars++;
                         } else {
-                            /*** Robo-Flaks ignorieren ***/
+                            /*** Robo-Flaks, in denen kein User sitzt, ignorieren ***/
                             if (BCLID_YPAGUN == b->BactClassID) {
                                 /*** isses eine Robo-Flak? ***/
                                 struct ypagun_data *yd;
                                 yd = INST_DATA( ((struct nucleusdata *)b->BactObject)->o_Class,b->BactObject);
-                                if (!(yd->flags & GUN_RoboGun)) {
+                                if ((!(yd->flags & GUN_RoboGun)) || (b == ywd->UVBact)) 
+                                {
                                     /*** es isset keine, also rendern ***/
                                     str = yw_RenderMapBact(ywd,str,char_width,
                                     char_height,b,do_type_icon);
@@ -1725,6 +1728,8 @@ void yw_RenderRadarVehicles(struct ypaworld_data *ywd)
 **      04-May-98   floh    + Radar rendert jetzt nur noch max.
 **                            512 Vehikel, um einen Bufferueberlauf zu 
 **                            verhindern
+**      23-Jun-98   floh    + falls User in Robo-Flak sitzt, wird diese
+**                            jetzt gerendert
 */
 {
     LONG sec_x, sec_y, end_x, end_y, store_sec_x;
@@ -1824,7 +1829,8 @@ void yw_RenderRadarVehicles(struct ypaworld_data *ywd)
                                 /*** isses eine Robo-Flak? ***/
                                 struct ypagun_data *yd;
                                 yd = INST_DATA( ((struct nucleusdata *)b->BactObject)->o_Class, b->BactObject);
-                                if (!(yd->flags & GUN_RoboGun)) {
+                                if ((!(yd->flags & GUN_RoboGun)) || (b == ywd->UVBact))
+                                { 
                                     /*** es isset keine, also rendern ***/
                                     if (!is_clipped) {
                                         str = yw_RenderMapBact(ywd,str,char_width,

@@ -551,8 +551,10 @@ long FAR PASCAL wdd_WinProc(HWND hWnd, UINT message,
                 /*** App wird aktiviert ***/
 				GetWindowRect(hWnd, &r);
 				ClipCursor(&r);
+                if (wdd) {
+                    wdd_CheckLostSurfaces(wdd);
+                };
 			} else {
-                /*** App wird deaktiviert ***/
 				ClipCursor(NULL);
                 /*** invalidiere Back-Ptr ***/
                 if (wdd && wdd->back_ptr) {

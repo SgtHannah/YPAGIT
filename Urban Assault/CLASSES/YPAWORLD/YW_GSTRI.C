@@ -5501,12 +5501,15 @@ void yw_EAR_Save( struct GameShellReq *GSR )
                 if( entry.attrs & NCDIR_DIRECTORY )
                     continue;
 
+                // FIXME_FLOH: TipOfTheDay File mitkopieren
                 if( strstr( entry.name, ".sgm") ||
                     strstr( entry.name, ".SGM") ||
                     strstr( entry.name, ".rst") ||
                     strstr( entry.name, ".RST") ||
                     strstr( entry.name, ".fin") ||
-                    strstr( entry.name, ".FIN") ) {
+                    strstr( entry.name, ".FIN") ||
+                    strstr( entry.name, ".def") ||
+                    strstr( entry.name, ".DEF") ) {
 
                     /* -------------------------------------------------
                     ** nach D_Name kopieren. Weil wir sowas nicht haben,
