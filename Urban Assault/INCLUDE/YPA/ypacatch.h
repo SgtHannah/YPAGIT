@@ -44,6 +44,7 @@ struct ypa_EventLoopItem {
 #define YPAEVENTTYPE_COMPLEX            (3)
 #define YPAEVENTTYPE_CYCLIC             (4)
 #define YPAEVENTTYPE_DELAYED_FIRSTHIT   (5)
+#define YPAEVENTTYPE_TERMINATE          (6)
 
 /*** Returnvalues fuer CheckEvent() ***/
 #define YPAEVENTRES_MSG     (1)

@@ -458,7 +458,6 @@ void yw_RenderQuickLog(struct ypaworld_data *ywd)
     struct drawtext_args dt;
     LONG time_diff, time_stamp;
     ULONG first_hit = FALSE;
-    // old: WORD xpos = ywd->DspXRes/5;
     WORD xpos = 16;
     
     /*** Netzwerk-Status-Meldungen? ***/
@@ -469,10 +468,11 @@ void yw_RenderQuickLog(struct ypaworld_data *ywd)
             UBYTE buf[512];
             switch (ywd->netplayerstatus.kind) {
                 case NPS_YOUWIN:
-                    msg     = ypa_GetStr(ywd->LocHandle,STR_NETWORK_YOUWIN,"2468 == *** VICTORY IS YOURS ***");
+                    msg  = ypa_GetStr(ywd->LocHandle,STR_NETWORK_YOUWIN,"2468 == *** VICTORY IS YOURS ***");
                     sprintf(buf,msg);                
-                    time    = 40000;
+                    time = 40000;
                     break;
+                case NPS_YOUKILLED:
                 case NPS_WASKILLED:
                 case NPS_HASDIED:
                     msg  = ypa_GetStr(ywd->LocHandle,STR_NETWORK_DEFEATED,"2469 == *** %s HAS BEEN DEFEATED ***");
@@ -480,12 +480,12 @@ void yw_RenderQuickLog(struct ypaworld_data *ywd)
                     time = 20000;
                     break;
                 default: 
-                    msg     = NULL;
-                    time    = 0;
+                    msg  = NULL;
+                    time = 0;
             };
             if (msg && ((ywd->TimeStamp - ywd->netplayerstatus.time) < time)) {
                 if ((ywd->TimeStamp / 300) & 1) {
-                    WORD ypos = ((ywd->DspYRes*2)/3);
+                    WORD ypos = ywd->DspYRes/3;
                     new_font(str,FONTID_TRACY);
                     xpos_brel(str,0);
                     ypos_brel(str,ypos);

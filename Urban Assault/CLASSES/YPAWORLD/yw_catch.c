@@ -21,7 +21,10 @@
 #include "ypa/ypacatch.h"
 #include "ypa/guimap.h"
 #include "ypa/ypaworldclass.h"
+#include "ypa/guiconfirm.h"
+#include "ypa/guiabort.h"
 
+extern struct YPAAbortReq AMR;
 extern struct YPAMapReq MR;
 
 /*-------------------------------------------------------------------
@@ -147,6 +150,21 @@ BOOL yw_CheckPowerStation(struct ypaworld_data *ywd)
         };
     };
     return(FALSE);
+}
+
+/*-----------------------------------------------------------------*/
+BOOL yw_CheckSitsOnPowerStation(struct ypaworld_data *ywd)
+/*
+**  FUNCTION
+**      Returniert TRUE, falls User-Station auf einem
+**      Kraftwerk sitzt.
+**
+**  CHANGED
+**      01-Jun-98   floh    created
+*/
+{
+    if (ywd->URBact->Sector->WType == WTYPE_Kraftwerk) return(TRUE);
+    else                                               return(FALSE);
 }
 
 /*-----------------------------------------------------------------*/
@@ -310,7 +328,25 @@ void yw_AddComplexEvent(struct ypaworld_data *ywd,
     eli->event_func  = event_func;
     eli->delay       = delay;
     eli->event_func  = event_func;
-} 
+}
+
+/*-----------------------------------------------------------------*/
+void yw_AddTerminateEvent(struct ypaworld_data *ywd,
+                          BOOL (*event_func)(struct ypaworld_data *),
+                          ULONG delay)
+/*
+**  CHANGED
+**      01-Jun-98   floh    created
+*/ 
+{
+    struct ypa_EventCatcher *ec = ywd->EventCatcher;
+    struct ypa_EventLoopItem *eli = &(ec->events[ec->num_events++]);
+    memset(eli,0,sizeof(struct ypa_EventLoopItem));
+    eli->type       = YPAEVENTTYPE_TERMINATE;
+    eli->event_func = event_func;
+    eli->delay      = delay;
+    eli->event_func = event_func;
+}
 
 /*-----------------------------------------------------------------*/
 void yw_AddLogMsg(struct ypaworld_data *ywd, ULONG lm_code)
@@ -356,7 +392,7 @@ void yw_SetEventLoop(struct ypaworld_data *ywd, ULONG loop_id)
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_CONTROL);
             yw_AddComplexEvent(ywd,yw_CheckEnemiesDestroyed,20000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_DESTROYROBO);
-            yw_AddCyclicEvent(ywd,NULL,15000);
+            yw_AddTerminateEvent(ywd,NULL,15000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_COMPLETE_1);
             break;      
         
@@ -373,24 +409,44 @@ void yw_SetEventLoop(struct ypaworld_data *ywd, ULONG loop_id)
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_OPT_AGGR);
             yw_AddComplexEvent(ywd,yw_CheckEnemiesDestroyed,13000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_DESTROYALL);
-            yw_AddCyclicEvent(ywd,NULL,15000);
+            yw_AddTerminateEvent(ywd,NULL,15000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_COMPLETE_2);
             break;
         
         case EVENTLOOP_TUTORIAL3:
-            yw_AddDelayedFirstHitEvent(ywd,NULL,5000);
+            yw_AddDelayedFirstHitEvent(ywd,NULL,3000);
                 yw_AddLogMsg(ywd,LOGMSG_NOP);
+            yw_AddDelayedFirstHitEvent(ywd,NULL,8000);
+                yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_WELCOME_3);
             yw_AddComplexEvent(ywd,yw_CheckPowerStation,20000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_POWERSTATION);
-            yw_AddComplexEvent(ywd,yw_CheckKeySectors,20000);
+                yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_PSLIGHTINGSYM);
+            yw_AddDelayedFirstHitEvent(ywd,NULL,3000);
+                yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_PSCONQUERED);
+            yw_AddComplexEvent(ywd,yw_CheckSitsOnPowerStation,15000);
+                yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_TOTELEPORT);
+                yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_TELEPORT);
+            yw_AddDelayedFirstHitEvent(ywd,NULL,3000);
+                yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_ABSORBINPROGRESS);
+            yw_AddDelayedFirstHitEvent(ywd,NULL,9000);
+                yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_INCOMINGHS);
+            yw_AddDelayedFirstHitEvent(ywd,NULL,5000);
+                yw_AddLogMsg(ywd,LOGMSG_NOP);
+            yw_AddComplexEvent(ywd,yw_CheckEnemiesDestroyed,30000);
+                yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_RESNEEDSYOU);
+                yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_ELIMINATEENEMY);
+            yw_AddDelayedFirstHitEvent(ywd,NULL,4000);
+                yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_HSDESTROYED);
+            yw_AddComplexEvent(ywd,yw_CheckKeySectors,30000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_KEYSECTORS);
-            yw_AddComplexEvent(ywd,yw_CheckBeamGate,20000);
-                yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_COMPLETE_3);
-                yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_READYFORWAR);
+            yw_AddDelayedFirstHitEvent(ywd,NULL,3000);
+                yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_BEAMGATEOPEN);
+            yw_AddDelayedFirstHitEvent(ywd,NULL,45000);
+                yw_AddLogMsg(ywd,LOGMSG_NOP);
+            yw_AddCyclicEvent(ywd,NULL,30000);
+                yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_BEAMOUTHS);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_BEAMGATE);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_HOWTOBEAM);
-            yw_AddCyclicEvent(ywd,NULL,10000);
-                yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_COMPLETE_3);
             break;
     };
 }
@@ -414,7 +470,7 @@ ULONG yw_CheckEvent(struct ypaworld_data *ywd, ULONG event_num)
     ULONG retval;
     
     /*** falls Timestamp noch nicht initialisiert, dies jetzt tun ***/
-    if (eli->timestamp == 0) eli->timestamp = 0;
+    if (eli->timestamp == 0) eli->timestamp = ywd->TimeStamp;
     
     /*** je nach Event-Type abhandeln ***/    
     if (eli->type == YPAEVENTTYPE_FIRSTHIT) {
@@ -484,6 +540,28 @@ ULONG yw_CheckEvent(struct ypaworld_data *ywd, ULONG event_num)
             if (eli->event_func(ywd)) retval = YPAEVENTRES_SKIP;
             else                      retval = YPAEVENTRES_MSG;
         } else retval = YPAEVENTRES_SKIP;
+        
+    } else if (eli->type == YPAEVENTTYPE_TERMINATE) {
+
+        LONG td = ywd->TimeStamp - eli->timestamp;
+        if (td > eli->delay) {
+            if (!eli->first_hit) {
+                eli->first_hit = TRUE;
+                if (eli->event_func) {
+                    if (eli->event_func(ywd)) retval = YPAEVENTRES_SKIP;
+                    else                      retval = YPAEVENTRES_MSG;
+                } else retval = YPAEVENTRES_MSG;
+                if (yw_CRGetStatus(ywd) != YPACR_STATUS_OPEN) {
+                    AMR.action = AMR_BTN_CANCEL;
+                    yw_OpenCR(ywd,ypa_GetStr(ywd->LocHandle,STR_CONFIRM_TUTORIALEXIT,"2470 == EXIT TUTORIAL MISSION ?"),&AMR);
+                };
+            } else {
+                retval = YPAEVENTRES_SKIP;
+            };
+        } else {
+            retval = YPAEVENTRES_BLOCK;
+        };
+        
     } else {
         retval = TRUE;
     };

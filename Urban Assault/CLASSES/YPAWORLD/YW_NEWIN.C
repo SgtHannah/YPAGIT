@@ -31,6 +31,7 @@
 #include "ypa/ypabactclass.h"
 #include "ypa/ypaflyerclass.h"
 #include "ypa/ypagunclass.h"
+#include "ypa/ypacatch.h"
 
 #include "yw_protos.h" 
 #include "yw_gsprotos.h"
@@ -1902,11 +1903,17 @@ _dispatcher(void, yw_YWM_KILLLEVEL, void *ignored)
 **                            existieren musste...
 **      28-May-98   floh    + Debriefing wird nur abgespielt, wenn
 **                            Level gewonnen, oder Multiplayer
-**      
+**      01-Jun-98   floh    + falls der Level eine Eventloop hatte, wird
+**                            er IMMER auf LEVELSTAT_ABORTED geschaltet
+**                            (passiert in yw_DoLevelStatus())
+**                                  
 */                           
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
     UBYTE   user_owner;
+
+    /*** LevelStatus-spezieller Cleanup (muss als erstes kommen!) ***/
+    yw_DoLevelStatus(ywd);
 
     /*** Wenn User gewonnen hat, Debriefing anschalten ***/ 
     if (ywd->Level->Status == LEVELSTAT_FINISHED) {
@@ -1945,9 +1952,6 @@ _dispatcher(void, yw_YWM_KILLLEVEL, void *ignored)
     if (ywd->out_seq->active) yw_RCEndScene(ywd);
     ywd->seq_digger = FALSE;
     ywd->out_seq->active = FALSE;
-
-    /*** LevelStatus-spezieller Cleanup ***/
-    yw_DoLevelStatus(ywd);
 
     /*** Anzeigen, das was passiert... ***/
     yw_ShowDiskAccess(ywd);

@@ -26,6 +26,7 @@
 #include "ypa/ypaworldclass.h"
 #include "ypa/yparoboclass.h"
 #include "ypa/ypagameshell.h"
+#include "ypa/ypacatch.h"
 
 #include "yw_protos.h"
 #include "yw_gsprotos.h"
@@ -118,6 +119,11 @@ void yw_DoLevelStatus(struct ypaworld_data *ywd)
 **                            Finished-Zustand nicht ¸berschrieben wird)
 **      23-Sep-97   floh    + yw_RestoreVehicleData() bei Abbruch
 **                            macht die Wundersteine wieder ung¸ltig
+**      01-Jun-98   floh    + falls der Level eine Eventloop hatte,
+**                            wird er nachtraeglich als ABORTED
+**                            gekennzeichnet, auch wenn er gewonnen
+**                            wurde. Die Target-Level werden aber
+**                            trotzdem aufgeschaltet...
 */
 {
     switch(ywd->Level->Status) {
@@ -134,9 +140,13 @@ void yw_DoLevelStatus(struct ypaworld_data *ywd)
                 ULONG i;
                 struct LevelNode *l = &(ywd->LevelNet->Levels[0]);
                 struct Gate *g = &(ywd->Level->Gate[ywd->Level->BeamGate]);
-
-                /*** aktuellen Level als Finished markieren ***/
-                l[ywd->Level->Num].status = LNSTAT_FINISHED;
+                
+                if (ywd->EventCatcher && (ywd->EventCatcher->event_loop_id != 0)) {
+                    ywd->Level->Status = LEVELSTAT_ABORTED;
+                } else {
+                    /*** aktuellen Level als Finished markieren ***/
+                    l[ywd->Level->Num].status = LNSTAT_FINISHED;
+                };
 
                 /*** Target-Levels aufschlieﬂen ***/
                 for (i=0; i<g->num_targets; i++) {

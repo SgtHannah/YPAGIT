@@ -64,7 +64,7 @@ void yw_VOInitSlot(struct ypaworld_data *ywd,
 {
     struct SoundSource *src = &(s->sc.src[0]);
     _InitSoundCarrier(&(s->sc));
-    src->volume = 500;
+    src->volume = 500+pri;
     src->pitch  = 0;
     if (so) {
         _get(so,SMPA_Sample,&(src->sample));
@@ -376,39 +376,37 @@ void yw_StartVoiceOver(struct ypaworld_data *ywd,
                     group=2; line=3; col1=1; col2=8; num_vars=1; break;
                     
                 case LOGMSG_EVENTMSG_CREATE:
-                    group=3; line=0; col1=0; col2=1; num_vars=1; break;
+                    group=3; line=0; col1=0; col2=1; num_vars=1; pri+=1; break;
                 case LOGMSG_EVENTMSG_CONTROL:
-                    group=3; line=0; col1=0; col2=2; num_vars=2; break;
+                    group=3; line=0; col1=0; col2=2; num_vars=2; pri+=2; break;
                 case LOGMSG_EVENTMSG_DESTROYROBO:
-                    group=3; line=0; col1=0; col2=3; num_vars=3; break;
+                    group=3; line=0; col1=0; col2=3; num_vars=3; pri+=3; break;
                 case LOGMSG_EVENTMSG_COMPLETE_1:
-                    group=3; line=0; col1=0; col2=4; num_vars=1; break;
+                    group=3; line=0; col1=0; col2=4; num_vars=1; pri+=4; break;
                     
                 case LOGMSG_EVENTMSG_MAP:
-                    group=3; line=0; col1=0; col2=5; num_vars=1; break;
+                    group=3; line=0; col1=0; col2=5; num_vars=1; pri+=1; break;
                 case LOGMSG_EVENTMSG_COMMAND:
-                    group=3; line=0; col1=0; col2=6; num_vars=1; break;                    
+                    group=3; line=0; col1=0; col2=6; num_vars=1; pri+=2; break;                    
                 case LOGMSG_EVENTMSG_OPT_CONTROL:
-                    group=3; line=0; col1=0; col2=7; num_vars=1; break;
+                    group=3; line=0; col1=0; col2=7; num_vars=1; pri+=3; break;
                 case LOGMSG_EVENTMSG_OPT_AGGR:
-                    group=3; line=0; col1=0; col2=8; num_vars=1; break;
+                    group=3; line=0; col1=0; col2=8; num_vars=1; pri+=4; break;
                 case LOGMSG_EVENTMSG_DESTROYALL:
-                    group=3; line=0; col1=0; col2=9; num_vars=1; break;
+                    group=3; line=0; col1=0; col2=9; num_vars=1; pri+=5; break;
                 case LOGMSG_EVENTMSG_COMPLETE_2:
-                    group=3; line=0; col1=1; col2=0; num_vars=1; break;
+                    group=3; line=0; col1=1; col2=0; num_vars=1; pri+=6; break;
 
                 case LOGMSG_EVENTMSG_POWERSTATION:
-                    group=3; line=0; col1=1; col2=1; num_vars=1; break;
+                    group=3; line=0; col1=1; col2=1; num_vars=1; pri+=1; break;
                 case LOGMSG_EVENTMSG_KEYSECTORS:
-                    group=3; line=0; col1=1; col2=2; num_vars=1; break;
+                    group=3; line=0; col1=1; col2=2; num_vars=1; pri+=2; break;
                 case LOGMSG_EVENTMSG_BEAMGATE:
-                    group=3; line=0; col1=1; col2=3; num_vars=1; break;
+                    group=3; line=0; col1=1; col2=3; num_vars=1; pri+=3; break;
                 case LOGMSG_EVENTMSG_HOWTOBEAM:
-                    group=3; line=0; col1=1; col2=4; num_vars=1; break;
-                case LOGMSG_EVENTMSG_COMPLETE_3:
-                    group=3; line=0; col1=1; col2=5; num_vars=1; break;
+                    group=3; line=0; col1=1; col2=4; num_vars=1; pri+=4; break;
                 case LOGMSG_EVENTMSG_READYFORWAR:
-                    group=3; line=0; col1=1; col2=6; num_vars=1; break;
+                    group=3; line=0; col1=1; col2=6; num_vars=1; pri+=5; break;
 
                 case LOGMSG_SUPERBOMB_ACTIVATED:
                     group=2; line=4; col1=1; col2=5; num_vars=1; break;                
@@ -457,6 +455,33 @@ void yw_StartVoiceOver(struct ypaworld_data *ywd,
                 
                 case LOGMSG_CHAT:
                     group=4; line=1; col1=1; col2=1; num_vars=1; break;                     
+
+                case LOGMSG_EVENTMSG_WELCOME_3:
+                    group=3; line=0; col1=1; col2=8; num_vars=1; pri+=1; break;                
+                case LOGMSG_EVENTMSG_PSLIGHTINGSYM:
+                    group=3; line=0; col1=1; col2=9; num_vars=1; pri+=2; break;
+                case LOGMSG_EVENTMSG_PSCONQUERED:
+                    group=3; line=0; col1=2; col2=0; num_vars=1; pri+=3; break;
+                case LOGMSG_EVENTMSG_TELEPORT:
+                    group=3; line=0; col1=2; col2=1; num_vars=1; pri+=4; break;
+                case LOGMSG_EVENTMSG_TOTELEPORT:
+                    group=3; line=0; col1=2; col2=2; num_vars=1; pri+=5; break;
+                case LOGMSG_EVENTMSG_ABSORBINPROGRESS:
+                    group=3; line=0; col1=2; col2=3; num_vars=1; pri+=6; break;
+                case LOGMSG_EVENTMSG_INCOMINGHS:
+                    group=3; line=0; col1=2; col2=4; num_vars=1; pri+=7; break;
+                case LOGMSG_EVENTMSG_ELIMINATEENEMY:
+                    group=3; line=0; col1=2; col2=5; num_vars=1; pri+=8; break;
+                case LOGMSG_EVENTMSG_RESNEEDSYOU:
+                    group=3; line=0; col1=2; col2=6; num_vars=1; pri+=9; break;
+                case LOGMSG_EVENTMSG_HSDESTROYED:
+                    group=3; line=0; col1=2; col2=7; num_vars=1; pri+=10; break;
+                case LOGMSG_EVENTMSG_BEAMGATEOPEN:
+                    group=3; line=0; col1=2; col2=8; num_vars=1; pri+=11; break;
+                case LOGMSG_EVENTMSG_BEAMOUTHS:
+                    group=3; line=0; col1=2; col2=9; num_vars=1; pri+=12; break;
+                case LOGMSG_EVENTMSG_COMPLETE_3:
+                    group=3; line=0; col1=3; col2=0; num_vars=1; pri+=13; break;
             };
 
             /*** nicht unterstützte abfangen ***/

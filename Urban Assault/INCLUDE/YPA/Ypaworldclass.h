@@ -2539,6 +2539,18 @@ struct logmsg_msg {
 #define LOGMSG_PARASITE_STOPPED         (92)
 #define LOGMSG_CHAT                     (93)
 
+#define LOGMSG_EVENTMSG_PSLIGHTINGSYM       (94)
+#define LOGMSG_EVENTMSG_PSCONQUERED         (95)
+#define LOGMSG_EVENTMSG_TELEPORT            (96)
+#define LOGMSG_EVENTMSG_TOTELEPORT          (97)
+#define LOGMSG_EVENTMSG_ABSORBINPROGRESS    (98)
+#define LOGMSG_EVENTMSG_INCOMINGHS          (99)
+#define LOGMSG_EVENTMSG_ELIMINATEENEMY      (100)
+#define LOGMSG_EVENTMSG_RESNEEDSYOU         (101)
+#define LOGMSG_EVENTMSG_HSDESTROYED         (102)
+#define LOGMSG_EVENTMSG_BEAMGATEOPEN        (103)
+#define LOGMSG_EVENTMSG_BEAMOUTHS           (104)
+
 struct initplayer_msg {
     UBYTE *seq_filename;        // Filename eines SEQN-Files
 };
