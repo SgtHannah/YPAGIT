@@ -413,8 +413,10 @@ void yw_DrawD3DMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
         _methoda( ywd->GfxObject, WINDDM_QueryDevice, &wdm );
 
         if( wdm.name ) {
-
-            mode_str = wdm.name;
+        
+            // FIXME FLOH: Software-Renderer Name lokalisieren 
+            if (strcmp(wdm.name,"software")==0) mode_str = ypa_GetStr(ywd->LocHandle,STR_DISPLAY_SOFTWARE,"2472 = Software");
+            else                                mode_str = wdm.name;
 
             /*** Noch im darzustellenden Bereich? ***/
             if( (item_count < (GSR->d3dmenu.ShownEntries + GSR->d3dmenu.FirstShown)) &&

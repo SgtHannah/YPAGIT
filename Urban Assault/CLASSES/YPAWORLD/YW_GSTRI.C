@@ -5145,7 +5145,7 @@ void yw_Appear3DDevice( struct GameShellReq *GSR, BOOL remotestart )
 
     struct setstring_msg ss;
     int    i;
-    char  *actual, *selname, *selguid;
+    char   *selname, *selguid;
     struct windd_device wdm;
 
     /*** Aktuelles und  gewuenschtes suchen ***/
@@ -5154,22 +5154,17 @@ void yw_Appear3DDevice( struct GameShellReq *GSR, BOOL remotestart )
     wdm.flags = 0;
     i         = 0;
     do {
-
         _methoda( GSR->ywd->GfxObject, WINDDM_QueryDevice, &wdm );
         if( wdm.name ) {
-
-            /*** Aktuelles? ***/
-            if( wdm.flags & WINDDF_IsCurrentDevice )
-                actual = wdm.name;
-
             /*** selektiertes? ***/
-            if( i == GSR->d3dmenu.Selected ) {
-                selname = wdm.name;
+            if(i == GSR->d3dmenu.Selected) {
+                if (strcmp(wdm.name,"software")==0) selname = ypa_GetStr(GSR->ywd->LocHandle,STR_DISPLAY_SOFTWARE,"2472 = Software");
+                else                                selname = wdm.name;
                 selguid = wdm.guid;
-                }
             }
+        }
         i++;
-        }  while( wdm.name );
+    } while(wdm.name);
 
     if( FALSE   == remotestart ) {
 

@@ -710,19 +710,17 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
     wdm.flags = 0;
     num_dev   = 0;
     do {
-
         _methoda( ywd->GfxObject, WINDDM_QueryDevice, &wdm );
         if( wdm.name ) {
-
             if( wdm.flags & WINDDF_IsCurrentDevice ) {
-
                 strcpy( GSR->d3dguid, wdm.guid );
-                strcpy( GSR->d3dname, wdm.name );
+                if (strcmp(wdm.name,"software")==0) strcpy(GSR->d3dname,ypa_GetStr(ywd->LocHandle,STR_DISPLAY_SOFTWARE,"2472 = Software"));
+                else                                strcpy(GSR->d3dname, wdm.name);
                 sel_dev = num_dev;
-                }
-            num_dev++;
             }
-        } while( wdm.name );
+            num_dev++;
+        }
+    } while(wdm.name);
 
     /*** Filtering und Softmouse neu setzen ***/
     if( GSR->video_flags & VF_SOFTMOUSE )
@@ -4285,7 +4283,7 @@ void yw_InitVideoList( struct GameShellReq *GSR )
     ** hat
     ** ------------------------------------------------------------*/
 
-    ULONG   i, next_id, n;
+    ULONG   next_id, n;
     struct  disp_query_msg dqm;
     struct  video_node *node;
 
@@ -4311,17 +4309,14 @@ void yw_InitVideoList( struct GameShellReq *GSR )
         if( node = _AllocVec( sizeof( struct video_node ), MEMF_CLEAR ) ) {
 
             /*** Ausfnllen ***/
+            n++;
             node->modus = dqm.id;
             node->res_x = dqm.w;
             node->res_y = dqm.h;
-
-            n++;
-            i = 0;
-            while( dqm.name[ i ] && (i < 32) ) {
-
-                node->name[ i ] = toupper( dqm.name[ i ] );
-                i++;
-                }
+                        
+            // FIXME FLOH: Name kopieren, Software Renderer lokalisieren
+            memset(node->name,0,sizeof(node->name));
+            strncpy(node->name,dqm.name,sizeof(node->name)-1);
 
             /*** Einklinken ***/
             _AddTail( (struct List *) &( GSR->videolist ),

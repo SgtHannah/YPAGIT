@@ -2109,6 +2109,8 @@ _dispatcher(ULONG, yw_YWM_ADVANCEDCREATELEVEL, struct createlevel_msg *msg)
 **                            Backup-Kopie gemacht, die fürs Mission-
 **                            Briefing verwendet wird.
 **      08-Oct-97   floh    + ExistFinalSaveGame() mit veränderten Args
+**      09-Jun-98   floh    + nach Finished-Savegames wird die Robo-Energie
+**                            auf MaxEnergie gepatcht... 
 */
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
@@ -2128,6 +2130,10 @@ _dispatcher(ULONG, yw_YWM_ADVANCEDCREATELEVEL, struct createlevel_msg *msg)
         slg.gsr  = ywd->gsr;
         retval = _methoda(o,YWM_LOADGAME,&slg);
         if (!retval) _LogMsg("Warning: in YWM_ADVANCEDCREATELEVEL: YWM_LOADGAME of %s failed!\n",name);
+        
+        /*** User-Robo-Energie auf MaxEnergie patchen ***/
+        ywd->URBact->Energy = ywd->URBact->Maximum;    
+    
     } else {
         retval = _methoda(o,YWM_CREATELEVEL,msg);
         if (!retval) _LogMsg("Warning: in YWM_ADVANCEDCREATELEVEL: YWM_CREATELEVEL %d failed!\n",msg->level_num);
