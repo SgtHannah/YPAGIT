@@ -422,6 +422,7 @@ BOOL yw_LoadFontSet(struct ypaworld_data *ywd)
 **                            "mapvhcl9.font"
 **      11-Oct-97   floh    + ywd->UpperTabu und ywd->LowerTabu wird
 **                            initialisiert
+**      20-May-98   floh    + UpperTabu nimmt jetzt Hoehe des Energy-Font
 */
 {
     struct VFMFont *fnt;
@@ -566,7 +567,7 @@ BOOL yw_LoadFontSet(struct ypaworld_data *ywd)
     ywd->IconBH = ywd->Fonts[FONTID_ICON_NB]->height;
     ywd->IconSW = ywd->Fonts[FONTID_ICON_NS]->fchars['A'].width;
     ywd->IconSH = ywd->Fonts[FONTID_ICON_NS]->height;
-    ywd->UpperTabu = ywd->IconBH;
+    ywd->UpperTabu = ywd->Fonts[FONTID_ENERGY]->height;
     ywd->LowerTabu = ywd->IconBH;
 
     /*** Phew... ***/

@@ -475,6 +475,7 @@ void yw_RenderRequesters(struct ypaworld_data *ywd)
 **      10-Oct-97   floh    + yw_RenderEB()
 **      11-Feb-98   floh    + yw_RenderSuperItemStatus()
 **      04-May-98   floh    + ueberfluessigen Code entfernt
+**      20-May-98   floh    + Text jetzt ueber Requestern
 */
 {
     struct MinList *ls = &(ywd->ReqList);
@@ -483,13 +484,7 @@ void yw_RenderRequesters(struct ypaworld_data *ywd)
 
     if (BCLID_YPAMISSY != ywd->UVBact->BactClassID) {
 
-        /*** QuickLog, HUD und Tooltips ***/
-        if (ywd->UVBact->MainState != ACTION_DEAD) {
-            yw_RenderQuickLog(ywd);
-            yw_RenderSuperItemStatus(ywd);
-        };
         yw_RenderHUD(ywd);
-        yw_RenderTooltip(ywd);
 
         /*** die "normalen" Requester ***/
         for (nd=ls->mlh_TailPred; nd->mln_Pred; nd=nd->mln_Pred) {
@@ -521,6 +516,13 @@ void yw_RenderRequesters(struct ypaworld_data *ywd)
                 if (call_hook) (*req->post_draw)(ywd);
             };
         };
+
+        /*** QuickLog, HUD und Tooltips ***/
+        if (ywd->UVBact->MainState != ACTION_DEAD) {
+            yw_RenderQuickLog(ywd);
+            yw_RenderSuperItemStatus(ywd);
+        };
+        yw_RenderTooltip(ywd);
 
         /*** StatusBar und EnergyBar zeichnen ***/
         yw_RenderEB(ywd);
