@@ -571,20 +571,49 @@ _dispatcher( BOOL, yr_YRM_EXTERNMAKECOMMAND, struct externmakecommand_msg *emc )
     struct Bacterium *bact;
     ULONG  bc;
     FLOAT  angle;
+    WORD   x, raster, count;
 
     yrd = INST_DATA( cl, o);
     wieviel = emc->number;
 
     /*** Sinnlose Werte? ***/
-    if( emc->number )
+    //if( emc->number ) was soll das?
 
     /*** Die Vehicle-Liste holen ***/
     _get( yrd->world, YWA_VehicleArray, &vp_array );
 
     /*** Commander erzeugen ***/
-    cv.x  = emc->pos.x;
-    cv.y  = emc->pos.y;
-    cv.z  = emc->pos.z;
+    x      = (WORD) nc_sqrt( emc->number ) + 2;
+    raster = 50; 
+    count  = 0;    
+    cv.y   = emc->pos.y;
+    
+    while( 1 ) {
+    
+        struct getsectorinfo_msg gsi;
+        struct intersect_msg inter;
+    
+        cv.x = emc->pos.x + (count % x - x/2) * raster;
+        cv.z = emc->pos.z + (count / x) * raster;
+        count++;
+        
+        /*** guenstige Abwurfposition ? ***/
+        gsi.abspos_x = cv.x;
+        gsi.abspos_z = cv.z;
+        _methoda( yrd->world, YWM_GETSECTORINFO, &gsi );
+        
+        inter.pnt.x = cv.x;
+        inter.pnt.y = cv.y - 10000.0;
+        inter.pnt.z = cv.z;
+        inter.vec.x = inter.vec.z = 0.0;
+        inter.vec.y = 20000.0;
+        inter.flags = INTERSECTF_CHEAT;
+        _methoda( yrd->world, YWM_INTERSECT, &inter );
+        
+        if( inter.insect && 
+            ( fabs(inter.ipnt.y - gsi.sector->Height) < 30.0) )
+            break;
+        }
 
     if( emc->varray )
         cv.vp = (UBYTE)(emc->varray[ 0 ]);
@@ -602,30 +631,69 @@ _dispatcher( BOOL, yr_YRM_EXTERNMAKECOMMAND, struct externmakecommand_msg *emc )
     bact->Owner      = yrd->bact->Owner;
     bact->CommandID  = YPA_CommandCount;
     bact->robo       = o;
-        bact->Aggression = 60;
+    bact->Aggression = 60;
     state.extra_on   = state.extra_off = 0;
     state.main_state = ACTION_NORMAL;
     _methoda( Commander, YBM_SETSTATE, &state );
     wieviel--;
+    
+    /*** bleib dort stehen ***/
+    target.priority    = 0;
+    target.target_type = TARTYPE_SECTOR;
+    target.pos.x       = cv.x;
+    target.pos.z       = cv.z;
+    _methoda( Commander, YBM_SETTARGET, &target );
+     
 
     while( wieviel ) {
-
-        /*** Positions"rauschen": Kreis, evtl. auch FORMATIONPOS ***/
-        angle = 2 * PI / wieviel;
-
-        cv.x = emc->pos.x + cos( angle ) * 100;
-        cv.z = emc->pos.z + sin( angle ) * 100;
 
         if( emc->varray )
             cv.vp = (UBYTE)(emc->varray[ wieviel ]);
         else
             cv.vp = emc->vproto;
 
+        /* ------------------------------------------------------
+        ** Rechteck mit Grundseite sqrt( anzahl)+1 mit pos in der
+        ** mitte. Von da aus nach vorn
+        ** ----------------------------------------------------*/
+        while( 1 ) {
+        
+            struct getsectorinfo_msg gsi;
+            struct intersect_msg inter;
+            BOOL    ret;
+        
+            cv.x = emc->pos.x + (count % x - x/2) * raster;
+            cv.z = emc->pos.z + (count / x) * raster;
+            count++;
+            
+            /*** guenstige Abwurfposition ? ***/
+            gsi.abspos_x = cv.x;
+            gsi.abspos_z = cv.z;
+            ret = _methoda( yrd->world, YWM_GETSECTORINFO, &gsi );
+            
+            inter.pnt.x = cv.x;
+            inter.pnt.y = cv.y - 10000.0;
+            inter.pnt.z = cv.z;
+            inter.vec.x = inter.vec.z = 0.0;
+            inter.vec.y = 20000.0;
+            inter.flags = INTERSECTF_CHEAT;
+            _methoda( yrd->world, YWM_INTERSECT, &inter );
+            
+            if( inter.insect && 
+                ret &&
+                ( fabs(inter.ipnt.y - gsi.sector->Height) < 30.0) )
+                break;
+            }
+
         if( !(Slave = (Object *) _methoda( yrd->world, YWM_CREATEVEHICLE, &cv ))) 
             break;
         
         /*** Ankoppeln ***/
         _methoda( Commander, YBM_ADDSLAVE, Slave );
+
+        target.pos.x       = cv.x;
+        target.pos.z       = cv.z;
+        _methoda( Slave, YBM_SETTARGET, &target );
 
         /*** Initialisieren ***/
         _get( Slave, YBA_Bacterium, &bact );
@@ -640,12 +708,6 @@ _dispatcher( BOOL, yr_YRM_EXTERNMAKECOMMAND, struct externmakecommand_msg *emc )
         /*** erst hier reduzieren ***/
         wieviel--;
         }
-
-    /*** Zielzuweisung ***/
-    target.target_type = TARTYPE_SECTOR;
-    target.pos         = emc->pos;
-    target.priority    = 0;
-    _methoda( Commander, YBM_SETTARGET, &target );
 
     /*** Erhöhen ***/
     YPA_CommandCount++;
