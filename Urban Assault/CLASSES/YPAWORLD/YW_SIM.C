@@ -148,6 +148,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
 **      30-Jun-98   floh    + Bugfixes am Joystick-Code
 **                          + loescht fuer eine halbe Sekunde die Feuertaste,
 **                            wenn User in ein neues Vehikel springt
+**      05-Jul-98   floh    + Missileview wieder auf Joybtn3
 */
 {
     struct ClickInfo *ci = &(ip->ClickInfo);
@@ -160,7 +161,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
     if ((ywd->TimeStamp - ywd->UserVehicleTimeStamp) < 500) ip->Buttons &= ~(BT_FIRE);    
 
     /*** Unverwundbarkeits-Flag loeschen? ***/
-    if ((ywd->TimeStamp - ywd->UserVehicleTimeStamp) > 3000) ywd->UserInvulnerable = FALSE; 
+    if ((ywd->TimeStamp - ywd->UserVehicleTimeStamp) > 5000) ywd->UserInvulnerable = FALSE; 
 
     /*** Joystick disable? ***/
     if (ywd->Prefs.valid && (ywd->Prefs.Flags & YPA_PREFS_JOYDISABLE)) {
@@ -400,6 +401,10 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
         if (ip->Buttons & (1<<17)) {
             /*** MG ***/
             ip->Buttons |= (1<<2);
+        };
+        if (ip->Buttons & (1<<18)) {
+            /*** Missileview ***/
+            ip->Buttons |= (1<<1);
         };
         if (ip->Buttons & (1<<19)) {
             /*** Brakes ***/

@@ -163,12 +163,10 @@ void winp_FailMsg(char *title, char *msg, unsigned long code)
 */
 {
     char buf[128];
-    char *err;
+    char *err = "<unknown>";
 
     if (code == DIERR_ACQUIRED)                    err = "Acquired";
-    // else if (code == DIERR_ALREADYINITIALIZED)     err = "AlreadyInitialized";
     else if (code == DIERR_BADDRIVERVER)           err = "BadDriverVer";
-    // else if (code == DIERR_BETADIRECTINPUTVERSION) err = "BetaDirectInputVersion";
     else if (code == DIERR_DEVICEFULL)             err = "DeviceFull";
     else if (code == DIERR_DEVICENOTREG)           err = "DeviceNotReg";
     else if (code == DIERR_EFFECTPLAYING)          err = "EffectPlaying";
@@ -187,11 +185,9 @@ void winp_FailMsg(char *title, char *msg, unsigned long code)
     else if (code == DIERR_NOTFOUND)               err = "NotFound";
     else if (code == DIERR_NOTINITIALIZED)         err = "NotInitialized";
     else if (code == DIERR_OBJECTNOTFOUND)         err = "ObjectNotFound";
-    // else if (code == DIERR_OLDDIRECTINPUTVERSION)  err = "OldDirectInputVersion";
     else if (code == DIERR_OTHERAPPHASPRIO)        err = "OtherAppHasPrio";
     else if (code == DIERR_OUTOFMEMORY)            err = "OutOfMemory";
     else if (code == DIERR_UNSUPPORTED)            err = "Unsupported";
-    else                
     winp_Log("FAIL MSG: title=%s, msg=%s, err=%s\n",title,msg,err);
 }    
 

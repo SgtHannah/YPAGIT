@@ -1483,10 +1483,18 @@ UBYTE *yw_RenderMapCursors(struct ypaworld_data *ywd, UBYTE *str)
             LONG act_energy = ywd->ActBeamEnergy * CREATE_ENERGY_FACTOR;
             UBYTE buf[32];
             ULONG show = TRUE;
-            LONG diff = act_energy - b_energy;
-            sprintf(buf,"%+d",diff);
-            if (diff <= 0) show = (ywd->TimeStamp / 300) & 1;
-            if (show) str = yw_MapString(ywd,buf,FONTID_LTRACY,str,g->sec_x,g->sec_y);
+            
+            // OLD: nur 1 Nummer
+            //LONG diff = act_energy - b_energy;
+            //sprintf(buf,"%+d",diff);
+            //if (diff <= 0) show = (ywd->TimeStamp / 300) & 1;
+            //if (show) str = yw_MapString(ywd,buf,FONTID_LTRACY,str,g->sec_x,g->sec_y);
+        
+            if (b_energy > act_energy) show = (ywd->TimeStamp / 300) & 1;
+            if (show) {
+                sprintf(buf, "%d / %d", b_energy, act_energy);
+                str = yw_MapString(ywd,buf,FONTID_LTRACY,str,g->sec_x,g->sec_y);
+            };
         };
     };
     
