@@ -22,8 +22,8 @@ CFG=DBCS - Win32 Debug
 !MESSAGE 
 
 # Begin Project
-# PROP Scc_ProjName ""
-# PROP Scc_LocalPath ""
+# PROP Scc_ProjName ""$/Urban Assault/LIBS/WIN", NDBAAAAA"
+# PROP Scc_LocalPath "."
 CPP=cl.exe
 
 !IF  "$(CFG)" == "DBCS - Win32 Release"
@@ -76,11 +76,39 @@ LIB32=link.exe -lib
 # Name "DBCS - Win32 Debug"
 # Begin Source File
 
+SOURCE=H:\dxmedia\include\control.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\INCLUDE\MISC\DBCS.H
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\ENGINES\DBCS\DBCSMAIN.C
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\ENGINES\DBCS\DSHOW.C
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\INCLUDE\MISC\Dshow.h
+# End Source File
+# Begin Source File
+
+SOURCE=H:\dxmedia\include\evcode.h
+# End Source File
+# Begin Source File
+
+SOURCE=H:\dxmedia\include\ksuuids.h
+# End Source File
+# Begin Source File
+
+SOURCE=H:\dxmedia\include\strmif.h
+# End Source File
+# Begin Source File
+
+SOURCE=H:\dxmedia\include\uuids.h
 # End Source File
 # End Target
 # End Project

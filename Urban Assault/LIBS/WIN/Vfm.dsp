@@ -22,8 +22,8 @@ CFG=VFM - Win32 Debug
 !MESSAGE 
 
 # Begin Project
-# PROP Scc_ProjName ""
-# PROP Scc_LocalPath ""
+# PROP Scc_ProjName ""$/Urban Assault/LIBS/WIN", NDBAAAAA"
+# PROP Scc_LocalPath "."
 CPP=cl.exe
 
 !IF  "$(CFG)" == "VFM - Win32 Release"
@@ -360,7 +360,7 @@ InputName=span_x86
 
 "$(OutDir)\$(InputName).obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	ml /c /coff /nologo /Cp /DMASM /DSTD_CALL /Zm /Fo$(OutDir)\ /Fl$(OutDir)\\
-       /FR$(OutDir)\ /Zi $(InputDir)\$(InputName).asm
+        /FR$(OutDir)\ /Zi $(InputDir)\$(InputName).asm
 
 # End Custom Build
 
@@ -374,7 +374,7 @@ InputName=span_x86
 
 "$(OutDir)\$(InputName).obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	ml /c /coff /nologo /Cp /DMASM /DSTD_CALL /Zm /Fo$(OutDir)\ /Fl$(OutDir)\\
-       /FR$(OutDir)\ /Zi $(InputDir)\$(InputName).asm
+        /FR$(OutDir)\ /Zi $(InputDir)\$(InputName).asm
 
 # End Custom Build
 

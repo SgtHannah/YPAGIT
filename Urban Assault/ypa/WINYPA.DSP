@@ -22,8 +22,8 @@ CFG=WINYPA - Win32 Debug
 !MESSAGE 
 
 # Begin Project
-# PROP Scc_ProjName ""
-# PROP Scc_LocalPath ""
+# PROP Scc_ProjName ""$/Urban Assault/YPA", YCBAAAAA"
+# PROP Scc_LocalPath "."
 CPP=cl.exe
 MTL=midl.exe
 RSC=rc.exe
