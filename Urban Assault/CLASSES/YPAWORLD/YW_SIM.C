@@ -293,7 +293,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
             {
                 if (ywd->Prefs.Flags & YPA_PREFS_JOYMODEL2) {
                     ip->Slider[4] += ip->Slider[14];    // Throttle: Speed
-                    ip->Slider[5] = ip->Slider[13];     // JoyY: Kanone hoch runter
+                    ip->Slider[5] = ip->Slider[13]*2.0;     // JoyY: Kanone hoch runter
                 } else {
                     ip->Slider[4] -= ip->Slider[13];    // JoyY: Speed
                 };
