@@ -156,7 +156,7 @@ unsigned long dshow_PlayMovie(char *fname, HWND hwnd)
 							  &IID_IGraphBuilder,
 							  (void **)&pigb);
 		if (FAILED(hr)) {
-			nc_Log("DShow ERROR: Filtergraph creation failed.\n");
+			nc_LogMsg("DShow ERROR: Filtergraph creation failed.\n");
 			return(FALSE);
 		};
 
@@ -179,7 +179,7 @@ unsigned long dshow_PlayMovie(char *fname, HWND hwnd)
 				{
 					hr = pigb->lpVtbl->RenderFile(pigb,path,NULL);
 					if (FAILED(hr)) {
-						nc_Log("DShow ERROR: RenderFile() failed (File Not Found: %s)\n",fname);
+						nc_LogMsg("DShow ERROR: RenderFile() failed (File Not Found: %s)\n",fname);
 						dshow_Cleanup();
 						return(FALSE);
 					};
@@ -198,14 +198,6 @@ unsigned long dshow_PlayMovie(char *fname, HWND hwnd)
 					hr = pigb->lpVtbl->QueryInterface(pigb, &IID_IMediaEventEx, (void **)&pime);
 					hr = pime->lpVtbl->SetNotifyWindow(pime, (OAHWND)hwnd, WM_MEDIAEVENT, 0);
 					pimc->lpVtbl->Run(pimc);
-			
-					//while (!dshow_StopReceived) {
-					//    WaitMessage();
-					//    if (GetMessage(&msg,NULL,0,0)) {
-					//        TranslateMessage(&msg);
-					//        DispatchMessage(&msg);
-					//    };
-					//};
 			
 					while (1)
 					{
