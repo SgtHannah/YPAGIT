@@ -53,6 +53,7 @@ ULONG yw_LevelDataParser(struct ScriptParser *p)
 **      19-Apr-98   floh    + <event_loop> Keyword
 **      30-May-98   floh    + Lose-Movie wurde immer gespielt,
 **                            wenn man tot ging...
+**      06-Jun-98   floh    + <vehicle_sector_ratio> Keyword.
 */
 {
     UBYTE *kw   = p->keyword;
@@ -69,6 +70,7 @@ ULONG yw_LevelDataParser(struct ScriptParser *p)
             ywd->Level->Movie[0]     = 0;
             ywd->Level->WinMovie[0]  = 0;
             ywd->Level->LoseMovie[0] = 0;
+            ywd->VehicleSectorRatio  = 0.0;
             p->status = PARSESTAT_RUNNING;
             return(PARSE_ENTERED_CONTEXT);
 
@@ -204,11 +206,14 @@ ULONG yw_LevelDataParser(struct ScriptParser *p)
         /*** slow_connection ***/
         else if (stricmp(kw,"slow_connection")==0) {
 
-            if( (stricmp(data,"yes")==0) || (stricmp(data,"on")==0) ||
-                (stricmp(data,"true")==0) )
+            if( (stricmp(data,"yes")==0)||(stricmp(data,"on")==0)||(stricmp(data,"true")==0))
                 ld->slow_conn = TRUE;
             else
                 ld->slow_conn = FALSE;
+                
+        /*** vehicle_sector_ratio ***/
+        } else if (stricmp(kw,"vehicle_sector_ratio")==0) {
+            ywd->VehicleSectorRatio = atof(data);
                  
         /*** UNKNOWN KEYWORD ***/
         } else return(PARSE_UNKNOWN_KEYWORD);

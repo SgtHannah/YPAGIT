@@ -91,14 +91,14 @@ void yw_InitHUD(struct ypaworld_data *ywd)
     h->vid_text_h   = ((FLOAT)ywd->Fonts[FONTID_DEFAULT]->height) / ((FLOAT)ywd->DspXRes);
     if (ywd->DspXRes < 512) {
         h->vid_numtiles  = 6;
-        h->vid_prefix_w  = 16;
-        h->vid_postfix_w = 16;
-        h->vid_h         = 16 * h->vid_text_h; 
-    } else {
-        h->vid_numtiles  = 8;
         h->vid_prefix_w  = 24;
         h->vid_postfix_w = 24;
-        h->vid_h         = 12 * h->vid_text_h; 
+        h->vid_h         = 18 * h->vid_text_h; 
+    } else {
+        h->vid_numtiles  = 8;
+        h->vid_prefix_w  = 28;
+        h->vid_postfix_w = 28;
+        h->vid_h         = 14 * h->vid_text_h; 
     }; 
     h->vid_w = ((FLOAT)(h->vid_prefix_w + h->vid_postfix_w + 
                ywd->Fonts[FONTID_OWNER_8]->fchars[1].width * h->vid_numtiles)) / 
@@ -829,8 +829,11 @@ void yw_VecRenderVehicle(struct ypaworld_data *ywd,
     /*** trage Vehikel-Wireframe-Skeleton ein ***/
     if (vp->wireframe_object) _get(vp->wireframe_object,SKLA_Skeleton,&sklt);
     if (sklt) {
-        sx =  0.25;
-        sy =  0.3;
+        // sx =  0.25;
+        // sy =  0.3;
+        
+        sx = 0.25;        
+        sy = 12 * h->vid_text_h;        
         if (dt < 1.4) sx*=dt;
         m11 = 1.0;  m12 = 0.0;
         m21 = 0.0;  m22 = 1.0;
@@ -1145,10 +1148,10 @@ UBYTE *yw_RenderTextbar(struct ypaworld_data *ywd,
     
     /*** Rahmen drum, fertig ***/
     sx = h->vid_w;
-    sy = h->vid_h * 0.1111;
+    sy = h->vid_text_h;
     sklt = h->HudVecSklt[HUDVEC_FRAME];
     if (sklt) {
-        FLOAT offset = (1.0 / ywd->DspYRes) * (ywd->FontH>>1);
+        FLOAT offset = (1.0 / ywd->DspYRes) * 2;
         m11 = 1.0;  m12 = 0.0;
         m21 = 0.0;  m22 = 1.0;
         yw_SetInterpolateColors(ywd,color0,color1);
@@ -1235,15 +1238,15 @@ UBYTE *yw_RenderVID(struct ypaworld_data *ywd,
 
     /*** und die einzelnen Elemente rendern ***/
     if (do_vehicle) yw_VecRenderVehicle(ywd,h,vp,tx+0.1,ty-0.15,dt);
-    if (do_energy)  str = yw_RenderLifebar(ywd,h,str,b,vp,tx,ty+0.4444*h->vid_h);
-    if (do_shield)  str = yw_RenderShieldbar(ywd,h,str,b,vp,tx,ty+0.6666*h->vid_h);
-    if (do_vehicle) str = yw_RenderNamebar(ywd,h,str,b,vp,vp_num,tx,ty+0.8888*h->vid_h);
+    if (do_energy)  str = yw_RenderLifebar(ywd,h,str,b,vp,tx,ty+(7*h->vid_text_h));
+    if (do_shield)  str = yw_RenderShieldbar(ywd,h,str,b,vp,tx,ty+(9*h->vid_text_h));
+    if (do_vehicle) str = yw_RenderNamebar(ywd,h,str,b,vp,vp_num,tx,ty+(11*h->vid_text_h));
     if (wp && do_weapon) {
-        yw_VecRenderWeapon(ywd,h,wp,tx,ty-(h->vid_h*0.8));
-        str = yw_RenderReloadbar(ywd,h,str,b,wp,tx,ty-(0.4444*h->vid_h));
-        str = yw_RenderWeaponbar(ywd,h,str,b,vp,wp,tx,ty-(h->vid_h*0.6666));
-    };
-
+        yw_VecRenderWeapon(ywd,h,wp,tx,ty-(11*h->vid_text_h));
+        str = yw_RenderReloadbar(ywd,h,str,b,wp,tx,ty-(7*h->vid_text_h));
+        str = yw_RenderWeaponbar(ywd,h,str,b,vp,wp,tx,ty-(9*h->vid_text_h));
+    };        
+    
     /*** Ende ***/
     return(str);
 }

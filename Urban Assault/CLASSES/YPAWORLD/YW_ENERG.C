@@ -1138,6 +1138,65 @@ _dispatcher(void, yw_YWM_MODSECTORENERGY, struct energymod_msg *msg)
 }
 
 /*-----------------------------------------------------------------*/
+void yw_CountVehicles(struct ypaworld_data *ywd) 
+/*
+**  FUNCTION
+**      Zaehlt die Anzahl "gueltiger Vehicle" fuer diesen
+**      Owner.
+**
+**  CHANGED
+**      06-Jun-98   floh    created
+*/
+{
+    ULONG i;
+    struct MinList *r_ls;
+    struct MinNode *r_nd;
+    
+    memset(ywd->VehicleCount,0,sizeof(ywd->VehicleCount));    
+
+    /*** fuer alle Robos... ***/
+    r_ls = &(ywd->CmdList);
+    for (r_nd=r_ls->mlh_Head; r_nd->mln_Succ; r_nd=r_nd->mln_Succ) {
+        struct Bacterium *robo = ((struct OBNode *)r_nd)->bact;
+        if ((robo->BactClassID == BCLID_YPAROBO) &&
+            (robo->MainState   != ACTION_DEAD)   &&
+            (robo->MainState   != ACTION_CREATE) &&
+            (robo->MainState   != ACTION_BEAM))
+        {
+            struct MinList *c_ls;
+            struct MinNode *c_nd;
+            ywd->VehicleCount[robo->Owner]++;
+            
+            /*** fuer alle Commander... ***/            
+            c_ls = &(robo->slave_list);
+            for (c_nd=c_ls->mlh_Head; c_nd->mln_Succ; c_nd=c_nd->mln_Succ) {
+                struct Bacterium *cmdr = ((struct OBNode *)c_nd)->bact;
+                if ((cmdr->MainState != ACTION_DEAD)   &&
+                    (cmdr->MainState != ACTION_CREATE) &&
+                    (cmdr->MainState != ACTION_BEAM))
+                {
+                    struct MinList *b_ls;
+                    struct MinNode *b_nd;
+                    ywd->VehicleCount[cmdr->Owner]++;
+                    
+                    /*** fuer alle Slaves... ***/
+                    b_ls = &(cmdr->slave_list);                    
+                    for (b_nd=b_ls->mlh_Head; b_nd->mln_Succ; b_nd=b_nd->mln_Succ) {
+                        struct Bacterium *b = ((struct OBNode *)b_nd)->bact;
+                        if ((b->MainState != ACTION_DEAD)   &&
+                            (b->MainState != ACTION_CREATE) &&
+                            (b->MainState != ACTION_BEAM))
+                        {
+                            ywd->VehicleCount[b->Owner]++;
+                        };
+                    };
+                };
+            };
+        };
+    };
+}
+
+/*-----------------------------------------------------------------*/
 void yw_ComputeRatios(struct ypaworld_data *ywd)
 /*
 **  FUNCTION
@@ -1146,28 +1205,35 @@ void yw_ComputeRatios(struct ypaworld_data *ywd)
 **      Das ist effizienter, als die Sache jedesmal
 **      von neuem in YWM_GETRLDRATIO zu machen.
 **
-**      Die Routine muß einmal am Anfang eines Frames
+**      Die Routine muss einmal am Anfang eines Frames
 **      aufgerufen werden.
 **
 **  CHANGED
 **      05-Nov-96   floh    created
+**      06-Jun-98   floh    + VehicleCount wird jetzt mit in die
+**                            Berechnung einbezogen...
 */
 {
-    LONG needed[8];
+    LONG needed[MAXNUM_OWNERS];
     ULONG i;
 
-    /*** für jeden Owner Anzahl benötigter Kraftwerke ***/
+    /*** fuer jeden Owner Anzahl benoetigter Kraftwerke ***/
     memset(needed,0,sizeof(needed));
     for (i=0; i<ywd->FirstFreeKraftWerk; i++) {
         struct KraftWerk *kw = &(ywd->KraftWerks[i]);
         if (kw->sector) needed[kw->sector->Owner] += kw->factor;
     };
+    
+    /*** fuer jeden Owner Anzahl Vehicle ***/
+    yw_CountVehicles(ywd);
 
     /*** und die Ratios... ***/
-    for (i=0; i<8; i++) {
+    for (i=0; i<MAXNUM_OWNERS; i++) {
         needed[i] /= 2;
         if (needed[i] > 0) {
-            LONG have = ywd->SectorCount[i];
+            LONG have = ywd->SectorCount[i] - ((LONG)(ywd->VehicleCount[i]*ywd->VehicleSectorRatio));
+            if (have<0) have=0;
+            
             if (have >= needed[i]) {
                 ywd->RatioCache[i] = 1.0;
                 ywd->RoughRatio[i] = ((FLOAT)have)/((FLOAT)needed[i]);
@@ -1179,7 +1245,7 @@ void yw_ComputeRatios(struct ypaworld_data *ywd)
         } else {
             ywd->RatioCache[i] = 0.0;
             ywd->RoughRatio[i] = 0.0;
-            }
+        };
     };
 
     /*** fertig ***/

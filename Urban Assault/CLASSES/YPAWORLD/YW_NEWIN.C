@@ -2229,6 +2229,7 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
 **                            zurueckgesetzt...
 **      03-Jun-98   floh    + setzt jetzt ywd->netplayerstatus
 **                            zurueck
+**      06-Jun-98   floh    + VhclSectorRatio initialisiert
 */
 {
     BOOL retval = FALSE;
@@ -2267,12 +2268,14 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
     ywd->FireDownStatus       = FALSE;
     ywd->FireDown             = FALSE;
     ywd->UserRoboDied         = FALSE;
+    ywd->VehicleSectorRatio   = 0.0;
 
     memset(&(ywd->Level->Gate),0,sizeof(ywd->Level->Gate));
     memset(&(ywd->Level->Item),0,sizeof(ywd->Level->Item));
     memset(&(ywd->gem),0,sizeof(ywd->gem));
     memset(&(ywd->netplayerstatus),0,sizeof(ywd->netplayerstatus));
-
+    memset(&(ywd->VehicleCount),0,sizeof(ywd->VehicleCount));
+    
     /*** Statistix rücksetzen ***/
     ywd->MaxSquads   = 0;
     ywd->MaxVehicles = 0;

@@ -562,6 +562,7 @@ void yw_PutDebugInfo(struct ypaworld_data *ywd, struct VFMInput *ip)
 **      11-Jun-97   floh    + Versions-String
 **      28-Feb-98   floh    + sollte jetzt mit DBCS Strings arbeiten
 **      14-May-98   floh    + neue Page fuer Input-Info
+**      06-Jun-98   floh    + paar neue Debuganzeigen
 */
 {
     if (ywd->DebugInfo) {
@@ -616,22 +617,23 @@ void yw_PutDebugInfo(struct ypaworld_data *ywd, struct VFMInput *ip)
                 str = yw_PutDbgMsg(ywd,str,&buf_ptr,"prof net: %d",ywd->Profile[PROF_NETWORK]); new_line(str);
 
                 /*** etwas Sektor-Info und User-Info ***/
-                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"sec type: %d",ywd->UVBact->Sector->Type); new_line(str);
-                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"sec wtype: %d",ywd->UVBact->Sector->WType); new_line(str);
+                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"sec type/wtype: %d/%d",ywd->UVBact->Sector->Type,ywd->UVBact->Sector->WType); new_line(str);
                 str = yw_PutDbgMsg(ywd,str,&buf_ptr,"num beam: %d",ywd->Level->MaxNumBuddies); new_line(str);
 
                 /*** Vehicle-Anzahl-Nummern ***/
-                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"num sqd: %d,%d",ywd->AllSquads,ywd->MaxSquads);
+                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"num sqd: %d,%d",ywd->AllSquads,ywd->MaxSquads); new_line(str);
+                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"num vhcl: %d,%d",ywd->AllVehicles,ywd->MaxVehicles); new_line(str);
+                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"num flk: %d,%d",ywd->AllFlaks,ywd->MaxFlaks); new_line(str);
+                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"num robo: %d,%d",ywd->AllRobos,ywd->MaxRobos); new_line(str);
+                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"num wpn: %d,%d",ywd->AllWeapons,ywd->MaxWeapons); new_line(str);
+                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"reload const: %d",ywd->URBact->RoboReloadConst); new_line(str);
+                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"num all vhcl: %d,%d,%d,%d,%d,%d,%d,%d",
+                                   ywd->VehicleCount[0],ywd->VehicleCount[1],ywd->VehicleCount[2],ywd->VehicleCount[3],
+                                   ywd->VehicleCount[4],ywd->VehicleCount[5],ywd->VehicleCount[6],ywd->VehicleCount[7]);
                 new_line(str);
-                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"num vhcl: %d,%d",ywd->AllVehicles,ywd->MaxVehicles);
-                new_line(str);
-                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"num flk: %d,%d",ywd->AllFlaks,ywd->MaxFlaks);
-                new_line(str);
-                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"num robo: %d,%d",ywd->AllRobos,ywd->MaxRobos);
-                new_line(str);
-                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"num wpn: %d,%d",ywd->AllWeapons,ywd->MaxWeapons);
-                new_line(str);
-                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"reload const: %d",ywd->URBact->RoboReloadConst);
+                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"rld ratio: %8.2f,%8.2f,%8.2f,%8.2f,%8.2f,%8.2f,%8.2f,%8.2f",
+                                   ywd->RoughRatio[0],ywd->RoughRatio[1],ywd->RoughRatio[2],ywd->RoughRatio[3],
+                                   ywd->RoughRatio[4],ywd->RoughRatio[5],ywd->RoughRatio[6],ywd->RoughRatio[7]);
                 new_line(str);
             break;
 

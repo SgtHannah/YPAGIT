@@ -2105,9 +2105,10 @@ struct ypaworld_data {
     struct Bacterium *URBact;   // User Robo Bact
     struct Bacterium *UVBact;   // User Vehicle Bact
     struct MinList *URSlaves;   // Slave-Liste des aktuellen Robos
-    LONG SectorCount[MAXNUM_ROBOS];     // für jeden Owner Anzahl Sektoren
-    FLOAT RatioCache[MAXNUM_ROBOS];     // Energy-Reload-Ratio-Cache
-    FLOAT RoughRatio[MAXNUM_ROBOS];     // Energy-Reload-Ratio-Cache (>1)
+    LONG SectorCount[MAXNUM_OWNERS];    // fuer jeden Owner Anzahl Sektoren
+    LONG VehicleCount[MAXNUM_OWNERS];   // fuer jeden Owner Anzahl Vehikel
+    FLOAT RatioCache[MAXNUM_OWNERS];    // Energy-Reload-Ratio-Cache
+    FLOAT RoughRatio[MAXNUM_OWNERS];    // Energy-Reload-Ratio-Cache (>1)
 
     struct Bacterium *CmdrRemap[512];    // Remap-Tabelle für GUI
     LONG ActCmdID;          // Command-ID des aktuellen Geschwaders
@@ -2256,9 +2257,10 @@ struct ypaworld_data {
     /*** EventCatcher ***/
     struct ypa_EventCatcher *EventCatcher;
     
-    /*** die maximale Groesse des Waffenimpulses ***/
-    FLOAT   max_impulse;
+    /*** Misc ***/
+    FLOAT max_impulse;
     struct netplayerstatus netplayerstatus;
+    FLOAT VehicleSectorRatio;
 };
 
 #define NETSTARTTIME    250000      // soviele Millisekunden warten wir auf
