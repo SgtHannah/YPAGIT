@@ -265,7 +265,7 @@ unsigned long yw_RawCDCheck(unsigned long check_install_type)
                 nc_LogMsg("-> vol_ser_num  = %d\n",vol_ser_num);
                 nc_LogMsg("-> max_comp_len = %d\n",max_comp_len);
                 nc_LogMsg("-> fs_name      = %s\n",fs_name);
-                if (strcmp(vol_name,"UAssault")!=0) retval = FALSE;
+                if (stricmp(vol_name,"UAssault")!=0) retval = FALSE;
             } else {
                 nc_LogMsg("-> GetVolumeInformation() failed because %d.\n",error);
                 retval = FALSE;

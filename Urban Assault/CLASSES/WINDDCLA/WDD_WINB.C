@@ -538,21 +538,7 @@ long FAR PASCAL wdd_WinProc(HWND hWnd, UINT message,
             break;    
     
         case WM_ACTIVATEAPP:
-            if (wdd) wdd_SetMouseImage(wdd,1,TRUE);
-
-			if ((BOOL)(wParam))
-			{
-				//
-				// do nothing
-				//
-			}
-			else
-			{
-				//
-				// make sure we're minimized
-				//
-				ShowWindow(hWnd, SW_MINIMIZE);
-			}
+            if (wdd) wdd_SetMouseImage(wdd,1,TRUE);        
             break;
 
         case WM_ERASEBKGND:

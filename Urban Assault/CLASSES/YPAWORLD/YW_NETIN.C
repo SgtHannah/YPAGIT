@@ -57,20 +57,11 @@ BOOL yw_InitNetwork( struct ypaworld_data *ywd )
 
         /*** Derzeit interpolieren ***/
         ywd->interpolate = TRUE;
-        
-        /*** Daten zum eigenen rechner abfragen ***/
-        if( _methoda( ywd->nwo, NWM_ASKLOCALMACHINE, &lm ) ) {
-        
-            memcpy(  ywd->local_address,       lm.address, 4 );
-            strncpy( ywd->local_name,          lm.name, STANDARD_NAMELEN );
-            strncpy( ywd->local_addressstring, lm.address_string, STANDARD_NAMELEN );
-            }
-        else {
-        
-            memset( ywd->local_address,0, 4 );
-            ywd->local_name[ 0 ] = 0;
-            ywd->local_addressstring[ 0 ] = 0;
-            } 
+
+        /*** kein ASKLOCALMACHINE mehr, wegen dem Dialup-Requester ***/
+        memset( ywd->local_address,0, 4 );
+        ywd->local_name[ 0 ] = 0;
+        ywd->local_addressstring[ 0 ] = 0;
         
         /*** Fuer identifzierungen von Sessions alter Programme ***/   
         si.check_item = ywd->Version;   // damit soll getestet werden    
