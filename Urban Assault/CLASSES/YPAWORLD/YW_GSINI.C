@@ -130,7 +130,7 @@ _dispatcher( BOOL, yw_YWM_INITGAMESHELL, struct GameShellReq *GSR )
 
     yw_ScanUserDirectory( GSR, "save:", o );
 
-    yw_ScanLocaleDirectory( GSR, "data:locale", o );
+    yw_ScanLocaleDirectory( GSR, "locale", o );
     
     strcpy(GSR->D_Name, UNKNOWN_NAME );
     GSR->DCursorPos = strlen( GSR->D_Name );
