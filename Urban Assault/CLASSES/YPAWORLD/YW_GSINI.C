@@ -64,13 +64,13 @@ WORD NListWidth;
 WORD IListWidth;
 WORD DListWidth;
 
+#define GET_X_COORD(x) (FLOAT_TO_INT((((FLOAT)x)/640.0)*((FLOAT)ywd->DspXRes)))
+#define GET_Y_COORD(y) (FLOAT_TO_INT((((FLOAT)y)/480.0)*((FLOAT)ywd->DspYRes)))
 
 /*** Prototypen, nix als Prototypen... ***/
 #include "yw_protos.h"
 #include "yw_gsprotos.h"
 
-#define GET_X_COORD(x) (FLOAT_TO_INT((((FLOAT)x)/640.0)*((FLOAT)ywd->DspXRes)))
-#define GET_Y_COORD(y) (FLOAT_TO_INT((((FLOAT)y)/480.0)*((FLOAT)ywd->DspYRes)))
 
 /*------------------------------------------------------------------
 ** Die GameShell ben÷tigt 2 Methoden, eine Initialisierungs-Methode,
@@ -736,7 +736,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
 
     /*** Tabelle neu ausfüllen wegen localizing, Tasten bleiben ***/
     yw_InitKeyTable( ywd );
-
+       
 /// "Ausfüllen der texte für Eingabeereignisse"
     /*** Sprachspezifische Vorbereitung des Inputmenns ***/
     ii = &( GSR->inp[ I_DRV_DIR ]);
@@ -1226,6 +1226,96 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
     _methoda( GSR->UBalken, BTM_SWITCHPUBLISH, &sp );
     
 ///
+
+    /*** ConfirmRequester ***/
+    
+    /* --------------------------------------------------------
+    ** Mit der gesamten Groesse loesen wir das problem der Maus
+    ** eingaben, die auch andere Sachen beeinflussen koennen
+    ** ------------------------------------------------------*/
+    GSR->confirm = _new("button.class",BTA_BoxX, 0,
+                                       BTA_BoxY, 0,
+                                       BTA_BoxW, ywd->DspXRes,
+                                       BTA_BoxH, ywd->DspYRes,
+                                       TAG_DONE );
+      
+    if( !GSR->confirm ) {
+        
+        _LogMsg("Unable to create Confirm-Button-Object\n");
+        return( FALSE );
+        }
+
+    button_ok = FALSE;
+
+    /*** ist am Ende... ***/
+    nb.pressed_font  = FONTID_MAPCUR_32;    // frueher ICON_NB
+    nb.unpressed_font= FONTID_MAPCUR_16;
+    nb.disabled_font = FONTID_ENERGY;
+    nb.modus         = BM_GADGET;
+    nb.x             = GET_X_COORD(160);
+    nb.y             = GET_Y_COORD(300);
+    nb.w             = GET_X_COORD(80);
+    nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_OK, "OK");
+    nb.pressed_text  = NULL;
+    nb.shortcut      = 0;
+    nb.user_pressed  = GS_BUTTONDOWN;
+    nb.user_released = GS_CONFIRMOK;
+    nb.user_hold     = 0;
+    nb.ID            = GSID_CONFIRMOK;
+    nb.flags         = BT_BORDER|BT_CENTRE|BT_TEXT;
+    nb.red           = yw_Red(ywd,YPACOLOR_TEXT_BUTTON);
+    nb.green         = yw_Green(ywd,YPACOLOR_TEXT_BUTTON);
+    nb.blue          = yw_Blue(ywd,YPACOLOR_TEXT_BUTTON);
+
+    if( _methoda( GSR->confirm, BTM_NEWBUTTON, &nb ) ) {
+
+     nb.x             = GET_X_COORD(400);
+     nb.shortcut      = 0;
+     nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_CANCEL, "CANCEL");
+     nb.pressed_text  = NULL;
+     nb.user_pressed  = GS_BUTTONDOWN;
+     nb.user_released = GS_CONFIRMCANCEL;
+     nb.user_hold     = 0;
+     nb.ID            = GSID_CONFIRMCANCEL;   // also Icon-Quit!
+    
+     if( _methoda( GSR->confirm, BTM_NEWBUTTON, &nb ) ) {
+
+      nb.pressed_font  = FONTID_MAPCUR_4;
+      nb.unpressed_font= FONTID_MAPCUR_4;
+      nb.disabled_font = FONTID_MAPCUR_4;
+      nb.modus         = BM_STRING;
+      nb.x             = GET_X_COORD(160);
+      nb.y             = GET_Y_COORD(270);
+      nb.w             = GET_X_COORD(320);
+      nb.unpressed_text= " ";
+      nb.pressed_text  = NULL;
+      nb.shortcut      = 0;
+      nb.user_pressed  = 0;
+      nb.user_released = 0;
+      nb.user_hold     = 0;
+      nb.ID            = GSID_CONFIRMTEXT;
+      nb.flags         = BT_TEXT;
+      nb.red           = yw_Red(ywd,YPACOLOR_TEXT_DEFAULT);
+      nb.green         = yw_Green(ywd,YPACOLOR_TEXT_DEFAULT);
+      nb.blue          = yw_Blue(ywd,YPACOLOR_TEXT_DEFAULT);
+
+      if( _methoda( GSR->confirm, BTM_NEWBUTTON, &nb ) ) {
+       
+       button_ok = TRUE;
+       }
+      }
+     } 
+
+
+    sb.number  = GSID_CONFIRMOK;
+    _methoda( GSR->confirm, BTM_DISABLEBUTTON, &sb );
+    sb.number  = GSID_CONFIRMCANCEL;
+    _methoda( GSR->confirm, BTM_DISABLEBUTTON, &sb );
+
+    /*** nicht darstellen ***/
+    sp.modus = SP_NOPUBLISH;
+    _methoda( GSR->confirm, BTM_SWITCHPUBLISH, &sp );
+
  
 /// "Der EingabeRequester"
     button_ok = FALSE;
@@ -2323,7 +2413,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
 ///
 
 /// "Der EinAusgabeRequester"
-    DListWidth = bwidth - 2 * ReqDeltaX - ywd->PropW;
+    DListWidth = bwidth; 
     if (!yw_InitListView(ywd, &(GSR->dmenu),
                          LIST_Resize,       FALSE,
                          LIST_NumEntries,   yw_HowMuchNodes(

@@ -1904,6 +1904,20 @@ _dispatcher(void, yw_YWM_KILLLEVEL, void *ignored)
     // FIXME!
     ywd->DoDebriefing = TRUE;
     
+    
+    /* -------------------------------------------------------------
+    ** Wenn Level korrekt verlassen wurde, ist jedes InGame-Savegame
+    ** aelter als der aktuelle Stand. Deshalb merken wir uns das mit
+    ** Hilfe eines Flags in Form eines Files
+    ** -----------------------------------------------------------*/
+    if( (ywd->Level->Status == LEVELSTAT_FINISHED) && ywd->gsr ) {
+        FILE *f;
+        char filename[ 300 ];
+        sprintf( filename, "save:%s/sgisold.txt", ywd->gsr->UserName );
+        if( f = _FOpen( filename, "w" ))
+            _FClose(f);
+        }
+        
     if( ywd->playing_network ) {
         /*** letzte daten rausschreiben ***/
         yw_PrintNetworkInfoEnd( ywd->gsr );

@@ -1756,9 +1756,13 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
             if( dv ) {
 
 
-                if( !(dv->ExtraState & EXTRA_LOGICDEATH))
+                if( !(dv->ExtraState & EXTRA_LOGICDEATH)) {
+                
                     yw_NetLog("+++ DV: Release a non-logic-dead vehicle %d! (%ds)\n",
                              dvm->ident ,ywd->TimeStamp/1000 );
+                    strcpy( trouble_maker, rm->sender_id );
+                    break;
+                    }
 
                 vnumber = yw_GetVehicleNumber( robo->bact );
 

@@ -330,6 +330,15 @@ _dispatcher( BOOL, yw_YWM_SAVEGAME, struct saveloadgame_msg *slg )
     ywd = INST_DATA( cl, o );
 
     /*** INFOS AUS DEM NAMEN ***/
+    
+    /*** normales SaveGame? Dann "Older-Flag" loeschen ***/
+    if( strstr( slg->name, ".sgm" ) ||
+        strstr( slg->name, ".SGM" )) {
+        
+        char f[ 300 ];
+        sprintf( f, "save:%s/sgisold.txt", ywd->gsr->UserName );
+        _FDelete( f );
+        }
 
     /*** finale Savegames ohne BuildInfo ***/
     if( strstr( slg->name, ".fin" ) ||

@@ -26,6 +26,7 @@
 #include "visualstuff/ov_engine.h"
 #include "network/networkclass.h"
 #include "bitmap/winddclass.h"
+#include "nucleus/math.h"
 
 /*-----------------------------------------------------------------*/
 _extern_use_nucleus
@@ -49,6 +50,8 @@ extern WORD NReqWidth;
 extern WORD NListWidth;
 extern WORD IListWidth;
 
+#define GET_X_COORD(x) (FLOAT_TO_INT((((FLOAT)x)/640.0)*((FLOAT)ywd->DspXRes)))
+#define GET_Y_COORD(y) (FLOAT_TO_INT((((FLOAT)y)/480.0)*((FLOAT)ywd->DspYRes)))
 
 /*** Prototypen, nix als Prototypen... ***/
 #include "yw_protos.h"
@@ -125,7 +128,9 @@ void yw_LayoutGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
 
             break;
         }
-
+        
+    yw_RenderConfirmRequester( GSR );
+        
 }
 ///
 
@@ -257,7 +262,7 @@ void yw_DrawInputMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
                 }
     
             col[0].string      = GSR->inp[ pos ].menuname;
-            col[0].width       = 0.75 * width;
+            col[0].width       = 0.68 * width;
             col[0].font_id     = fnt_id;
             col[0].space_chr   = space_chr;
             col[0].prefix_chr  = prefix_chr;
@@ -265,7 +270,7 @@ void yw_DrawInputMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
             col[0].flags       = YPACOLF_ALIGNLEFT | YPACOLF_DOPREFIX | YPACOLF_TEXT;
 
             col[1].string      = zsp;
-            col[1].width       = (WORD)(width - 0.75 * width);
+            col[1].width       = (WORD)(width - 0.68 * width);
             col[1].font_id     = fnt_id;
             col[1].space_chr   = space_chr;
             col[1].prefix_chr  = 0;
@@ -274,8 +279,7 @@ void yw_DrawInputMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
 
             new_font(str,STAT_MENUUP_FONT);
             put(str,'{');   // linker Menü-Rand
-
-            #ifdef __DBCS__
+            
             if( pos == GSR->i_actualitem ) {
                 dbcs_color(str,yw_Red(GSR->ywd,YPACOLOR_TEXT_LIST_SEL),
                                yw_Green(GSR->ywd,YPACOLOR_TEXT_LIST_SEL),
@@ -286,7 +290,7 @@ void yw_DrawInputMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
                                yw_Green(GSR->ywd,YPACOLOR_TEXT_LIST),
                                yw_Blue(GSR->ywd,YPACOLOR_TEXT_LIST));
                 }
-            #endif
+
             str = yw_BuildColumnItem(ywd,str,2,col);
             new_font(str,STAT_MENUUP_FONT);
             put(str,'}');   // rechter Menü-Rand
@@ -479,13 +483,13 @@ void yw_DrawDiskMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
         if( (i >= GSR->dmenu.FirstShown) &&
             (i < (GSR->dmenu.ShownEntries + GSR->dmenu.FirstShown) ) ) {
 
-            struct ypa_ColumnItem col[3];
+            struct ypa_ColumnItem col[2];
             UBYTE fnt_id;
             UBYTE space_chr;
             UBYTE prefix_chr;
             UBYTE postfix_chr;
             ULONG s, m, h, width, liw;
-            char  loaded[ 10 ], time[ 20 ];
+            char  time[ 20 ];
 
             /*** Spaltenaufauen ***/
             memset(col,0,sizeof(col));
@@ -502,15 +506,7 @@ void yw_DrawDiskMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
             };
 
             /*** Spalten initialisieren ***/
-            liw   = max( GSR->ywd->Fonts[ fnt_id ]->fchars[ '[' ].width,
-                         GSR->ywd->Fonts[ fnt_id ]->fchars[ space_chr  ].width) +
-                         GSR->ywd->Fonts[ fnt_id ]->fchars[ prefix_chr ].width;
-            width = GSR->dmenu.ActEntryWidth - 2 * GSR->ywd->EdgeW - liw;
-
-            if( stricmp( GSR->UserName, nd->username ) == 0 )
-                strcpy( loaded, "[" );
-            else
-                sprintf( loaded, "%c", space_chr );
+            width = GSR->dmenu.ActEntryWidth - 2 * GSR->ywd->EdgeW;
 
             s  = nd->global_time / 1000;
             h  = s / 3600;
@@ -520,43 +516,46 @@ void yw_DrawDiskMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
 
             sprintf( time, "%02d:%02d:%02d", h, m, s );
 
-            col[0].string      = loaded;
-            col[0].width       = liw;
+            col[0].string      = nd->username;
+            col[0].width       = (WORD)(0.75 * width);
             col[0].font_id     = fnt_id;
             col[0].space_chr   = space_chr;
             col[0].prefix_chr  = prefix_chr;
             col[0].postfix_chr = 0;
-            col[0].flags       = YPACOLF_ALIGNLEFT | YPACOLF_DOPREFIX;
+            col[0].flags       = YPACOLF_DOPREFIX | YPACOLF_ALIGNLEFT | YPACOLF_TEXT;
 
-            col[1].string      = nd->username;
-            col[1].width       = (WORD)(0.75 * width);
+            col[1].string      = time;
+            col[1].width       = width - col[0].width;
             col[1].font_id     = fnt_id;
             col[1].space_chr   = space_chr;
             col[1].prefix_chr  = 0;
-            col[1].postfix_chr = 0;
-            col[1].flags       = YPACOLF_ALIGNLEFT | YPACOLF_TEXT;
-
-            col[2].string      = time;
-            col[2].width       = width - col[1].width;
-            col[2].font_id     = fnt_id;
-            col[2].space_chr   = space_chr;
-            col[2].prefix_chr  = 0;
-            col[2].postfix_chr = postfix_chr;
-            col[2].flags       = YPACOLF_ALIGNLEFT | YPACOLF_DOPOSTFIX | YPACOLF_TEXT;
+            col[1].postfix_chr = postfix_chr;
+            col[1].flags       = YPACOLF_ALIGNLEFT | YPACOLF_DOPOSTFIX | YPACOLF_TEXT;
 
             new_font(str,STAT_MENUUP_FONT);
             put(str,'{');   // linker Menü-Rand
-            #ifdef __DBCS__
-            if( (i+1) == GSR->d_actualitem ) {
-                dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_LIST_SEL),yw_Green(ywd,YPACOLOR_TEXT_LIST_SEL),
-                               yw_Blue(ywd,YPACOLOR_TEXT_LIST_SEL));
+
+            if( stricmp( nd->username, GSR->UserName) == 0 ) {
+            
+                /*** Der aktuell geladene bekommt immer ne andere Farbe ***/
+                dbcs_color(str,yw_Red(GSR->ywd,YPACOLOR_OWNER_2),
+                               yw_Green(GSR->ywd,YPACOLOR_OWNER_2),
+                               yw_Blue(GSR->ywd,YPACOLOR_OWNER_2));
                 }
             else {
-                dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_LIST),yw_Green(ywd,YPACOLOR_TEXT_LIST),
-                               yw_Blue(ywd,YPACOLOR_TEXT_LIST));
+
+
+                if( (i+1) == GSR->d_actualitem ) {
+                    dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_LIST_SEL),yw_Green(ywd,YPACOLOR_TEXT_LIST_SEL),
+                                   yw_Blue(ywd,YPACOLOR_TEXT_LIST_SEL));
+                    }
+                else {
+                    dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_LIST),yw_Green(ywd,YPACOLOR_TEXT_LIST),
+                                   yw_Blue(ywd,YPACOLOR_TEXT_LIST));
+                    }
                 }
-            #endif
-            str = yw_BuildColumnItem(ywd,str,3,col);
+
+            str = yw_BuildColumnItem(ywd,str,2,col);
             new_font(str,STAT_MENUUP_FONT);
             put(str,'}');   // rechter Menü-Rand
             new_line(str);
@@ -1767,4 +1766,90 @@ void yw_MessageBox( struct ypaworld_data *ywd, char *title, char *text )
     yw_WinMessageBox( title, text );
 
     _methoda( ywd->GfxObject, WINDDM_DisableGDI, NULL);
+}
+
+void yw_RenderConfirmRequester( struct GameShellReq *GSR )
+{
+    struct ypaworld_data *ywd = GSR->ywd;
+    
+    if( CONFIRM_NONE == GSR->confirm_modus )
+        return;
+        
+    /*** irgendwie Hintergrund malen ***/
+    yw_PaintRect( GSR, GET_X_COORD(150), GET_Y_COORD(250), GET_X_COORD(340), GET_Y_COORD(100) );
+            
+    _methoda( GSR->confirm, BTM_PUBLISH, NULL );
+}
+
+
+void yw_PaintRect( struct GameShellReq *GSR, WORD x, WORD y, WORD w, WORD h )
+{
+/*
+**  zeichnet ein Rechteck als Hintergrund fuer Messages.
+*/
+
+    WORD   value, count = 0;
+    struct drawtext_args dt;
+    BOOL   first;
+    struct VFMFont *sfont;
+    char   buffer[300], *str;
+
+    sfont = _GetFont( FONTID_DEFAULT );
+    
+    str = buffer;
+    new_font( str, FONTID_DEFAULT); 
+
+    xpos_abs( str, (x - GSR->ywd->DspXRes/2));
+    ypos_abs( str, (y - GSR->ywd->DspYRes/2)); 
+
+    first      = TRUE;
+
+    while( h > sfont->height ) {  // Fonthöhe immer gleich...
+
+        /*** Eröffnung der Zeile ***/
+        if( first ) {
+            put( str, 'u');    // links oben
+            }
+        else {
+            put( str, '{');      // rand
+            }
+
+        /*** ZwischenStücke ***/
+        lstretch_to( str, w );
+        if( first ) {
+            put( str, 'v');        // rand oben
+            }
+        else {
+            put( str, '{');        // frei
+            }
+
+        if( first ) {
+            put( str, 'w');   // oben rechts
+            }
+        else {
+            put( str, '}');     // rand
+            }
+            
+        /*** new line ***/
+        new_line( str );  
+              
+        first = FALSE;
+        h -= sfont->height;
+        }
+
+    /*** Nun noch Rand der Rest-Höhe h ***/
+    off_vert( str, sfont->height - h);
+    put( str, 'x');          // unten links
+    
+    lstretch_to( str, w );
+    put( str, 'y');
+    
+    put( str, 'z');
+
+    eos( str );
+    
+    /*** Zeichnen ***/
+    dt.string = buffer;
+    dt.clips  = NULL;
+    _DrawText( &dt );
 }

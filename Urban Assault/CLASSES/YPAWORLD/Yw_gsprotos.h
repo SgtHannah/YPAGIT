@@ -152,5 +152,10 @@ void  yw_SortNetworkLevels( struct GameShellReq *GSR );
 void  yw_Appear3DDevice( struct GameShellReq *GSR, BOOL remotestart );
 void yw_DrawD3DMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR);
 void yw_MessageBox( struct ypaworld_data *ywd, char *title, char *text );
-
+void yw_OpenConfirmRequester( struct GameShellReq *GSR, ULONG modus, char *text );
+void yw_CloseConfirmRequester( struct GameShellReq *GSR );
+void yw_RenderConfirmRequester( struct GameShellReq *GSR );
+BOOL  yw_CheckOlderSaveGame( struct GameShellReq *GSR );
+void yw_PaintRect( struct GameShellReq *GSR, WORD x, WORD y, WORD w, WORD h );
+void yw_StartNetGame( struct GameShellReq *GSR );
 

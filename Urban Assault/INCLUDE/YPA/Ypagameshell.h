@@ -92,6 +92,7 @@
     #endif
 #endif
 
+
 /* --------------------------------------------------------------------
 ** In der GameShell-Struktur verwalten wir alle Sachen, die abgefragt
 ** werden können. Parallel sind in dieser Struktur alle Werte und
@@ -280,7 +281,7 @@ struct netlevel {
 
 #define SEPHOSTFROMSESSION      "|"
 #define TIME_CHECK_LATENCY      (2000)
-#define MAX_LATENCY             (5000)  // Latency fuer Hin- und Rueckweg 
+#define MAX_LATENCY             (7000)  // Latency fuer Hin- und Rueckweg 
 #define LATENCY_COUNT_HOST      (200)   // Achtung, Frametime ist 1, so ist es Zahl der Fr.
 #define LATENCY_COUNT_CLIENT    (500)
 #define ENDTROUBLE_COUNT        (3000)  // solange Grund fuer Loesung anzeigen
@@ -500,9 +501,16 @@ struct GameShellReq {
 
     /*** Playerdata 8 weil Eigentümer auch Offset !!! ***/
     struct playerdata player[ 8 ];  // offset ist der Eigentümer!
-    struct playerdata2 player2[ MAXNUM_PLAYERS ];// offset ist interne Nummer
+    struct playerdata2 player2[ MAXNUM_PLAYERS ]; // offset ist interne Nummer
     #endif
 
+    /* -------------------------------------------------------------
+    **             Daten zum Confirmrequester                                   
+    ** -----------------------------------------------------------*/
+    Object *confirm;
+    ULONG   confirm_modus;
+    char   *confirm_texts;
+    
     /* -------------------------------------------------------------
     **             Diverses
     ** -----------------------------------------------------------*/
@@ -595,6 +603,13 @@ struct GameShellReq {
 #define SHELLMODE_ABOUT     8   // der geheime Requester
 #define SHELLMODE_DISK      9   // Spielerauswahl
 #define SHELLMODE_HELP     10   // nur fuer den Fall der Faelle
+
+/*** Confirm-Flags ***/
+#define CONFIRM_NONE            0   // zur Zeit nicht aktiviert
+#define CONFIRM_LOADFROMMAP     1   // wirklich das Savegame von der Map laden?
+#define CONFIRM_NETSTARTALONE   2   // Netzspiel allein starten
+#define CONFIRM_SAVEANDOVERWRITE 3  // Savegame in DiskReq ueberschreiben
+
 
 /* ---------------------------------------------------------------------
 ** OBSOLET: Sollte nur noch für die Vehicleoffsets genommen werden,
@@ -775,6 +790,10 @@ struct GameShellReq {
 #define GSID_LOCALEHEADLINE3 1255
 #define GSID_LOCALEHEADLINE4 1256
 
+#define GSID_CONFIRMOK      1300
+#define GSID_CONFIRMCANCEL  1301
+#define GSID_CONFIRMTEXT    1302
+
 #define GSID_OBJECT_INPUT   2000    // das gesamte Inputobjekt, also dessen ID im Req.
 #define GSID_OBJECT_PLAY    2001    // das gesamte Playobjekt,  also dessen ID im Req.
 #define GSID_OBJECT_VIDEO   2002    // das gesamte Settingsobjekt, also dessen ID im Req.
@@ -886,6 +905,9 @@ struct GameShellReq {
 
 #define GS_LOCALEOK             1300
 #define GS_LOCALECANCEL         1301
+
+#define GS_CONFIRMOK            1350
+#define GS_CONFIRMCANCEL        1351
 
 /*** Die Masken, was geladen bzw. gespeichert werden soll ***/
 #define DM_USER             (1<<0)      // allgemeine Daten

@@ -224,11 +224,9 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
     struct LevelNode *l;
     struct snd_cdvolume_msg cdv;
     struct fileinfonode *node;
-
-    #ifdef __NETWORK__
     struct getsessionname_msg   gsn;
     struct getplayerdata_msg    gpd;
-    #endif
+    BOOL    clear_input = FALSE;
     
     
     /*** Buttonsounds sind allgemein ***/
@@ -441,6 +439,101 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
         }
 
 ///
+
+    /* -----------------------------------------------------------------------
+    **                          DER CONFIRMREQUESTER
+    ** ---------------------------------------------------------------------*/
+    if( CONFIRM_NONE != GSR->confirm_modus ) 
+        clear_input = TRUE;
+    
+    if( ret = _methoda( GSR->confirm, BTM_HANDLEINPUT, GSR->input ) ) {
+
+        /*** Hilfe? ***/
+        who = (ret >> 16);
+        if( who ) yw_GameShellToolTips( GSR, who );
+
+        ret = ((ret << 16) >> 16);
+
+        switch( ret ) {
+        
+            case GS_CONFIRMOK:
+            
+                /*** Je nach Modus ***/
+                switch( GSR->confirm_modus ) {
+                
+                    case CONFIRM_LOADFROMMAP:
+            
+                        yw_LoadSaveGameFromMap( GSR );
+                        break;
+                        
+                    case CONFIRM_NETSTARTALONE:
+                    
+                        yw_StartNetGame( GSR );
+                        break;
+                        
+                    case CONFIRM_SAVEANDOVERWRITE:
+                    
+                        yw_EAR_Save( GSR );
+                        break;
+                    }
+                
+                GSR->confirm_modus = CONFIRM_NONE;
+                break;
+                
+            case GS_CONFIRMCANCEL:
+            
+                yw_CloseConfirmRequester( GSR );
+                break;    
+            }
+        }
+        
+    /*** Die tasten ***/
+    if( CONFIRM_NONE != GSR->confirm_modus ) {
+    
+        switch( GSR->input->HotKey ) {
+        
+            case HOTKEY_QUIT:   
+            
+                yw_CloseConfirmRequester( GSR );
+                break;
+            }
+            
+        switch( GSR->input->NormKey ) {
+        
+            case KEYCODE_RETURN:
+            
+                switch( GSR->confirm_modus ) {
+
+                    case CONFIRM_LOADFROMMAP:
+            
+                        yw_LoadSaveGameFromMap( GSR );
+                        break;
+                        
+                    case CONFIRM_NETSTARTALONE:
+                    
+                        yw_StartNetGame( GSR );
+                        break;
+                        
+                    case CONFIRM_SAVEANDOVERWRITE:
+                    
+                        yw_EAR_Save( GSR );
+                        break;
+                    }
+
+                GSR->confirm_modus = CONFIRM_NONE;
+                break;
+            }
+        } 
+        
+    /*** Input loeschen ***/
+    if( clear_input ) {
+    
+        GSR->input->ClickInfo.flags = 0;
+        GSR->input->NormKey  = 0;
+        GSR->input->ContKey  = 0;
+        GSR->input->AsciiKey = 0;
+        GSR->input->HotKey   = 0;
+        }
 
     /* -----------------------------------------------------------------------
     **                             DIE TITELSEITE
@@ -672,22 +765,16 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
             case GS_PL_LOAD:
 
                 /*** Letzte Arbeiten ***/
-                GSR->mb_stopped = FALSE;
-
-                GSR->exist_savegame = 0;
-
-                #ifdef __NETWORK__
-                ywd->playing_network = FALSE;
-                #endif
-
-                sp.modus = SP_NOPUBLISH;
-                _methoda( GSR->UBalken, BTM_SWITCHPUBLISH, &sp );
-
-                /*** Spiel starten ***/
-                GSR->GSA.LastAction = A_LOAD;
-                GSR->GSA.ActionParameter[0] = 0;    // FIXME: hat nix zu bedeuten
+                if( yw_CheckOlderSaveGame( GSR ) ) 
+                    yw_OpenConfirmRequester( GSR, CONFIRM_LOADFROMMAP, 
+                        ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_LOADANDOVERWRITE, 
+                                    "DO YOU WANT TO LOAD >>>OLDER<<< SAVEGAME?") );
+                else
+                    yw_OpenConfirmRequester( GSR, CONFIRM_LOADFROMMAP, 
+                        ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_LOAD, 
+                                    "DO YOU WANT TO LOAD INGAME SAVEGAME?") );
                 break;
-
+                
             case GS_PL_SETBACK:
 
                 GSR->mb_stopped = FALSE;
@@ -1474,8 +1561,14 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                                 break;
 
                             case DIM_SAVE:
-
-                                yw_EAR_Save( GSR );
+                            
+                                /*** Existiert das schon? ***/
+                                if( GSR->d_actualitem )
+                                    yw_OpenConfirmRequester( GSR, CONFIRM_SAVEANDOVERWRITE,
+                                    ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_SAVEANDOVERWRITE,
+                                    "DO YOU WANT TO OVERWRITE THIS PLAYER STATUS?"));
+                                else
+                                    yw_EAR_Save( GSR );
                                 break;
 
                             case DIM_CREATE:
@@ -1617,8 +1710,12 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                         break;
 
                     case DIM_SAVE:
-
-                        yw_EAR_Save( GSR );
+                      if( GSR->d_actualitem )
+                            yw_OpenConfirmRequester( GSR, CONFIRM_SAVEANDOVERWRITE,
+                            ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_SAVEANDOVERWRITE,
+                            "DO YOU WANT TO OVERWRITE THIS PLAYER STATUS?"));
+                        else
+                            yw_EAR_Save( GSR );
                         break;
 
                     case DIM_CREATE:
@@ -1835,10 +1932,17 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
         _methoda( GSR->bdisk, BTM_ENABLEBUTTON, &swb );
         swb.number  = GSID_LOAD;
         _methoda( GSR->bdisk, BTM_ENABLEBUTTON, &swb );
-        swb.number  = GSID_DELETE;
-        _methoda( GSR->bdisk, BTM_ENABLEBUTTON, &swb );
         swb.number  = GSID_NEWGAME;
         _methoda( GSR->bdisk, BTM_ENABLEBUTTON, &swb );
+        swb.number  = GSID_DISKSTRING;
+        _methoda( GSR->bdisk, BTM_DISABLEBUTTON, &swb );
+        
+        /*** Delete nur wenn nicht der eigene ***/
+        swb.number  = GSID_DELETE;
+        if( stricmp( GSR->D_Name, GSR->UserName ) == 0 )
+            _methoda( GSR->bdisk, BTM_DISABLEBUTTON, &swb );
+        else
+            _methoda( GSR->bdisk, BTM_ENABLEBUTTON, &swb );
 
         /*** Text ohne Cursor ***/
         strcpy( d_name, GSR->D_Name );
@@ -1855,6 +1959,8 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
         swb.number  = GSID_DELETE;
         _methoda( GSR->bdisk, BTM_DISABLEBUTTON, &swb );
         swb.number  = GSID_NEWGAME;
+        _methoda( GSR->bdisk, BTM_DISABLEBUTTON, &swb );
+        swb.number  = GSID_DISKSTRING;
         _methoda( GSR->bdisk, BTM_DISABLEBUTTON, &swb );
 
         /* ------------------------------------------------------------
@@ -1876,6 +1982,7 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 }
             else
                 _methoda( GSR->bdisk, BTM_DISABLEBUTTON, &swb );
+                
             }
 
         if( (DIM_LOAD == GSR->D_InputMode) &&
@@ -1886,6 +1993,14 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
             _methoda( GSR->bdisk, BTM_DISABLEBUTTON, &swb );
             }
 
+        if( (DIM_SAVE == GSR->D_InputMode) ||
+            (DIM_CREATE ==  GSR->D_InputMode) ) {
+            
+            swb.number = GSID_DISKSTRING;
+            _methoda( GSR->bdisk, BTM_ENABLEBUTTON, &swb );
+            }
+            
+            
         /*** Blinken des Cursors ***/
         #ifdef __DBCS__
 
@@ -2557,43 +2672,14 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                         if( GSR->is_host ) {
 
                             /*** Möglichkeit zum starten ***/
-
-                            struct ypamessage_loadgame yms;
-                            struct sendmessage_msg sm;
-                            struct locksession_msg ls;
-                            struct flushbuffer_msg fb;
-
-                            yms.generic.message_id = YPAM_LOADGAME;
-                            yms.generic.owner      = 0; // weil nicht feststehend
-                            yms.level              = GSR->NLevelOffset;
-
-                            sm.data                = (char *) &yms;
-                            sm.data_size           = sizeof( yms );
-                            sm.receiver_kind       = MSG_ALL;
-                            sm.receiver_id         = NULL;
-                            sm.guaranteed          = TRUE;
-                            _methoda( GSR->ywd->world, YWM_SENDMESSAGE, &sm);
-
-                            fb.sender_kind         = MSG_PLAYER;
-                            fb.sender_id           = GSR->NPlayerName;
-                            fb.receiver_kind       = MSG_ALL;
-                            fb.receiver_id         = NULL;
-                            fb.guaranteed          = TRUE;
-                            _methoda( GSR->ywd->nwo, NWM_FLUSHBUFFER, &fb);
-
-
-                            GSR->GSA.LastAction = A_NETSTART;
-                            GSR->GSA.ActionParameter[ 0 ] = GSR->NLevelOffset;
-                            GSR->GSA.ActionParameter[ 1 ] = GSR->NLevelOffset;
-
-                            GSR->nmenu.FirstShown = 0;
-
-                            /*** Session sperren ***/
-                            ls.block = TRUE;
-                            _methoda( GSR->ywd->nwo, NWM_LOCKSESSION, &ls );
-
-                            /*** Letzte Infos rausschreiben ***/
-                            yw_PrintNetworkInfoStart( GSR );
+                            
+                            /*** Wenn nur ein Spieler, dann Sicherheitsabfrage ***/
+                            if( 1 < _methoda( GSR->ywd->nwo, NWM_GETNUMPLAYERS, NULL ) )
+                                yw_StartNetGame( GSR );
+                            else
+                                yw_OpenConfirmRequester( GSR, CONFIRM_NETSTARTALONE,
+                                    ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_NETSTARTALONE,
+                                                "DO YOU REALLY WANT TO START WITHOUT OTHER PLAYERS?"));      
                             }
 //                        else {
 //
@@ -5172,16 +5258,9 @@ void yw_EAR_Load( struct GameShellReq *GSR )
     sp.modus = SP_NOPUBLISH;
     _methoda( GSR->bdisk, BTM_SWITCHPUBLISH, &sp );
     yw_CloseReq(GSR->ywd, &(GSR->dmenu.Req) );
-    if( 0 == GSR->d_fromwhere ) {
-        GSR->shell_mode     = SHELLMODE_TITLE;
-        sp.modus = SP_PUBLISH;
-        _methoda( GSR->Titel, BTM_SWITCHPUBLISH, &sp );
-        }
-    else {
-        GSR->shell_mode     = SHELLMODE_PLAY;
-        sp.modus = SP_PUBLISH;
-        _methoda( GSR->UBalken, BTM_SWITCHPUBLISH, &sp );
-        }
+    GSR->shell_mode     = SHELLMODE_PLAY;
+    sp.modus = SP_PUBLISH;
+    _methoda( GSR->UBalken, BTM_SWITCHPUBLISH, &sp );
 }
 
 
@@ -5244,11 +5323,15 @@ void yw_EAR_Save( struct GameShellReq *GSR )
 
         /* ------------------------------------------------------------------
         ** Zu diesem Spieler existiert eine Node und ein Verzeichnis. Folg-
-        ** lich löschen wir alle Files darin (später kopieren wir alles rüber
+        ** lich löschen wir alle Files darin (später kopieren wir alles rüber)
+        ** natuerlich nur, wenn UNTER EINEM ANDEREN NAMEN ABGESPEICHERT werden
+        ** soll!
         ** ----------------------------------------------------------------*/
-        sprintf( fn, "save:%s", GSR->D_Name);
-
-        yw_KillAllFilesInDir( fn );
+        if( stricmp( GSR->D_Name, GSR->UserName ) != 0 ) {
+        
+            sprintf( fn, "save:%s", GSR->D_Name);
+            yw_KillAllFilesInDir( fn );
+            }
         }
 
     /*** Nur mal so die Einstellungen abspeichern. ***/
@@ -5466,16 +5549,9 @@ void yw_EAR_Create( struct GameShellReq *GSR )
     sp.modus = SP_NOPUBLISH;
     _methoda( GSR->bdisk, BTM_SWITCHPUBLISH, &sp );
     yw_CloseReq(GSR->ywd, &(GSR->dmenu.Req) );
-    if( 0 == GSR->d_fromwhere ) {
-        GSR->shell_mode     = SHELLMODE_TITLE;
-        sp.modus = SP_PUBLISH;
-        _methoda( GSR->Titel, BTM_SWITCHPUBLISH, &sp );
-        }
-    else {
-        GSR->shell_mode     = SHELLMODE_PLAY;
-        sp.modus = SP_PUBLISH;
-        _methoda( GSR->UBalken, BTM_SWITCHPUBLISH, &sp );
-        }
+    GSR->shell_mode     = SHELLMODE_PLAY;
+    sp.modus = SP_PUBLISH;
+    _methoda( GSR->UBalken, BTM_SWITCHPUBLISH, &sp );
 }
 
 
@@ -5888,5 +5964,135 @@ BOOL yw_IsOKForFilename( char ascii )
         }
 }
 
+void yw_LoadSaveGameFromMap( struct GameShellReq *GSR )
+{
 
+    struct switchpublish_msg sp;
+    
+    GSR->mb_stopped = FALSE;
+    GSR->exist_savegame = 0;
+    GSR->ywd->playing_network = FALSE;
+
+    sp.modus = SP_NOPUBLISH;
+    _methoda( GSR->UBalken, BTM_SWITCHPUBLISH, &sp );
+
+    /*** Spiel starten ***/
+    GSR->GSA.LastAction = A_LOAD;
+    GSR->GSA.ActionParameter[0] = 0;    // FIXME: hat nix zu bedeuten
+}
+
+
+
+void yw_CloseConfirmRequester( struct GameShellReq *GSR )
+{
+    struct switchpublish_msg sp;
+    struct switchbutton_msg sb;
+
+    sb.number  = GSID_CONFIRMOK;
+    _methoda( GSR->confirm, BTM_DISABLEBUTTON, &sb );
+    sb.number  = GSID_CONFIRMCANCEL;
+    _methoda( GSR->confirm, BTM_DISABLEBUTTON, &sb );
+
+    /*** nicht darstellen ***/
+    sp.modus = SP_NOPUBLISH;
+    _methoda( GSR->confirm, BTM_SWITCHPUBLISH, &sp );
+    
+    GSR->confirm_modus = CONFIRM_NONE;
+}
+
+
+
+void yw_OpenConfirmRequester( struct GameShellReq *GSR, ULONG modus, char *text )
+{
+/*
+**  FUNCTION    Oeffnet einen Requester um eine Aktion zu bestaetigen. Dieser
+**              muss permanent bearbeitet werden, was aber Handle... macht.
+**
+**  INPUT       der Modus zeigt an, wohin nach Beenden des Requesters verzweigt
+**              wird.
+**              texts ist die eine (oder mehrere) Textzeile...
+**        
+**  OUTPUT
+**
+**  CHANGED   
+*/
+    struct switchpublish_msg sp;
+    struct switchbutton_msg sb;
+    struct setstring_msg ss;
+    
+    GSR->confirm_modus = modus;
+
+    sb.number  = GSID_CONFIRMOK;
+    _methoda( GSR->confirm, BTM_ENABLEBUTTON, &sb );
+    sb.number  = GSID_CONFIRMCANCEL;
+    _methoda( GSR->confirm, BTM_ENABLEBUTTON, &sb );
+
+    ss.unpressed_text = text;
+    ss.pressed_text   = NULL;
+    ss.number         = GSID_CONFIRMTEXT;
+    _methoda( GSR->confirm, BTM_SETSTRING, &ss );  
+
+    /*** nicht darstellen ***/
+    sp.modus = SP_PUBLISH;
+    _methoda( GSR->confirm, BTM_SWITCHPUBLISH, &sp );
+}  
+
+
+BOOL yw_CheckOlderSaveGame( struct GameShellReq *GSR )
+{
+    FILE *f;
+    char filename[ 300 ];
+    
+    sprintf( filename, "save:%s/sgisold.txt", GSR->UserName );
+    
+    if( f = _FOpen( filename, "r" ) ) {
+    
+        _FClose( f );
+        return( TRUE );
+        }
+    else
+        return( FALSE );
+}                         
+
+
+void yw_StartNetGame( struct GameShellReq *GSR )
+{
+
+    struct ypamessage_loadgame yms;
+    struct sendmessage_msg sm;
+    struct locksession_msg ls;
+    struct flushbuffer_msg fb;
+
+    yms.generic.message_id = YPAM_LOADGAME;
+    yms.generic.owner      = 0; // weil nicht feststehend
+    yms.level              = GSR->NLevelOffset;
+
+    sm.data                = (char *) &yms;
+    sm.data_size           = sizeof( yms );
+    sm.receiver_kind       = MSG_ALL;
+    sm.receiver_id         = NULL;
+    sm.guaranteed          = TRUE;
+    _methoda( GSR->ywd->world, YWM_SENDMESSAGE, &sm);
+
+    fb.sender_kind         = MSG_PLAYER;
+    fb.sender_id           = GSR->NPlayerName;
+    fb.receiver_kind       = MSG_ALL;
+    fb.receiver_id         = NULL;
+    fb.guaranteed          = TRUE;
+    _methoda( GSR->ywd->nwo, NWM_FLUSHBUFFER, &fb);
+
+
+    GSR->GSA.LastAction = A_NETSTART;
+    GSR->GSA.ActionParameter[ 0 ] = GSR->NLevelOffset;
+    GSR->GSA.ActionParameter[ 1 ] = GSR->NLevelOffset;
+
+    GSR->nmenu.FirstShown = 0;
+
+    /*** Session sperren ***/
+    ls.block = TRUE;
+    _methoda( GSR->ywd->nwo, NWM_LOCKSESSION, &ls );
+
+    /*** Letzte Infos rausschreiben ***/
+    yw_PrintNetworkInfoStart( GSR );
+}    
 

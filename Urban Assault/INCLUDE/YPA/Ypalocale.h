@@ -788,6 +788,10 @@ static UBYTE *ypa_GetStr(UBYTE **loc, ULONG id, UBYTE *def)
 #define STR_CONFIRM_LOAD                (2482)
 #define STR_CONFIRM_RESTART             (2483)
 
+#define STR_CONFIRM_LOADANDOVERWRITE    (2466)
+#define STR_CONFIRM_NETSTARTALONE       (2467)
+#define STR_CONFIRM_SAVEANDOVERWRITE    (2468)
+
 /*** Anpassen! ***/
 #define STR_LAST_ITEM           (2600) 
 
