@@ -220,6 +220,9 @@ _dispatcher(void, yr_YBM_DIE, void *nix)
     /*** Nun rufe ich die Supermethode auf. ***/
     _supermethoda( cl, o, YBM_DIE, NULL );
 
+    /*** evtl. war der BeamVP an, 0 kann Batzen sein!!! ***/
+    yrd->bact->extravp[ 1 ].flags = 0;
+
     if( ywd->playing_network && (yrd->bact->Owner != 0) ) {
 
         Object *vo;
