@@ -348,7 +348,8 @@ void w3d_DrawPoly(struct windd_data *wdd,
                 exec->cur_state[W3DSTATE_SHADEMODE].status       = D3DSHADE_FLAT;
                 exec->cur_state[W3DSTATE_BLENDENABLE].status     = TRUE;
                 exec->cur_state[W3DSTATE_TEXTUREMAPBLEND].status = D3DTBLEND_MODULATEALPHA;
-                exec->cur_state[W3DSTATE_SRCBLEND].status        = D3DBLEND_SRCALPHA;
+                //exec->cur_state[W3DSTATE_SRCBLEND].status        = D3DBLEND_SRCALPHA;
+                exec->cur_state[W3DSTATE_SRCBLEND].status        = D3DBLEND_ONE;
                 exec->cur_state[W3DSTATE_DESTBLEND].status       = D3DBLEND_ONE;
             } else if (wdd_Data.Driver.CanDoAlpha) {
                 /*** sonst additiv-Emulation per Alphachannel ***/
@@ -368,6 +369,7 @@ void w3d_DrawPoly(struct windd_data *wdd,
             };
             for (i=0; i<p->pnum; i++) {
                 v_array[i].color &= 0x00ffffff;
+                //v_array[i].color |= 128<<24;  // ((w3d->alpha)<<24);
                 v_array[i].color |= ((w3d->alpha)<<24);
             };
         }else if (p->flags & W3DF_RPOLY_ZEROTRACY){

@@ -770,7 +770,8 @@ HRESULT FAR PASCAL wdd_EnumDevicesCallback(
     d->CanDoAlpha          = FALSE;
     d->CanDoAdditiveBlend  = FALSE;
     d->CanDoStipple        = FALSE;
-    if ((d->Desc.dpcTriCaps.dwSrcBlendCaps  & D3DPBLENDCAPS_SRCALPHA) &&
+    //if ((d->Desc.dpcTriCaps.dwSrcBlendCaps  & D3DPBLENDCAPS_SRCALPHA) &&
+    if ((d->Desc.dpcTriCaps.dwSrcBlendCaps  & D3DPBLENDCAPS_ONE) &&
         (d->Desc.dpcTriCaps.dwDestBlendCaps & D3DPBLENDCAPS_ONE) &&
         (!(wdd_ForceAlphaTextures)))
     {
