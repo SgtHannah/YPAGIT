@@ -4369,7 +4369,7 @@ void yw_ScanUserDirectory( struct GameShellReq *GSR, char *dirname, Object *Worl
     struct fileinfonode *infonode;
     struct ncDirEntry entry;
     struct ypa_PlayerStats gstats[ MAXNUM_ROBOS ];
-    LONG   mre,mrc;
+    LONG   mre,mrc,tod;
     char   nbuffer[ 300 ];
 
     /* ---------------------------------------------------------------
@@ -4444,7 +4444,7 @@ void yw_ScanUserDirectory( struct GameShellReq *GSR, char *dirname, Object *Worl
     /*** Rückschreiben der GlobalStats ***/
     memcpy( GSR->ywd->GlobalStats, gstats, sizeof( gstats ) );
     GSR->ywd->MaxReloadConst = mrc;
-    GSR->ywd->MaxRoboEnergy = mre;
+    GSR->ywd->MaxRoboEnergy  = mre;
     strcpy( GSR->NPlayerName, nbuffer );
 }
 ///

@@ -212,7 +212,6 @@ void yw_FadeOut(struct ypaworld_data *);
 void yw_FadeIn(struct ypaworld_data *);
 void yw_BlackOut(struct ypaworld_data *);
 void yw_ScreenShot(struct ypaworld_data *);
-void yw_ShowDiskAccess(struct ypaworld_data *);
 void yw_SaveBmpAsAscii(struct ypaworld_data *, Object *, UBYTE *, APTR);
 Object *yw_CreateBmpFromAscii(struct ypaworld_data *, UBYTE *, APTR);
 Object *yw_CopyBmpObject(Object *, UBYTE *);
@@ -237,6 +236,13 @@ UBYTE *yw_RenderUnitLimit(struct ypaworld_data *, UBYTE *, ULONG);
 FLOAT yw_GetCostFactor(struct ypaworld_data *);
 UBYTE *yw_LayoutVsValues(struct ypaworld_data *, UBYTE *);
 void yw_ConfirmedOnlineHelp(struct ypaworld_data *, UBYTE *);
+Object *yw_BeginDiskAccess(struct ypaworld_data *);
+void yw_EndDiskAccess(struct ypaworld_data *, Object *);
+void yw_ShowDiskAccess(struct ypaworld_data *, Object *);
+void yw_ShowTipOfTheDayDiskAccess(struct ypaworld_data *, Object *, UBYTE *);
+LONG yw_GetIntEnv(struct ypaworld_data *, UBYTE *);
+ULONG yw_PutIntEnv(struct ypaworld_data *, UBYTE *, LONG); 
+void yw_PutTOD(struct ypaworld_data *, Object *, UBYTE *, WORD, WORD);
 
 /*** yw_record.c ***/
 void yw_FreeSequenceData(struct YPASeqData *);

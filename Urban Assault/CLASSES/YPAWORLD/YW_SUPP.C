@@ -423,30 +423,7 @@ void yw_FadeOut(struct ypaworld_data *ywd)
 **                            ausgeführt
 **      17-May-98   floh    + disabled...
 */
-{
-//    if (!wdd_DoDirect3D) {
-//        Object *gfxo;
-//        ULONG i;
-//        ULONG num_steps = 16;
-//        struct snd_cdcontrol_msg cd;
-//
-//        _OVE_GetAttrs(OVET_Object,&gfxo,TAG_DONE);
-//        for (i=0; i<num_steps; i++) {
-//
-//            struct disp_mixpal_msg dsm;
-//            ULONG slot[1];
-//            ULONG weight[1];
-//
-//            dsm.num    = 1;
-//            dsm.slot   = slot;
-//            dsm.weight = weight;
-//            slot[0]    = 0;
-//            weight[0]  = 256 - ((i*256)/num_steps);
-//           _methoda(gfxo,DISPM_MixPalette,&dsm);
-//            delay(20);
-//        };
-//    };
-}
+{ }
 
 /*-----------------------------------------------------------------*/
 void yw_FadeIn(struct ypaworld_data *ywd)
@@ -460,29 +437,7 @@ void yw_FadeIn(struct ypaworld_data *ywd)
 **                            ausgeführt
 **      17-May-98   floh    + ...disabled
 */
-{
-//    if (!wdd_DoDirect3D) {
-//        Object *gfxo;
-//        ULONG i;
-//        ULONG num_steps = 16;
-//
-//        _OVE_GetAttrs(OVET_Object,&gfxo,TAG_DONE);
-//        for (i=0; i<num_steps; i++) {
-//
-//            struct disp_mixpal_msg dsm;
-//            ULONG slot[1];
-//            ULONG weight[1];
-//
-//            dsm.num    = 1;
-//            dsm.slot   = slot;
-//            dsm.weight = weight;
-//            slot[0]    = 0;
-//            weight[0]  = (i*256)/num_steps;
-//            _methoda(gfxo,DISPM_MixPalette,&dsm);
-//            delay(20);
-//        };
-//    };
-}
+{ }
 
 /*-----------------------------------------------------------------*/
 void yw_BlackOut(struct ypaworld_data *ywd)
@@ -496,25 +451,50 @@ void yw_BlackOut(struct ypaworld_data *ywd)
 **                            ausgeführt
 **      17-May-98   floh    + disabled...
 */
+{ }
+
+/*-----------------------------------------------------------------*/
+Object *yw_BeginDiskAccess(struct ypaworld_data *ywd)
+/*
+**  CHANGED
+**      20-Jun-98   floh    created
+*/
 {
-//    if (!wdd_DoDirect3D) {
-//       Object *gfxo;
-//        struct disp_mixpal_msg dsm;
-//        ULONG slot[1];
-//        ULONG weight[1];
-//
-//        _OVE_GetAttrs(OVET_Object,&gfxo,TAG_DONE);
-//        dsm.num    = 1;
-//        dsm.slot   = slot;
-//        dsm.weight = weight;
-//        slot[0]    = 0;
-//        weight[0]  = 0;
-//        _methoda(gfxo,DISPM_MixPalette,&dsm);
-//    };
+    UBYTE *filename;
+    Object *pic;
+    struct snd_cdcontrol_msg cd;
+    UBYTE old_path[128];
+
+    /*** CDROM stoppen ***/
+    cd.command = SND_CD_STOP;
+    _ControlCDPlayer(&cd);
+
+    /*** waehle Mipmap-Stufe des Disk-Access-Bild ***/
+    if (ywd->DspXRes <= 360)      filename="disk320.ilbm";
+    else if (ywd->DspXRes <= 600) filename="disk512.ilbm";
+    else                          filename="disk640.ilbm";
+    strcpy(old_path,_GetAssign("rsrc"));
+    _SetAssign("rsrc","data:mc2res");
+    pic = _new("ilbm.class", RSA_Name, filename,
+                             BMA_Texture,      TRUE,
+                             BMA_TxtBlittable, TRUE,
+                             TAG_DONE);
+    _SetAssign("rsrc",old_path);
+    return(pic);
 }
 
 /*-----------------------------------------------------------------*/
-void yw_ShowDiskAccess(struct ypaworld_data *ywd)
+void yw_EndDiskAccess(struct ypaworld_data *ywd, Object *pic)
+/*
+**  CHANGED
+**      20-Jun-98   floh    created
+*/
+{
+    if (pic) _dispose(pic);
+}
+
+/*-----------------------------------------------------------------*/
+void yw_ShowDiskAccess(struct ypaworld_data *ywd, Object *pic)
 /*
 **  FUNCTION
 **      Wird vor einer längeren Lade-Periode aufgerufen und
@@ -529,28 +509,8 @@ void yw_ShowDiskAccess(struct ypaworld_data *ywd)
 **                          + CDROM wird gestoppt
 */
 {
-    UBYTE *filename;
-    Object *pic;
-    UBYTE old_path[128];
-    struct snd_cdcontrol_msg cd;
 
-    /*** CDROM stoppen ***/
-    cd.command = SND_CD_STOP;
-    _ControlCDPlayer(&cd);
-
-    /*** wähle Mipmap-Stufe des Disk-Access-Bild ***/
-    if (ywd->DspXRes <= 360)      filename="disk320.ilbm";
-    else if (ywd->DspXRes <= 600) filename="disk512.ilbm";
-    else                          filename="disk640.ilbm";
-    strcpy(old_path,_GetAssign("rsrc"));
-    _SetAssign("rsrc","data:mc2res");
-    pic = _new("ilbm.class", RSA_Name, filename,
-                             BMA_Texture,      TRUE,
-                             BMA_TxtBlittable, TRUE,
-                             TAG_DONE);
-    _SetAssign("rsrc",old_path);
     if (pic) {
-
         Object *gfxo;
         struct disp_pointer_msg dpm;
         struct rast_blit blt;
@@ -566,18 +526,113 @@ void yw_ShowDiskAccess(struct ypaworld_data *ywd)
 
         _OVE_GetAttrs(OVET_Object, &gfxo, TAG_DONE);
         if (gfxo) {
-            _methoda(gfxo, DISPM_Begin, NULL);
             _methoda(gfxo, DISPM_SetPointer, &dpm);
+            _methoda(gfxo, DISPM_Begin, NULL);
+            _methoda(gfxo, RASTM_Begin2D, NULL);
+            _methoda(gfxo, RASTM_Blit, &blt);
+            _methoda(gfxo, RASTM_End2D, NULL);
+            _methoda(gfxo, DISPM_End, NULL);
+
+            _methoda(gfxo, DISPM_Begin, NULL);
             _methoda(gfxo, RASTM_Begin2D, NULL);
             _methoda(gfxo, RASTM_Blit, &blt);
             _methoda(gfxo, RASTM_End2D, NULL);
             _methoda(gfxo, DISPM_End, NULL);
         };
-
-        /*** und das Bitmap-Objekt wieder killen ***/
-        _dispose(pic);
     };
 }
+
+/*-----------------------------------------------------------------*/
+void yw_PutTOD(struct ypaworld_data *ywd, Object *gfxo, UBYTE *tod,
+               WORD xpos_brel, WORD ypos_brel)
+/*
+**  CHANGED
+**      20-Jun-98   floh    created
+*/
+{
+    if (tod) {
+
+        BOOL last_line = FALSE;
+        UBYTE str_buf[2048];
+        UBYTE *str = str_buf;
+        struct rast_text rt;        
+        
+        new_font(str,FONTID_TRACY);
+        pos_brel(str,xpos_brel,ypos_brel);
+        dbcs_color(str,yw_Red(ywd,YPACOLOR_MAP_VIEWER),yw_Green(ywd,YPACOLOR_MAP_VIEWER),yw_Blue(ywd,YPACOLOR_MAP_VIEWER));
+        
+        /*** fuer jede Zeile ***/    
+        do {
+            UBYTE c;        
+            UBYTE line_buf[256];
+            UBYTE *line_ptr = line_buf;
+        
+            /*** kopiere aktuelle Zeile in den Zeilenbuffer ***/
+            do {
+                c = *tod++;
+                if (c == 0) last_line=TRUE;
+                if (c == '\n') c=0;
+                *line_ptr++ = c;
+            } while (c != 0);
+            
+            /*** und Zeile layouten ***/
+            str = yw_TextBuildClippedItem(ywd->Fonts[FONTID_TRACY],str,line_buf,ywd->DspXRes-xpos_brel,' ');
+            new_line(str);
+        } while (!last_line);
+        eos(str);
+
+        /*** und String ausgeben ***/
+        rt.string = str_buf;
+        rt.clips  = NULL;
+        _methoda(gfxo,RASTM_Text,&rt);         
+    };
+}    
+
+/*-----------------------------------------------------------------*/
+void yw_ShowTipOfTheDayDiskAccess(struct ypaworld_data *ywd, 
+                                  Object *pic,
+                                  UBYTE *tod)
+/*
+**  CHANGED
+**      20-Jun-98   floh    created
+*/
+{
+    if (pic) {
+
+        Object *gfxo;
+        struct disp_pointer_msg dpm;
+        struct rast_blit blt;
+
+        _OVE_GetAttrs(OVET_Object, &gfxo, TAG_DONE);
+
+        /*** Mauspointer + Audio-Volume holen ***/
+        dpm.pointer = ywd->MousePtrBmp[YW_MOUSE_DISK];
+        dpm.type    = DISP_PTRTYPE_DISK;
+        _get(pic, BMA_Bitmap, &(blt.src));
+        blt.from.xmin = blt.to.xmin = -1.0;
+        blt.from.ymin = blt.to.ymin = -1.0;
+        blt.from.xmax = blt.to.xmax = +1.0;
+        blt.from.ymax = blt.to.ymax = +1.0;
+        if (gfxo) {
+            _methoda(gfxo, DISPM_SetPointer, &dpm);
+
+            _methoda(gfxo, DISPM_Begin, NULL);
+            _methoda(gfxo, RASTM_Begin2D, NULL);
+            _methoda(gfxo, RASTM_Blit, &blt);
+            yw_PutTOD(ywd, gfxo, tod, ywd->DspXRes/7, ywd->DspYRes/5);
+            _methoda(gfxo, RASTM_End2D, NULL);
+            _methoda(gfxo, DISPM_End, NULL);
+
+            _methoda(gfxo, DISPM_Begin, NULL);
+            _methoda(gfxo, RASTM_Begin2D, NULL);
+            _methoda(gfxo, RASTM_Blit, &blt);
+            yw_PutTOD(ywd, gfxo, tod, ywd->DspXRes/7, ywd->DspYRes/5);
+            _methoda(gfxo, RASTM_End2D, NULL);
+            _methoda(gfxo, DISPM_End, NULL);
+        };
+    };
+}
+
 
 /*-----------------------------------------------------------------*/
 void yw_SaveBmpAsAscii(struct ypaworld_data *ywd,
@@ -1620,15 +1675,6 @@ UBYTE *yw_LayoutVsValues(struct ypaworld_data *ywd, UBYTE *str)
 
         xpos = (ywd->DspXRes*4)/7;
         w    = ywd->DspXRes - xpos;
-
-        //xpos = SubMenu.Req.req_cbox.rect.x + SubMenu.Req.req_cbox.rect.w;
-        //if (ywd->DspXRes < 512) {
-        //    xpos += 8;
-        //    w = 7*8 + 10*8;
-        //} else {
-        //    xpos += 16;
-        //    w = 9*8 + 20*8;
-        //};
         ypos = -(ywd->LowerTabu + 7*ywd->FontH);
         dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_TOOLTIP),yw_Green(ywd,YPACOLOR_TEXT_TOOLTIP),yw_Blue(ywd,YPACOLOR_TEXT_TOOLTIP));
 
@@ -1665,6 +1711,50 @@ void yw_ConfirmedOnlineHelp(struct ypaworld_data *ywd, UBYTE *url)
         ywd->Url       = NULL;
     };
 }
-    
-    
 
+/*-----------------------------------------------------------------*/
+LONG yw_GetIntEnv(struct ypaworld_data *ywd, UBYTE *name)
+/*
+**  CHANGED
+**      20-Jun-98   floh    created
+*/
+{
+    LONG num = 0;
+    if (ywd->gsr) {
+        APTR fp;
+        UBYTE fname[256];
+        sprintf(fname, "save:%s/%s",ywd->gsr->UserName,name);
+        if (fp = _FOpen(fname,"r")) {
+            UBYTE buf[128];
+            if (_FGetS(buf,sizeof(buf),fp)) {
+                UBYTE *dike_out;
+                /*** NewLine etc... killen ***/
+                if (dike_out = strpbrk(buf, "\n;")) *dike_out = 0;
+                num = strtol(buf,NULL,0);
+            };
+            _FClose(fp);
+        };
+    };
+    return(num);
+}
+
+/*-----------------------------------------------------------------*/
+ULONG yw_PutIntEnv(struct ypaworld_data *ywd, UBYTE *name, LONG num) 
+/*
+**  CHANGED
+**      20-Jun-98   floh    created    
+*/
+{
+    ULONG retval = FALSE;
+    if (ywd->gsr) {
+        APTR fp;
+        UBYTE fname[256];
+        sprintf(fname, "save:%s/%s",ywd->gsr->UserName,name);
+        if (fp = _FOpen(fname,"w")) {
+            fprintf(fp,"%d",num);
+            _FClose(fp);
+            retval = TRUE;
+        };
+    };
+    return(retval);
+}

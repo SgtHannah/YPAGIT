@@ -2269,6 +2269,7 @@ struct ypaworld_data {
     ULONG LevelUnitLimitArg;        // Prozent-Wert fuer Soft-Unit-Limits
     ULONG LevelUnitLimitType;       // YPA_UNITLIMITTYPE_#?
     ULONG NormKeyBackup;            // falls CreateMenu oder ConfirmReq offen, steht hier die NormKey 
+    LONG TipOfTheDay;
 };
 
 #define YPA_UNITLIMITTYPE_HARD          (0) // einfaches Hardlimit

@@ -291,8 +291,11 @@ void yw_InitShellBgMode(struct ypaworld_data *ywd, ULONG shell_mode)
 **
 **  CHANGED
 **      21-Feb-98   floh    created
+**      20-Jun-98   floh    + TipOfTheDay Handling
 */
 {
+    ULONG tod;
+    
     /*** ... und die neuen Pics laden ***/
     yw_LoadBgPicObjects(ywd,shell_mode);
 
@@ -305,6 +308,11 @@ void yw_InitShellBgMode(struct ypaworld_data *ywd, ULONG shell_mode)
             ywd->Mission.Status = MBSTATUS_INVALID;
             ywd->LevelNet->MouseOverLevel = 0;
             yw_MaskGetBlitCoords(ywd);
+            /*** hole TipOfTheDay ***/
+            ywd->TipOfTheDay = yw_GetIntEnv(ywd,"tod.def");    
+            tod = ywd->TipOfTheDay+1;
+            if ((STR_TIPOFDAY_FIRST + tod) > STR_TIPOFDAY_LAST) tod = 0;
+            yw_PutIntEnv(ywd,"tod.def",tod);
             break;
     };
 }
@@ -346,6 +354,7 @@ BOOL yw_InitShellBgHandling(struct ypaworld_data *ywd)
 **
 **  CHANGED
 **      21-Feb-98   floh    created
+**      20-Jun-98   floh    + TipOfTheDay Handling
 */
 {
     Object *gfxo;
@@ -361,6 +370,7 @@ BOOL yw_InitShellBgHandling(struct ypaworld_data *ywd)
 
     /*** Menü-Mode initialisieren ***/
     yw_InitShellBgMode(ywd,ywd->gsr->shell_mode);
+    
     return(TRUE);
 }
 
@@ -373,6 +383,7 @@ void yw_KillShellBgHandling(struct ypaworld_data *ywd)
 **
 **  CHANGED
 **      21-Feb-98   floh    created
+**      20-Jun-98   floh    + TipOfTheDay Handling
 */
 {
     /*** den aktuellen Shellmode killen ***/
@@ -462,6 +473,7 @@ void yw_BlitLevels(struct ypaworld_data *ywd)
 **      24-Nov-97   floh    + Leveltitel DBCS Enabled
 **      21-Feb-98   floh    + Support für Button-Levelauswahl ist endgültig
 **                            raus
+**      20-Jun-98   floh    + Tip Of The Day Handling
 */
 {
     if (ywd->LevelNet->BgMap && ywd->LevelNet->MaskMap &&
@@ -471,6 +483,7 @@ void yw_BlitLevels(struct ypaworld_data *ywd)
 
         ULONG i;
         struct rast_blit blt;
+        UBYTE *tod;
 
         _methoda(ywd->GfxObject,RASTM_Begin2D,NULL);
 
@@ -536,13 +549,17 @@ void yw_BlitLevels(struct ypaworld_data *ywd)
                 dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_TOOLTIP),yw_Green(ywd,YPACOLOR_TEXT_TOOLTIP),yw_Blue(ywd,YPACOLOR_TEXT_TOOLTIP));
                 str = yw_TextCenteredSkippedItem(ywd->Fonts[FONTID_TRACY],str,name,ywd->DspXRes);
             };
-
-            /*** String abschließen und rendern ***/
+            
+            /*** String abschliessen und rendern ***/
             eos(str);
             rt.string = str_buf;
             rt.clips  = NULL;
             _methoda(ywd->GfxObject,RASTM_Text,&rt);
         };
+        
+        /*** TipOfTheDay ***/
+        tod = ypa_GetStr(ywd->LocHandle,STR_TIPOFDAY_FIRST+ywd->TipOfTheDay," ");
+        yw_PutTOD(ywd, ywd->GfxObject, tod, ywd->DspXRes/20, ywd->DspXRes/20);
         _methoda(ywd->GfxObject,RASTM_End2D,NULL);
     };
 }

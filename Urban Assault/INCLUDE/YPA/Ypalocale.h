@@ -838,6 +838,11 @@ static UBYTE *ypa_GetStr(UBYTE **loc, ULONG id, UBYTE *def)
 #define STR_CONFIRM_NEEDCD              (2484)
 #define STR_CONFIRM_NEED2CD             (2485)
 #define STR_CONFIRM_HELP                (2486)
+#define STR_CONFIRM_PARASITE            (2487)
+
+#define STR_TIPOFDAY_FIRST              (2490)
+/*** NO NEW STRINGS IN HERE!!! ***/
+#define STR_TIPOFDAY_LAST               (2505)
 
 /*** Anpassen! ***/
 #define STR_LAST_ITEM           (2600) 

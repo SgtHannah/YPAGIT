@@ -967,6 +967,9 @@ BOOL yw_LoadSet(struct ypaworld_data *ywd, ULONG set_num)
 **                            ueberschrieben werden.
 **      29-May-98   floh    + jetzt mit Load-Optimierung beim Set-Object
 **      02-Jun-98   floh    + loescht das ControlLock Flag
+**      20-Jun-98   floh    + laedt jetzt nur noch das Font-Set, wenn
+**                            es sich um Set46 oder 42(???) handelt, andernfalls
+**                            wird es in yw_CommonLevelInit() initialisiert
 */
 {
     UBYTE *str;
@@ -1103,11 +1106,10 @@ BOOL yw_LoadSet(struct ypaworld_data *ywd, ULONG set_num)
     };
 
     /*** falls nicht Set46, Fonts *NICHT* set-spezifisch ***/
-    if ((set_num!=46)&&(set_num!=42)) _SetAssign("rsrc","data:fonts");
-    res = yw_LoadFontSet(ywd);
-    if ((set_num!=46)&&(set_num!=42)) _SetAssign("rsrc",old_path);
-    if (!res) return(FALSE);
-
+    if ((set_num==46)||(set_num==42)) {
+        if (!yw_LoadFontSet(ywd)) return(FALSE);
+    };
+    
     /*** Mauspointer initialisieren ***/
     yw_InitMouse(ywd);
 
@@ -1915,6 +1917,7 @@ _dispatcher(void, yw_YWM_KILLLEVEL, void *ignored)
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
     UBYTE   user_owner;
+    Object *da_pic;
 
     /*** LevelStatus-spezieller Cleanup (muss als erstes kommen!) ***/
     yw_DoLevelStatus(ywd);
@@ -1958,7 +1961,10 @@ _dispatcher(void, yw_YWM_KILLLEVEL, void *ignored)
     ywd->out_seq->active = FALSE;
 
     /*** Anzeigen, das was passiert... ***/
-    yw_ShowDiskAccess(ywd);
+    if (da_pic = yw_BeginDiskAccess(ywd)) {
+        yw_ShowDiskAccess(ywd,da_pic);
+        yw_EndDiskAccess(ywd,da_pic);
+    };
     
     /*** EventCatcher killen ***/
     yw_KillEventCatcher(ywd);   
@@ -2242,7 +2248,12 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
 */
 {
     BOOL retval = FALSE;
-    
+    ULONG res;
+    UBYTE old_path[256];
+    Object *da_pic;
+    UBYTE *tod;
+    LONG tod_num;
+
     /*** allgemeine Initialisierung ***/
     memset(ld,0,sizeof(struct LevelDesc));
     memset(&(ywd->IngameStats),0,sizeof(ywd->IngameStats));
@@ -2316,7 +2327,29 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
             dbcs_SetFont(ypa_GetStr(ywd->LocHandle,STR_FONTDEFINE,"MS Sans Serif,12,400,0"));
         };
     };
-    yw_ShowDiskAccess(ywd);
+    
+    /*** Fontset laden ***/
+    if (da_pic = yw_BeginDiskAccess(ywd)) {
+        yw_ShowDiskAccess(ywd,da_pic);
+    };
+    
+    strcpy(old_path, _GetAssign("rsrc"));
+    _SetAssign("rsrc","data:fonts");
+    res = yw_LoadFontSet(ywd);
+    _SetAssign("rsrc",old_path);
+    if (!res) return(FALSE);
+    
+    /*** Tip Of The Day Handling ***/
+    tod_num = yw_GetIntEnv(ywd,"tod.def");    
+    tod = ypa_GetStr(ywd->LocHandle, STR_TIPOFDAY_FIRST + tod_num, " ");
+    tod_num++;
+    if ((STR_TIPOFDAY_FIRST + tod_num) > STR_TIPOFDAY_LAST) tod_num = 0;
+    yw_PutIntEnv(ywd,"tod.def",tod_num);
+    if (da_pic) {
+        yw_ShowTipOfTheDayDiskAccess(ywd, da_pic, tod);
+        yw_EndDiskAccess(ywd,da_pic);
+    };        
+        
     yw_InitProfiler(ywd);
     yw_InitHistory(ywd);
     _AE_GetAttrs(AET_MasterVolume,&(ywd->MasterVolume),TAG_DONE);
