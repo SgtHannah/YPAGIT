@@ -346,9 +346,10 @@ void yw_RenderTooltip(struct ypaworld_data *ywd)
 **      11-Oct-97   floh    + Positionierung jetzt per ywd->LowerTabu
 **      24-Nov-97   floh    + Tooltips DBCS enabled
 **      10-Dec-97   floh    + DBCS-Textfarbe
+**      02-Jun-98   floh    + smartere Tooltip-Anzeige
 */
 {
-    if ((ywd->Tooltip != TOOLTIP_NONE) && (!ywd->MouseBlanked)) {
+    if ((ywd->ControlLock) || ((ywd->Tooltip != TOOLTIP_NONE) && (!ywd->MouseBlanked))) {
 
         /*** wir benutzen zum Rendern den QuickLogBuf ***/
         UBYTE *str = LW_QuickLogBuf;
