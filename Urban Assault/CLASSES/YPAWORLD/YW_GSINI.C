@@ -3478,6 +3478,15 @@ _dispatcher( void, yw_YWM_CLOSEGAMESHELL, struct GameShellReq *GSR )
 
 /// "Schließen und freigeben aller Requester- und Buttonobjekte"
     /*** Balken schlie_en und Objekt freigeben ***/
+    if( GSR->confirm ) {
+    
+        sp.modus = SP_NOPUBLISH;
+        _methoda( GSR->confirm, BTM_SWITCHPUBLISH, &sp );
+        _dispose( GSR->confirm );
+        }
+
+    GSR->confirm = NULL;
+
     if( GSR->UBalken ) {
     
         sp.modus = SP_NOPUBLISH;
