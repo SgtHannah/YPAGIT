@@ -236,6 +236,7 @@ void yw_InitActiveItem(struct ypaworld_data *ywd,
 **
 **  CHANGED
 **      10-Feb-98   floh    created
+**      18-Jun-98   floh    + Owner-Code wird gesetzt.
 */
 {
     struct SuperItem *item = &(ywd->Level->Item[item_num]);
@@ -266,7 +267,7 @@ void yw_InitActiveItem(struct ypaworld_data *ywd,
     item->sec->WIndex = item_num;
 
     lm.bact = NULL;
-    lm.pri  = 90;
+    lm.pri  = 94;
     switch(item->type) {
         case SI_TYPE_BOMB:
             lm.msg  = ypa_GetStr(ywd->LocHandle,STR_LMSG_SUPERBOMB_ACTIVATED,"Superbomb activated.");
@@ -317,7 +318,7 @@ void yw_InitTriggerItem(struct ypaworld_data *ywd, ULONG item_num)
     yw_SuperBombStartTrigger(ywd,item_num);
 
     lm.bact = NULL;
-    lm.pri  = 90;
+    lm.pri  = 95;
     switch(item->type) {
         case SI_TYPE_BOMB:
             lm.msg  = ypa_GetStr(ywd->LocHandle,STR_LMSG_SUPERBOMB_TRIGGERED,"Superbomb triggered.");
@@ -365,7 +366,7 @@ void yw_InitFreezeItem(struct ypaworld_data *ywd, ULONG item_num)
     item->sec->WIndex = item_num;
 
     lm.bact = NULL;
-    lm.pri  = 90;
+    lm.pri  = 93;
     switch(item->type) {
         case SI_TYPE_BOMB:
             lm.msg  = ypa_GetStr(ywd->LocHandle,STR_LMSG_SUPERBOMB_FROZEN,"Superbomb frozen.");
@@ -417,7 +418,7 @@ void yw_InitInactiveItem(struct ypaworld_data *ywd, ULONG item_num)
     item->sec->WIndex = item_num;
 
     lm.bact = NULL;
-    lm.pri  = 90;
+    lm.pri  = 92;
     switch(item->type) {
         case SI_TYPE_BOMB:
             lm.msg  = ypa_GetStr(ywd->LocHandle,STR_LMSG_SUPERBOMB_DEACTIVATED,"Superbomb deactivated.");
@@ -467,13 +468,17 @@ void yw_HandleActiveItem(struct ypaworld_data *ywd, ULONG item_num)
 **      03-Apr-98   floh    + falls Keysektor-loses Item, wird
 **                            Item nicht eingefroren, sondern
 **                            für anderen User aktiviert
+**      18-Jun-98   floh    + handelt jetzt auch den Fall ab,
+**                            dass alle Sektoren gleichzeitig
+**                            an einen neuen Owner fallen (z.B.
+**                            durch einen Robo-Abschuss).
 */
 {
     struct SuperItem *item = &(ywd->Level->Item[item_num]);
-
+        
     /*** noch ein Robo dafür da? ***/
-    if (yw_ExistsOwnerRobo(ywd,item->sec->Owner)) {
-        if (yw_AllSectorsOwned(ywd,item_num,item->sec->Owner)) {
+    if (yw_ExistsOwnerRobo(ywd,item->activated_by)) {
+        if (yw_AllSectorsOwned(ywd,item_num,item->activated_by)) {
             /*** alle Sektoren ok ***/
             if (item->countdown <= 0) {
                 yw_InitTriggerItem(ywd,item_num);
@@ -1021,7 +1026,10 @@ void yw_RenderSuperItems(struct ypaworld_data *ywd,
 **      Superitems. Wird aus yw_RenderFrame() aufgerufen.
 **
 **  CHANGED
-**      12-Feb-98
+**      12-Feb-98   floh    created
+**      18-Jun-98   floh    + oops, der MaxRadius war zu klein,
+**                            so dass nach einer Weile nix mehr
+**                            gerendert wurde...
 */
 {
     ULONG i;
@@ -1030,7 +1038,7 @@ void yw_RenderSuperItems(struct ypaworld_data *ywd,
         if (item->status == SI_STATUS_TRIGGERED) {
             FLOAT mid_x  = (FLOAT) (item->sec_x * SECTOR_SIZE + SECTOR_SIZE/2);
             FLOAT mid_z  = (FLOAT) -(item->sec_y * SECTOR_SIZE + SECTOR_SIZE/2);
-            FLOAT max_r = 0.5*nc_sqrt(ywd->WorldSizeX*ywd->WorldSizeX + ywd->WorldSizeY*ywd->WorldSizeY);
+            FLOAT max_r = nc_sqrt(ywd->WorldSizeX*ywd->WorldSizeX + ywd->WorldSizeY*ywd->WorldSizeY);
             if ((item->radius > 300) && (item->radius < max_r))
             {
                 /*** wieviele Punkte brauchen wir auf dem Radius? ***/

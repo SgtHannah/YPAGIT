@@ -1496,7 +1496,7 @@ struct SuperItem {
     ULONG type;         // siehe unten
     ULONG status;       // siehe unten
     ULONG time_diff;    // Zeit von Aktivierung bis Auslösung
-
+    
     struct Cell *sec;   // Superitem ist auf diesem Sektor
     ULONG sec_x,sec_y;  // dessen Sektor-Koordinaten
     ULONG inactive_bp;  // ist nicht aktiviert

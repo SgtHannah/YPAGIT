@@ -63,6 +63,7 @@ UWORD yw_GetLandLego(struct ypaworld_data *ywd, LONG subx, LONG suby)
 **      07-Dec-96   floh    + Support für Höhenlinien.
 **      12-Dec-96   floh    + bei Slurp-Auswahl wurde links ein
 **                            Sektor zu weit nach innen geclippt
+**      17-Jun-98   floh    + plus "which side is higher" Handling
 */
 {
     UBYTE chr;
@@ -94,7 +95,7 @@ UWORD yw_GetLandLego(struct ypaworld_data *ywd, LONG subx, LONG suby)
 
                 /*** Höhen-Linien-Check ist sicher ***/
                 struct Cell *n[4];  // Nachbar-Sektoren
-                ULONG code = 0;
+                LONG  code = 0;
                 FLOAT diff = 500;   // ab hier schaffens Landfahrzeuge nicht
 
                 /*-------------------------------------------------**
@@ -115,13 +116,17 @@ UWORD yw_GetLandLego(struct ypaworld_data *ywd, LONG subx, LONG suby)
                 **-------------------------------------------------*/
 
                 if (inx != 0) {
+                
                     /*** ein waagerechter Slurp ***/
                     n[0] = n[1] = sec - ywd->MapSizeX;
                     n[2] = n[3] = sec;
+                    
                 } else if (iny != 0) {
+                
                     /*** ein vertikaler Slurp ***/
                     n[0] = n[2] = sec - 1;
                     n[1] = n[3] = sec;
+                    
                 } else {
                     /*** ein Cross-Slurp ***/
                     n[0] = sec - ywd->MapSizeX - 1;
@@ -135,6 +140,14 @@ UWORD yw_GetLandLego(struct ypaworld_data *ywd, LONG subx, LONG suby)
                 if (abs(n[2]->Height - n[3]->Height) >= diff) code |= (1<<1);
                 if (abs(n[0]->Height - n[2]->Height) >= diff) code |= (1<<2);
                 if (abs(n[1]->Height - n[3]->Height) >= diff) code |= (1<<3);
+
+                if (code == ((1<<2)|(1<<3))) {
+                    if (n[0]->Height > n[2]->Height) code = -4;
+                    else                             code = -3;
+                } else if (code == ((1<<0)|(1<<1))) { 
+                    if (n[0]->Height > n[1]->Height) code = -2;
+                    else                             code = -1;
+                };
 
                 /*** char ermitteln (die letzten 16 sind reserviert ***/
                 fnum = 0;

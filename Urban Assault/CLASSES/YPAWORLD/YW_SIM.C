@@ -1192,7 +1192,7 @@ _dispatcher(void, yw_BSM_TRIGGER, struct trigger_msg *msg)
     if (ywd->FrameCount == 1) {
         struct logmsg_msg lm;
         lm.bact = ywd->URBact;
-        lm.pri  = 60;
+        lm.pri  = 128;
         lm.msg  = NULL;
         lm.code = LOGMSG_HOST_ONLINE;
         _methoda(ywd->world,YWM_LOGMSG,&lm);
