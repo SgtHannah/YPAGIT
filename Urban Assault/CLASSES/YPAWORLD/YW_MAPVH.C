@@ -441,59 +441,58 @@ UBYTE *yw_RenderMapBact(struct ypaworld_data *ywd,
     /*** Richtungs-Vektor (nicht bei Raketen) ***/
     if ((BCLID_YPAMISSY != b->BactClassID) && (MR.zoom > 2)) {
 
-        FLOAT nx0,ny0,l0;
-        FLOAT nx1,ny1,l1;
-        FLOAT px0,py0;
-        FLOAT px1,py1;
-        FLOAT px2,py2;
-        FLOAT mul0,mul1;
         ULONG color = yw_GetColor(ywd,YPACOLOR_OWNER_0+b->Owner);
+        FLOAT m00,m01,m10,m11;
+        FLOAT l;
+        FLOAT px[3],py[3];
+        FLOAT lx[3],ly[3];
+        ULONG do_triangle = FALSE;
 
         if (b == ywd->URBact) {
             /*** Sonderfall User-Robo: Vektor in Blickrichtung ***/
-            nx0 = ywd->URBact->Viewer.dir.m11;
-            ny0 = ywd->UVBact->Viewer.dir.m13;
-            nx1 = ywd->URBact->Viewer.dir.m31;
-            ny1 = ywd->UVBact->Viewer.dir.m33;
-            mul0 = 85.0;
-            mul1 = 700.0;
+            m10 = ywd->URBact->Viewer.dir.m13;
+            m11 = ywd->URBact->Viewer.dir.m33;
+            if (ywd->URBact == ywd->UVBact) {
+                px[0]=-380.0; py[0]=-300.0;
+                px[1]=   0.0; py[1]=+600.0;
+                px[2]=+380.0; py[2]=-300.0;
+                do_triangle = TRUE;
+                color = yw_GetColor(ywd,YPACOLOR_MAP_VIEWER);
+            } else {
+                px[0]=-85.0; py[0]=0.0;
+                px[1]=0.0;   py[1]=700.0;
+                px[2]=+85.0; py[2]=0.0;
+            };
         } else if (b == ywd->UVBact) {
             /*** Sonderfall Viewer: etwas groesserer Vektor ***/
-            nx0 = b->dir.m11;
-            ny0 = b->dir.m13;
-            nx1 = b->dir.m31;
-            ny1 = b->dir.m33;
-            mul0 = 60.0;
-            mul1 = 500.0;
+            m10 = ywd->ViewerDir.m13;
+            m11 = ywd->ViewerDir.m33;
+            px[0]=-190.0; py[0]=-200.0;
+            px[1]=   0.0; py[1]=+400.0;
+            px[2]=+190.0; py[2]=-200.0;
+            do_triangle = TRUE;
+            color = yw_GetColor(ywd,YPACOLOR_MAP_VIEWER);
         } else {
             /*** alle restlichen Vehicle ***/
-            nx0 = b->dir.m11;
-            ny0 = b->dir.m13;
-            nx1 = b->dir.m31;
-            ny1 = b->dir.m33;
-            mul0 = 40.0;
-            mul1 = 350.0;
+            m10 = b->dir.m13;
+            m11 = b->dir.m33;
+            px[0]=-40.0; py[0]=0.0;
+            px[1]=0.0;   py[1]=350.0;                
+            px[2]=+40.0; py[2]=0.0;
         };
-        l0  = nc_sqrt(nx0*nx0 + ny0*ny0);
-        if (l0 > 0.0) { 
-            nx0 /= l0; ny0 /=l0; 
-        } else {
-            nx0 = 1.0; ny0 = 0.0;
-        };
-        l1  = nc_sqrt(nx1*nx1 + ny1*ny1);
-        if (l1 > 0.0) { 
-            nx1 /= l1; ny1 /=l1; 
-        } else {
-            nx1 = 0.0; ny1 = 1.0;
-        };
-        px0 =  nx0 * mul0 + b->pos.x;
-        py0 =  ny0 * mul0 + b->pos.z;
-        px1 =  nx1 * mul1 + b->pos.x;
-        py1 =  ny1 * mul1 + b->pos.z;
-        px2 = -nx0 * mul0 + b->pos.x;
-        py2 = -ny0 * mul0 + b->pos.z;
-        yw_MapLine(ywd->GfxObject, px0, py0, px1, py1, color);
-        yw_MapLine(ywd->GfxObject, px2, py2, px1, py1, color);
+        l = nc_sqrt(m10*m10 + m11*m11);
+        if (l > 0.0) {m10/=l; m11/=l;} else {m10=0.0; m11=1.0;};
+        m00 = m11;
+        m01 = -m10;         
+        lx[0] = (m00*px[0] + m01*py[0]) + b->pos.x;
+        ly[0] = (m10*px[0] + m11*py[0]) + b->pos.z;
+        lx[1] = (m00*px[1] + m01*py[1]) + b->pos.x;
+        ly[1] = (m10*px[1] + m11*py[1]) + b->pos.z;
+        lx[2] = (m00*px[2] + m01*py[2]) + b->pos.x;
+        ly[2] = (m10*px[2] + m11*py[2]) + b->pos.z;
+        yw_MapLine(ywd->GfxObject, lx[0], ly[0], lx[1], ly[1], color);
+        yw_MapLine(ywd->GfxObject, lx[2], ly[2], lx[1], ly[1], color);
+        if (do_triangle) yw_MapLine(ywd->GfxObject, lx[0], ly[0], lx[2], ly[2], color);
     };
 
     /*** Advanced Info Layer, Overlay-Lifemeters zeichnen ***/

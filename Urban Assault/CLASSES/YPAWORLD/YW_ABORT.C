@@ -383,6 +383,7 @@ void yw_HandleInputAMR(struct ypaworld_data *ywd, struct VFMInput *ip)
                     if (ci->flags & CIF_BUTTONUP) {
                         yw_ConfirmedOnlineHelp(ywd,ypa_GetStr(ywd->LocHandle,STR_HELP_INGAMEMENU,"help\\l16.html"));
                     };
+                    yw_Tooltip(ywd,TOOLTIP_GUI_ONLINEHELP);
                     break;
 
                 case AMR_BTN_CANCEL:

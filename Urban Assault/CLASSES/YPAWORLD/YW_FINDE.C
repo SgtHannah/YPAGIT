@@ -1118,8 +1118,11 @@ void yw_HandleInputFR(struct ypaworld_data *ywd, struct VFMInput *ip)
         } else if (ci->box == &(FR.l.Req.req_cbox)) {
 
             /*** Online-Hilfe? ***/
-            if ((ci->btn == LV_BTN_HELP) && (ci->flags & CIF_BUTTONUP)) {
-                yw_ConfirmedOnlineHelp(ywd,ypa_GetStr(ywd->LocHandle,STR_HELP_INGAMEFINDER,"help\\l15.html"));
+            if (ci->btn == LV_BTN_HELP) {
+                if (ci->flags & CIF_BUTTONUP) {
+                    yw_ConfirmedOnlineHelp(ywd,ypa_GetStr(ywd->LocHandle,STR_HELP_INGAMEFINDER,"help\\l15.html"));
+                };
+                yw_Tooltip(ywd,TOOLTIP_GUI_ONLINEHELP);
             };
 
             /*** Click in Lower Border Button? ***/

@@ -1463,6 +1463,7 @@ void yw_HandleInputMR(struct ypaworld_data *ywd, struct VFMInput *ip)
                         MR.req.flags &= ~REQF_HelpDown;
                         yw_ConfirmedOnlineHelp(ywd,ypa_GetStr(ywd->LocHandle,STR_HELP_INGAMEMAP,"help\\l14.html"));
                     };
+                    yw_Tooltip(ywd,TOOLTIP_GUI_ONLINEHELP);
                     break;
 
                 /*** Zoom In ***/
