@@ -478,6 +478,36 @@ void yw_InitGates(struct ypaworld_data *ywd)
 }
 
 /*-----------------------------------------------------------------*/
+ULONG yw_CountVehiclesInSector(struct ypaworld_data *ywd, 
+                               struct Cell *sec)
+/*
+**  FUNCTION
+**      Zaehlt alle gueltigen Vehikel im Sektor, fuer den
+**      Beamgate-Full-Test.
+**
+**  CHANGED
+**      13-Jun-98   floh    created
+*/
+{
+    struct MinList *ls;
+    struct MinNode *nd;
+    ULONG b_count = 0;
+    ls = &(sec->BactList);
+    for (nd=ls->mlh_Head; nd->mln_Succ; nd=nd->mln_Succ) {
+        struct Bacterium *b = (struct Bacterium *)nd;
+        if ((ACTION_DEAD    != b->MainState)   &&
+            (ACTION_BEAM    != b->MainState)   &&
+            (BCLID_YPAROBO  != b->BactClassID) &&
+            (BCLID_YPAMISSY != b->BactClassID) &&
+            (BCLID_YPAGUN   != b->BactClassID))
+        {
+            b_count++;
+        };
+    };
+    return(b_count);
+}    
+
+/*-----------------------------------------------------------------*/
 void yw_BeamGateCheck(struct ypaworld_data *ywd)
 /*
 **  FUNCTION
@@ -533,11 +563,6 @@ void yw_BeamGateCheck(struct ypaworld_data *ywd)
             if (status == WTYPE_OpenedGate){
                 struct logmsg_msg lm;
                 cbm.bp  = g->opened_bp;
-                //lm.bact = NULL;
-                //lm.pri  = 70;
-                //lm.msg  = ypa_GetStr(ywd->LocHandle,STR_LMSG_GATEOPENED,"TRANSPORTER GATE OPENED!");
-                //lm.code = LOGMSG_GATEOPENED;
-                //_methoda(ywd->world, YWM_LOGMSG, &lm);
             }else{
                 struct logmsg_msg lm;
                 cbm.bp  = g->closed_bp;
@@ -557,22 +582,7 @@ void yw_BeamGateCheck(struct ypaworld_data *ywd)
         /*** MaxNumBuddies Test ***/
         if (WTYPE_OpenedGate == status) {
             /*** teste alle Vehikel im Sektor ***/
-            struct MinList *ls;
-            struct MinNode *nd;
-            ULONG b_count = 0;
-            ls = &(g->sec->BactList);
-            for (nd=ls->mlh_Head; nd->mln_Succ; nd=nd->mln_Succ) {
-                struct Bacterium *b = (struct Bacterium *)nd;
-                if ((ACTION_DEAD    != b->MainState) &&
-                    (ACTION_BEAM    != b->MainState) &&
-                    (BCLID_YPAROBO  != b->BactClassID) &&
-                    (BCLID_YPAMISSY != b->BactClassID) &&
-                    (BCLID_YPAGUN   != b->BactClassID))
-                {
-                    b_count++;
-                    if (b_count > ywd->Level->MaxNumBuddies) break;
-                };
-            };
+            ULONG b_count = yw_CountVehiclesInSector(ywd,g->sec);
             if (b_count >= ywd->Level->MaxNumBuddies) {
                 /*** Grenze ist überschritten ***/
                 LONG td = ywd->TimeStamp - ywd->GateFullMsgTimeStamp;

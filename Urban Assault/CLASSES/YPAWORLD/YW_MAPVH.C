@@ -238,7 +238,6 @@ UBYTE *yw_MapLenVertChar(UBYTE *str,
     return(str);
 }
 
-
 /*-----------------------------------------------------------------*/
 UBYTE *yw_MapFontChar(UBYTE *str, UBYTE fnt_id,
                       FLOAT x0, FLOAT z0,
@@ -257,6 +256,50 @@ UBYTE *yw_MapFontChar(UBYTE *str, UBYTE fnt_id,
 {
     new_font(str,fnt_id);
     str = yw_MapChar(str,x0,z0,chr,chr_width,chr_height);
+    return(str);
+}
+
+/*-----------------------------------------------------------------*/
+UBYTE *yw_MapString(struct ypaworld_data *ywd,
+                    UBYTE *text, UBYTE fnt_id, UBYTE *str, 
+                    LONG sec_x, LONG sec_y)
+/*
+**  FUNCTION
+**      Rendert einen String in die Map.
+**
+**  CHANGED
+**      13-Jun-98   floh    created
+*/
+{
+    LONG mx,my,sx,sy,ex,ey;
+    LONG size_x,size_y;
+    FLOAT x0,z0;
+
+    /*** Ermittle Ausdehnung des Textes ***/
+    size_x = yw_StrLen(text, ywd->Fonts[fnt_id]);
+    size_y = ywd->Fonts[fnt_id]->height;
+
+    /*** Positions-Offset zu Top-Left der Karte ***/
+    x0 = (FLOAT) (sec_x * SECTOR_SIZE);
+    z0 = (FLOAT) -(sec_y * SECTOR_SIZE);
+    yw_MapGetXZ(x0,z0,&mx,&my);
+    sx = mx - MR.topleft_x;
+    sy = my - MR.topleft_y;
+    ex = sx + size_x;
+    ey = sy + size_y;
+
+    /*** nicht sichtbar? ***/
+    if ((sx <= 0) || (sy <= 0) || (ex>=MR.pw_x) || (ey>=MR.pw_y)) return(str);
+
+    /*** String konstruieren ***/
+    sx += MR.topleft_x;
+    sy += MR.topleft_y;
+    new_font(str,fnt_id);
+    pos_abs(str,sx,sy);
+    while (*str++ = *text++);
+    str--;
+
+    /*** Ende ***/
     return(str);
 }
 
@@ -467,7 +510,7 @@ UBYTE *yw_RenderMapBact(struct ypaworld_data *ywd,
             str = yw_MapChar(str,b->pos.x,b->pos.z,chr,char_width,char_height);
         };
     };
-
+    
     /*** ENDE ***/
     return(str);
 }
@@ -1173,11 +1216,13 @@ UBYTE *yw_RenderMapCursors(struct ypaworld_data *ywd, UBYTE *str)
 **      21-May-98   floh    + sollte jetzt ueber allen Wegpunkten des
 **                            ausgewaehlten Geschwaders einen Orts-Cursor
 **                            zeichnen.
+**      13-Jun-98   floh    + Fahrzeug-Anzahl ueber offene Beamgates
 */
 {
     /*** FontID und Size für Sector-Cursors ***/
     ULONG sec_fid,vhc_fid,sec_size,vhc_width,vhc_height;
     ULONG robo_char,robo_selchar,robo_posselchar;
+    ULONG i;
     struct Bacterium *lm_bact;
 
     switch(MR.zoom) {
@@ -1426,7 +1471,18 @@ UBYTE *yw_RenderMapCursors(struct ypaworld_data *ywd, UBYTE *str)
                   MAP_CURSOR_LASTMESSAGE, vhc_width, vhc_height);
         };
     };
-
+    
+    /*** Fahrzeug-Anzahl ueber offene Beamgates ***/
+    for (i=0; i<ywd->Level->NumGates; i++) {
+        struct Gate *g = &(ywd->Level->Gate[i]);
+        if (WTYPE_OpenedGate == g->sec->WType) {
+            LONG b_count = yw_CountVehiclesInSector(ywd,g->sec);
+            UBYTE buf[32];
+            sprintf(buf,"%d/%d",b_count,ywd->Level->MaxNumBuddies);
+            str = yw_MapString(ywd,buf,FONTID_LTRACY,str,g->sec_x,g->sec_y);
+        };
+    };
+    
     #ifdef YPA_DESIGNMODE
     str = yw_RenderMapKoords(ywd,str);
     #endif
