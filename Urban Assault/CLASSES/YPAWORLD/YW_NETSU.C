@@ -1184,7 +1184,8 @@ void yw_TellAboutCheckSum( struct ypaworld_data *ywd )
     
         if( (stricmp( ywd->gsr->NPlayerName, ywd->gsr->player2[i].name) != 0) &&
             (ywd->gsr->player2[i].checksum != ywd->gsr->NCheckSum) &&
-            (ywd->gsr->player2[i].checksum != 0L)) {
+            (ywd->gsr->player2[i].checksum != 0L) &&
+            (ywd->gsr->NCheckSum           != 0L)) {
             
             something_wrong = TRUE;
             sprintf( text[ n ], "%s %s\0", ywd->gsr->player2[i].name, 

@@ -3700,7 +3700,7 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
                     }    
                 else  ywd->gsr->FreeRaces &= ~FREERACE_TAERKASTEN;         
                 }                 
-                                         
+            yw_SendCheckSum( ywd, ywd->gsr->NLevelOffset );                             
             break;
 
         case YPAM_CHANGELEVEL:
