@@ -674,16 +674,17 @@ void yb_DoBeamStuff( struct ypabact_data *ybd )
                                    ywd->gsr->UserName,
                                    ywd->Level->Num );
                 if( !_methoda( ybd->world, YWM_SAVEGAME, &slg ) )
-                    _LogMsg("Warning, Save error\n");
-                else {
-                    /*** nun ist rst-File nicht mehr notwendig ***/
-                    sprintf( filename, "save:%s/%d.rst\0",
-                                       ywd->gsr->UserName,
-                                       ywd->Level->Num );
-                    _FDelete( filename );
-                    }
+                    _LogMsg("Warning, final sgm save error\n");
     
                 ybd->bact.pos = merke_pos;
+                
+                /*** rst file kann wech ***/
+                if( ywd->gsr ) {
+                
+                    char filename[ 300 ];
+                    sprintf( filename, "save:%s/%d.rst\0", ywd->gsr->UserName, ywd->Level->Num );
+                    _FDelete( filename );
+                    }
 
                 /* --------------------------------------------
                 ** Solange es keine neue Strategie gibt, Slaves

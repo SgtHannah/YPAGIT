@@ -1008,9 +1008,18 @@ _dispatcher(BOOL, yb_YBM_FIREMISSILE, struct firemissile_msg *fire)
         if( !(wproto[ fire->wtype ].Flags & (WPF_Driven|WPF_Impulse)) )
             rbact->dof.v *= 0.2;
 
-        /*** Ausrichten in Wunschrichtung (dof!) ***/
-        _methoda( rakete, YMM_ALIGNMISSILE_S, NULL );
-
+        /*** Ausrichten in Wunschrichtung (dof!) Dabei Seitenneigung beachten ***/
+        //_methoda( rakete, YMM_ALIGNMISSILE_S, NULL );
+        rbact->dir.m31 = rbact->dof.x;
+        rbact->dir.m32 = rbact->dof.y;
+        rbact->dir.m33 = rbact->dof.z;
+        rbact->dir.m11 = ybd->bact.dir.m11;
+        rbact->dir.m12 = ybd->bact.dir.m12;
+        rbact->dir.m13 = ybd->bact.dir.m13;
+        rbact->dir.m21 = rbact->dir.m32 * rbact->dir.m13 - rbact->dir.m33 * rbact->dir.m12;
+        rbact->dir.m22 = rbact->dir.m33 * rbact->dir.m11 - rbact->dir.m31 * rbact->dir.m13;
+        rbact->dir.m23 = rbact->dir.m31 * rbact->dir.m12 - rbact->dir.m11 * rbact->dir.m32;
+        
         /*** Viewer etwas zurücksetzen ***/
         if( (0 == i) && (fire->flags & FIRE_VIEW) ) {
 
@@ -1426,7 +1435,9 @@ _dispatcher(BOOL, yb_YBM_FIREYOURGUNS, struct fireyourguns_msg *fyg )
 
                             en_msg.energy = -en;
                             en_msg.killer = &(ybd->bact);
-                            _methoda( kandidat->BactObject, YBM_MODVEHICLEENERGY, &en_msg );
+                            
+                            if( en != 0 )
+                                _methoda( kandidat->BactObject, YBM_MODVEHICLEENERGY, &en_msg );
                             }
 
                         just_sub = TRUE;

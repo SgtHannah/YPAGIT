@@ -947,7 +947,10 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
                     ** Damit der Commander wartet, setze ich seine
                     ** Aggressivität auf 0.
                     */
-                    _set( com, YBA_Aggression, 60);
+                    if( BCLID_YPAUFO == bact->BactClassID )
+                        _set( com, YBA_Aggression, AGGR_FIGHTPRIM);
+                    else
+                        _set( com, YBA_Aggression, 60);
                     
                     _get( yrd->bact->BactObject, YBA_BactCollision, &BC );
                     _set( com, YBA_BactCollision, BC );

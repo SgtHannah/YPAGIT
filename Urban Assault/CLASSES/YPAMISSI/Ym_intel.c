@@ -1014,10 +1014,13 @@ BOOL ym_CheckRohr( struct ypamissile_data *ymd )
                             default:                en = ymd->bact->Energy; break;
                             }
                                    
-                        if( UI || (kandidat->ExtraState & EXTRA_ISVIEWER) )
+                        if( UI || (kandidat->ExtraState & EXTRA_ISVIEWER) ) 
                             en = (en * (100 - kandidat->Shield) )/250;
                         else
                             en = (en * (100 - kandidat->Shield) )/100;
+                            
+                        if( 0 == en )
+                            break;
 
                         en_msg.energy = -en;
                         en_msg.killer = ymd->rifle_man;

@@ -800,6 +800,8 @@ BOOL yw_SaveRobo( struct OBNode *robo, FILE *SGF )
     _FWrite( buffer, strlen( buffer ), 1, SGF );
     sprintf( buffer, "    dockuser       = %ld\n\0", yrd->dock_user );
     _FWrite( buffer, strlen( buffer ), 1, SGF );
+    sprintf( buffer, "    docktime       = %ld\n\0", yrd->dock_time );
+    _FWrite( buffer, strlen( buffer ), 1, SGF );
     sprintf( buffer, "    docktargetpos  = %2.2f_%2.2f\n\0",
              yrd->dtpos.x, yrd->dtpos.z );
     _FWrite( buffer, strlen( buffer ), 1, SGF );
@@ -998,6 +1000,9 @@ BOOL yw_SaveBacterium( struct OBNode *vehicle, FILE *SGF )
     _FWrite( buffer, strlen( buffer ), 1, SGF );
 
     sprintf( buffer, "    ident          = %ld\n\0", vehicle->bact->ident );
+    _FWrite( buffer, strlen( buffer ), 1, SGF );
+
+    sprintf( buffer, "    killerowner    = %ld\n\0", vehicle->bact->killer_owner );
     _FWrite( buffer, strlen( buffer ), 1, SGF );
 
     /*** Ziele ***/
@@ -2601,6 +2606,13 @@ BOOL yw_ExtractVehicleValues( struct ScriptParser *parser )
         }
     else {
 
+    if( stricmp( parser->keyword, "killerowner" ) == 0 ) {
+
+        /*** nur eintragen ***/
+        ActualBacterium->killer_owner = atol( parser->data );
+        }
+    else {
+
     if( stricmp( parser->keyword, "ident" ) == 0 ) {
 
         /*** eintragen und DeathCount aktualisieren ***/
@@ -2822,7 +2834,7 @@ BOOL yw_ExtractVehicleValues( struct ScriptParser *parser )
 
         /*** Schade, nicht gefunden ***/
         return( FALSE );
-        } } } } } } } } } } } } } } } } } } }
+        } } } } } } } } } } } } } } } } } } } }
 
     return( TRUE );
 }
@@ -2851,6 +2863,8 @@ BOOL yw_ExtractRoboValues( struct ScriptParser *parser )
         yrd->dock_count = atol( parser->data );
     } else if( stricmp( parser->keyword, "dockuser" ) == 0 ) {
         yrd->dock_user = atol( parser->data );
+    } else if( stricmp( parser->keyword, "docktime" ) == 0 ) {
+        yrd->dock_time = atol( parser->data );
     } else if( stricmp( parser->keyword, "docktargettype" ) == 0 ) {
         yrd->dttype = (UBYTE)atol( parser->data );
     } else if( stricmp( parser->keyword, "dockaggr" ) == 0 ) {

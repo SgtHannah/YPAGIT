@@ -133,6 +133,10 @@ void yr_Service( struct yparobo_data *yrd, struct trigger_logic_msg *msg)
                 }
             }
         }
+        
+    /*** mit alten Savegames kann passieren, dass DOCKINUSE unerlaubt gesetzt ist ***/
+    if( (yrd->dock_time <= 0) && (yrd->dock_user == 0) ) 
+        yrd->RoboState &= ~ROBO_DOCKINUSE;
 }
 
 
@@ -1769,6 +1773,7 @@ void yr_BuildReconnoitre( struct yparobo_data *yrd, struct trigger_logic_msg *ms
         if( Commander ) {
 
             /*** Aggression runtersetzen? ***/
+            Commander->bact->Aggression = AGGR_FIGHTPRIM;
             }
 
         /*** Ausbremsen, auch wenn es nicht geklappt hat ***/

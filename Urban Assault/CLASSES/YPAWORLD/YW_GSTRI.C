@@ -3918,18 +3918,43 @@ void yw_CancelSettings( struct GameShellReq *GSR )
     struct setstring_msg      ss;
     struct video_node        *vnode;
     struct bt_propinfo       *prop;
+    int                       n;  
+    struct windd_device       wdm;
 
     GSR->shell_mode       = SHELLMODE_TITLE;
     GSR->settings_changed = 0L;
 
     vnode = (struct video_node *) GSR->videolist.mlh_Head;
+    n = 0;
     while( vnode->node.mln_Succ ) {
 
         if( GSR->ywd->GameRes == vnode->modus )
             break;
         vnode = (struct video_node *) vnode->node.mln_Succ;
+        n++;
         }
-    GSR->new_modus = GSR->ywd->GameRes;
+        
+    GSR->vmenu.Selected = n;
+    GSR->v_actualitem   = n;    
+    GSR->new_modus      = GSR->ywd->GameRes;
+
+    /*** d3dguid IST NICHT AUSGEFUELLT, WEIL ES NICHT GELADEN WIRD!!! altes suchen ***/
+    //wdm.name  = NULL;
+    //wdm.guid  = NULL;
+    //wdm.flags = 0;
+    //n         = 0;
+    //do {
+
+    //    _methoda( GSR->ywd->GfxObject, WINDDM_QueryDevice, &wdm ); 
+    //    if( wdm.name ) {
+    //        /*** bisheriges? ***/
+    //        if( GSR->d3dguid == wdm.guid ) {
+    //            GSR->d3dmenu.Selected = n; 
+    //            break;
+    //            }
+    //        }
+    //    n++;
+    //    }  while( wdm.name );
 
     /*** Videomode-Gadget setzen ***/
     ss.number         = GSID_VMENU_BUTTON;
@@ -4170,115 +4195,6 @@ void yw_OKSettings( struct GameShellReq *GSR )
 
     sgv.forcesetvideo = FALSE;
 
-    /*** Videomode uebernehmen ***/
-    if( (GSR->settings_changed & SCF_MODE) &&
-        (GSR->new_modus != GSR->ywd->GameRes) &&
-        (GSR->new_modus != 0L)) {
-
-        old_modus         = GSR->ywd->GameRes;
-        GSR->ywd->GameRes = GSR->new_modus;
-
-        /*** Realisierung ***/
-        setvideomode = TRUE;
-        }
-
-    /*** 3D Device uebernehmen ***/
-    if( (GSR->settings_changed & SCF_3DDEVICE) &&
-        (GSR->new_d3dguid != NULL) &&
-        (stricmp(GSR->new_d3dguid, GSR->d3dguid)) ) {
-
-        struct windd_device wdm;
-
-        strcpy( GSR->d3dname, GSR->new_d3dname);
-        strcpy( GSR->d3dguid, GSR->new_d3dguid);
-
-        /*** Device setzen ***/
-        wdm.name  = GSR->d3dname;
-        wdm.guid  = GSR->d3dguid;
-        wdm.flags = 0;
-        _methoda( GSR->ywd->GfxObject, WINDDM_SetDevice, &wdm );
-        
-        /* ----------------------------------------------------
-        ** Die Aenderung des 3D Devices aendert die videoListe.
-        ** zur sicherheit immer auf 640x480 stellen.
-        ** --------------------------------------------------*/
-        old_modus         = GFX_GAME_DEFAULT_RES;
-        GSR->ywd->GameRes = GFX_GAME_DEFAULT_RES;
-
-        /*** Zum Uebernehmen auch videomode setzen ***/
-        set3dmode = TRUE;
-        sgv.forcesetvideo = TRUE;
-        }
-        
-    /*** 16BitTexture ***/
-    if( GSR->settings_changed & SCF_16BITTEXTURE ) {
-        if( GSR->new_video_flags & VF_16BITTEXTURE ) {
-            GSR->video_flags |=  VF_16BITTEXTURE;
-            _set(GSR->ywd->GfxObject,WINDDA_16BitTextures,TRUE);
-            }
-        else {
-            GSR->video_flags &= ~VF_16BITTEXTURE;
-            _set(GSR->ywd->GfxObject,WINDDA_16BitTextures,FALSE);
-            }
-        old_modus = GSR->ywd->GameRes;
-        set3dmode = TRUE;
-        sgv.forcesetvideo = TRUE;
-        }
-
-    /*** DrawPrimitive ***/
-    if( GSR->settings_changed & SCF_DRAWPRIMITIVE ) {
-        if( GSR->new_video_flags & VF_DRAWPRIMITIVE ) {
-            GSR->video_flags |= VF_DRAWPRIMITIVE;
-            _set(GSR->ywd->GfxObject,WINDDA_UseDrawPrimitive,TRUE);
-            }
-        else {
-            GSR->video_flags &= ~VF_DRAWPRIMITIVE;
-            _set(GSR->ywd->GfxObject,WINDDA_UseDrawPrimitive,FALSE);
-            }
-        old_modus = GSR->ywd->GameRes;
-        set3dmode = TRUE;
-        sgv.forcesetvideo = TRUE;
-        }
-
-    if( (setvideomode && GSR->ywd->OneDisplayRes) ||
-        (set3dmode) ) {
-
-        /* ----------------------------------------------------------------
-        ** jetzt kommt ein Hack, denn ich darf die Auflösung
-        ** trotz des setzens  nicht veraendern, wenn nicht explizit OneDM
-        ** angegeben ist. Achtung nach dem Oeffnen der Shell ist die Video-
-        ** liste neu!
-        ** --------------------------------------------------------------*/
-        int i = 0;
-        struct video_node *vn;
-        
-        if( (!GSR->ywd->OneDisplayRes) && setvideomode )
-            sgv.modus = old_modus;
-        else
-            sgv.modus = GSR->ywd->GameRes;
-
-        _methoda( GSR->ywd->world, YWM_SETGAMEVIDEO, &sgv );
-        
-        /*** Was immer auch gesetzt wurde, Liste und Gadget neu setzen ***/
-        vn = (struct video_node *) GSR->videolist.mlh_Head;
-        while( vn->node.mln_Succ ) {
-        
-            if( vn->modus == GSR->ywd->GameRes ) {
-            
-                struct setstring_msg ss;
-                
-                GSR->v_actualitem = i;
-                ss.number          = GSID_VMENU_BUTTON;
-                ss.unpressed_text  = vn->name;
-                ss.pressed_text    = NULL;
-                _methoda( GSR->bvideo, BTM_SETSTRING, &ss );
-                break;
-                }
-            i++;
-            vn = (struct video_node *) vn->node.mln_Succ;
-            }
-        }
-
     /*** CD Sound ***/
     if( GSR->settings_changed & SCF_CDSOUND ) {
 
@@ -4407,6 +4323,116 @@ void yw_OKSettings( struct GameShellReq *GSR )
         GSR->fxvolume = GSR->new_fxvolume;
         _AE_SetAttrs( AET_MasterVolume, (LONG)(GSR->fxvolume), TAG_DONE );
         }
+
+    /*** Videomode uebernehmen ***/
+    if( (GSR->settings_changed & SCF_MODE) &&
+        (GSR->new_modus != GSR->ywd->GameRes) &&
+        (GSR->new_modus != 0L)) {
+
+        old_modus         = GSR->ywd->GameRes;
+        GSR->ywd->GameRes = GSR->new_modus;
+
+        /*** Realisierung ***/
+        setvideomode = TRUE;
+        }
+
+    /*** 3D Device uebernehmen ***/
+    if( (GSR->settings_changed & SCF_3DDEVICE) &&
+        (GSR->new_d3dguid != NULL) &&
+        (stricmp(GSR->new_d3dguid, GSR->d3dguid)) ) {
+
+        struct windd_device wdm;
+
+        strcpy( GSR->d3dname, GSR->new_d3dname);
+        strcpy( GSR->d3dguid, GSR->new_d3dguid);
+
+        /*** Device setzen ***/
+        wdm.name  = GSR->d3dname;
+        wdm.guid  = GSR->d3dguid;
+        wdm.flags = 0;
+        _methoda( GSR->ywd->GfxObject, WINDDM_SetDevice, &wdm );
+        
+        /* ----------------------------------------------------
+        ** Die Aenderung des 3D Devices aendert die videoListe.
+        ** zur sicherheit immer auf 640x480 stellen.
+        ** --------------------------------------------------*/
+        old_modus         = GFX_GAME_DEFAULT_RES;
+        GSR->ywd->GameRes = GFX_GAME_DEFAULT_RES;
+
+        /*** Zum Uebernehmen auch videomode setzen ***/
+        set3dmode = TRUE;
+        sgv.forcesetvideo = TRUE;
+        }
+        
+    /*** 16BitTexture ***/
+    if( GSR->settings_changed & SCF_16BITTEXTURE ) {
+        if( GSR->new_video_flags & VF_16BITTEXTURE ) {
+            GSR->video_flags |=  VF_16BITTEXTURE;
+            _set(GSR->ywd->GfxObject,WINDDA_16BitTextures,TRUE);
+            }
+        else {
+            GSR->video_flags &= ~VF_16BITTEXTURE;
+            _set(GSR->ywd->GfxObject,WINDDA_16BitTextures,FALSE);
+            }
+        old_modus = GSR->ywd->GameRes;
+        set3dmode = TRUE;
+        sgv.forcesetvideo = TRUE;
+        }
+
+    /*** DrawPrimitive ***/
+    if( GSR->settings_changed & SCF_DRAWPRIMITIVE ) {
+        if( GSR->new_video_flags & VF_DRAWPRIMITIVE ) {
+            GSR->video_flags |= VF_DRAWPRIMITIVE;
+            _set(GSR->ywd->GfxObject,WINDDA_UseDrawPrimitive,TRUE);
+            }
+        else {
+            GSR->video_flags &= ~VF_DRAWPRIMITIVE;
+            _set(GSR->ywd->GfxObject,WINDDA_UseDrawPrimitive,FALSE);
+            }
+        old_modus = GSR->ywd->GameRes;
+        set3dmode = TRUE;
+        sgv.forcesetvideo = TRUE;
+        }
+        
+    if( (setvideomode && GSR->ywd->OneDisplayRes) ||
+        (set3dmode) ) {
+
+        /* ----------------------------------------------------------------
+        ** jetzt kommt ein Hack, denn ich darf die Auflösung
+        ** trotz des setzens  nicht veraendern, wenn nicht explizit OneDM
+        ** angegeben ist. Achtung nach dem Oeffnen der Shell ist die Video-
+        ** liste neu!
+        ** --------------------------------------------------------------*/
+        int i = 0;
+        struct video_node *vn;
+        
+        if( (!GSR->ywd->OneDisplayRes) && setvideomode )
+            sgv.modus = old_modus;
+        else
+            sgv.modus = GSR->ywd->GameRes;
+
+        _methoda( GSR->ywd->world, YWM_SETGAMEVIDEO, &sgv );
+        
+        /*** Was immer auch gesetzt wurde, Liste und Gadget neu setzen ***/
+        vn = (struct video_node *) GSR->videolist.mlh_Head;
+        while( vn->node.mln_Succ ) {
+        
+            if( vn->modus == GSR->ywd->GameRes ) {
+            
+                struct setstring_msg ss;
+                
+                GSR->v_actualitem = i;
+                ss.number          = GSID_VMENU_BUTTON;
+                ss.unpressed_text  = vn->name;
+                ss.pressed_text    = NULL;
+                _methoda( GSR->bvideo, BTM_SETSTRING, &ss );
+                break;
+                }
+            i++;
+            vn = (struct video_node *) vn->node.mln_Succ;
+            }
+        }
+
 
     GSR->settings_changed = 0L;
     GSR->shell_mode       = SHELLMODE_TITLE;
@@ -5021,8 +5047,21 @@ void yw_OKSessions( struct GameShellReq *GSR )
                                ypa_GetStr( GlobalLocaleHandle, STR_YPAERROR_NOJOIN,
                                "SESSION NOT LONGER AVAILABLE") );
                 
-                /*** erneut nachfragen ***/
-                _methoda( GSR->ywd->nwo, NWM_ASKSESSIONS, NULL ); 
+                /* --------------------------------------------------------
+                ** erneut nachfragen, wenn das geht, d.h. bei Modem zurueck
+                ** zum Waehlen. (bleibt NM_SESSIONS)
+                ** ------------------------------------------------------*/
+                if( NWFC_MODEM == _methoda( GSR->ywd->nwo, NWM_GETPROVIDERTYPE, NULL )) {
+                
+                    /* ----------------------------------------------------------------------------
+                    ** In Sessionliste steht noch die alte session, neues fragen wuerde aber wieder
+                    ** einen Requester erzwingen. Deshalb wird in Joinsession die Liste geloescht,
+                    ** falls es sich um Modem handelt.
+                    ** --------------------------------------------------------------------------*/
+                    GSR->NSel = -1;
+                    }
+                else
+                    _methoda( GSR->ywd->nwo, NWM_ASKSESSIONS, NULL ); 
                 }
             }
         }
@@ -5082,14 +5121,14 @@ void yw_OpenDisk( struct GameShellReq *GSR )
     GSR->shell_mode = SHELLMODE_DISK;
 
     /*** Spielzeit fuer aktuellen User erneuern ***/
-    nd = (struct fileinfonode *) GSR->flist.mlh_Head;
-    while( nd->node.mln_Succ ) {
-        if( stricmp( nd->username, GSR->UserName ) == 0 ) {
-            nd->global_time = GSR->ywd->GlobalStats[ 1 ].Time;
-            break;
-            }
-        nd = (struct fileinfonode *) nd->node.mln_Succ;
-        }
+    //nd = (struct fileinfonode *) GSR->flist.mlh_Head;
+    //while( nd->node.mln_Succ ) {
+    //    if( stricmp( nd->username, GSR->UserName ) == 0 ) {
+    //        nd->global_time = GSR->ywd->GlobalStats[ 1 ].Time;
+    //        break;
+    //        }
+    //    nd = (struct fileinfonode *) nd->node.mln_Succ;
+    //    }
 
     yw_CloseReq(GSR->ywd, &(GSR->dmenu.Req));
     yw_OpenReq(GSR->ywd, &(GSR->dmenu.Req));
@@ -5496,6 +5535,16 @@ void yw_EAR_Save( struct GameShellReq *GSR )
     
     /*** Dieser wird nun aktiv ***/
     strncpy( GSR->UserName, GSR->D_Name, USERNAMELEN );
+
+    /*** Spielzeit fuer aktuellen User erneuern ***/
+    node = (struct fileinfonode *) GSR->flist.mlh_Head;
+    while( node->node.mln_Succ ) {
+        if( stricmp( node->username, GSR->UserName ) == 0 ) {
+            node->global_time = GSR->ywd->GlobalStats[ 1 ].Time;
+            break;
+            }
+        node = (struct fileinfonode *) node->node.mln_Succ;
+        }
 
     sp.modus = SP_NOPUBLISH;
     _methoda( GSR->bdisk, BTM_SWITCHPUBLISH, &sp );

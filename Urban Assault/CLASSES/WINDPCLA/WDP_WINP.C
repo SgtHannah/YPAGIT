@@ -548,6 +548,14 @@ unsigned long wdp_JoinSession( struct windp_win_data *wdata, char *name )
 
         if( hr != DPERR_USERCANCEL )
             wdp_ErrorMessage( hr, "OpenSession/join" );
+            
+        /* ---------------------------------------------------
+        ** Im Modemfalle sessions loeschen, weil man nicht neu
+        ** fragen kann, ohne den Requester zu bringen.
+        ** -------------------------------------------------*/
+        if( wdata->conn_type == NWFC_MODEM )
+            wdata->num_sessions = 0;
+            
         return( 0L );
         }
 
