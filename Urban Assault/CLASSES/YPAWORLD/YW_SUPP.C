@@ -47,6 +47,7 @@ extern struct VFMInput Ip;
 
 extern struct YPALogWin LW;
 extern struct YPAStatusReq SR;
+extern struct YPAListReq SubMenu;
 
 /*-----------------------------------------------------------------*/
 _dispatcher(ULONG, yw_YWM_GETSECTORINFO, struct getsectorinfo_msg *msg)
@@ -1615,9 +1616,18 @@ UBYTE *yw_LayoutVsValues(struct ypaworld_data *ywd, UBYTE *str)
         if (vs_ground==0) vs_ground=1;
         if (vs_recon==0)  vs_recon=1;
 
-        xpos = (ywd->DspXRes*4)/7;
-        ypos = -(ywd->LowerTabu + 7*ywd->FontH);
-        w    = ywd->DspXRes - xpos;
+        // xpos = (ywd->DspXRes*4)/7;
+        // w    = ywd->DspXRes - xpos;
+
+        xpos = SubMenu.Req.req_cbox.rect.x + SubMenu.Req.req_cbox.rect.w;
+        if (ywd->DspXRes < 512) {
+            xpos += 8;
+            w = 7*8 + 10*8;
+        } else {
+            xpos += 16;
+            w = 9*8 + 20*8;
+        };
+        ypos = -(ywd->LowerTabu + 9*ywd->FontH);
         dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_TOOLTIP),yw_Green(ywd,YPACOLOR_TEXT_TOOLTIP),yw_Blue(ywd,YPACOLOR_TEXT_TOOLTIP));
 
         str = yw_RenderVsLine(ywd,str,xpos,ypos,ypa_GetStr(ywd->LocHandle,STR_VSROBO,"2474 == VS ROBO:"),vs_robo,w);
