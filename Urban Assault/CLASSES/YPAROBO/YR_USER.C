@@ -720,7 +720,8 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
             ** --------------------------------------------------------*/
 
             /*** Flags ***/
-            msg->selbact->ExtraState |= EXTRA_DOINGWAYPOINT;
+            msg->selbact->ExtraState  |= EXTRA_DOINGWAYPOINT;
+            msg->selbact->mt_commandid = 0;
             
             if( yr_AreThereGroundVehicles( msg->selbact ) ) {
             

@@ -1165,6 +1165,7 @@ void yb_TakeCommandersTarget( struct Bacterium *slave, struct Bacterium *chief, 
     /*** erstmal alles aufraeumen! ***/
     slave->ExtraState   &= ~(EXTRA_DOINGWAYPOINT|EXTRA_WAYPOINTCYCLE);
     slave->num_waypoints = 0;
+    slave->mt_commandid  = 0;
     
     /*** Was ist das Ziel ***/
     if( chief->ExtraState & EXTRA_DOINGWAYPOINT ) {
