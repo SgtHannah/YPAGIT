@@ -18,6 +18,7 @@
 //#define IErrorLog void
 //#endif
 #include "misc/dshow.h"
+#include <ddraw.h>
 
 /*-----------------------------------------------------------------**
 **                                                                 **
@@ -138,75 +139,119 @@ unsigned long dshow_PlayMovie(char *fname, HWND hwnd)
     WNDPROC oldWinProc = NULL;
     MSG msg;
 
-    dshow_StopReceived = FALSE;
+	LPDIRECTDRAW lpDD=NULL;
 
-    hr = CoCreateInstance(&CLSID_FilterGraph,
-                          NULL,
-                          CLSCTX_INPROC_SERVER,
-                          &IID_IGraphBuilder,
-                          (void **)&pigb);
-    if (FAILED(hr)) {
-        MessageBox(hwnd,"Filtergraph creation failed.","dshow.c",MB_ICONERROR);
-        return(FALSE);
-    };
-
-    MultiByteToWideChar(CP_ACP,0,fname,-1,path,MAXPATH);
-    hr = pigb->lpVtbl->RenderFile(pigb,path,NULL);
-    if (FAILED(hr)) {
-        MessageBox(hwnd,"RenderFile() failed.","dshow.c",MB_ICONERROR);
-        dshow_Cleanup();
-        return(FALSE);
-    };
-
-    hr = pigb->lpVtbl->QueryInterface(pigb, &IID_IVideoWindow, (void **)&pivw);
-    pivw->lpVtbl->put_Owner(pivw, (OAHWND)hwnd);
-    pivw->lpVtbl->put_WindowStyle(pivw, WS_CHILD|WS_CLIPCHILDREN|WS_CLIPSIBLINGS);
-    pivw->lpVtbl->put_WindowStyleEx(pivw, WS_EX_TOPMOST);
-    pivw->lpVtbl->put_AutoShow(pivw,-1);
-    // won't send WM_ messages when fullscreen activated
-    // pivw->lpVtbl->put_FullScreenMode(pivw,-1);
-    GetClientRect(hwnd,&rc);
-    pivw->lpVtbl->SetWindowPosition(pivw,rc.left,rc.top,rc.right,rc.bottom);
-    pivw->lpVtbl->HideCursor(pivw,OATRUE);
-    pivw->lpVtbl->put_MessageDrain(pivw,(OAHWND)hwnd);
-    pivw->lpVtbl->SetWindowForeground(pivw,-1);
-
-    hr = pigb->lpVtbl->QueryInterface(pigb, &IID_IMediaControl, (void **)&pimc);
-    hr = pigb->lpVtbl->QueryInterface(pigb, &IID_IMediaEventEx, (void **)&pime);
-    hr = pime->lpVtbl->SetNotifyWindow(pime, (OAHWND)hwnd, WM_MEDIAEVENT, 0);
-    pimc->lpVtbl->Run(pimc);
-    oldWinProc = SetWindowLong(hwnd,GWL_WNDPROC,dshow_WinProc);
-
-    //while (!dshow_StopReceived) {
-    //    WaitMessage();
-    //    if (GetMessage(&msg,NULL,0,0)) {
-    //        TranslateMessage(&msg);
-    //        DispatchMessage(&msg);
-    //    };
-    //};
-
-	while (1)
+	if (SUCCEEDED(DirectDrawCreate(NULL, &lpDD, NULL)))
 	{
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
+		DDSURFACEDESC	ddsd;
+		BOOL			b640x480;
+
+		dshow_StopReceived = FALSE;
+
+		hr = CoCreateInstance(&CLSID_FilterGraph,
+							  NULL,
+							  CLSCTX_INPROC_SERVER,
+							  &IID_IGraphBuilder,
+							  (void **)&pigb);
+		if (FAILED(hr)) {
+			MessageBox(hwnd,"Filtergraph creation failed.","dshow.c",MB_ICONERROR);
+			return(FALSE);
+		};
+
+		MultiByteToWideChar(CP_ACP,0,fname,-1,path,MAXPATH);
+		
+		oldWinProc = SetWindowLong(hwnd,GWL_WNDPROC,dshow_WinProc);
+
+		ddsd.dwSize=sizeof(ddsd);
+		lpDD->lpVtbl->GetDisplayMode(lpDD, &ddsd);
+		if ((ddsd.dwWidth==640) && (ddsd.dwHeight==480))
+			b640x480=TRUE;
 		else
+			b640x480=FALSE;
+
+		if (b640x480 || SUCCEEDED(lpDD->lpVtbl->SetCooperativeLevel(lpDD, hwnd, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN)))
 		{
-			WaitMessage();
+			if (b640x480 || SUCCEEDED(lpDD->lpVtbl->SetDisplayMode(lpDD, 640, 480, 16)))
+			{
+				if (b640x480 || SUCCEEDED(lpDD->lpVtbl->SetCooperativeLevel(lpDD, NULL, DDSCL_NORMAL)))
+				{
+					hr = pigb->lpVtbl->RenderFile(pigb,path,NULL);
+					if (FAILED(hr)) {
+						MessageBox(hwnd,"RenderFile() failed.","dshow.c",MB_ICONERROR);
+						dshow_Cleanup();
+						return(FALSE);
+					};
+			
+					hr = pigb->lpVtbl->QueryInterface(pigb, &IID_IVideoWindow, (void **)&pivw);
+					pivw->lpVtbl->put_Owner(pivw, (OAHWND)hwnd);
+					pivw->lpVtbl->put_WindowStyle(pivw, WS_CHILD|WS_CLIPCHILDREN|WS_CLIPSIBLINGS);
+					pivw->lpVtbl->put_WindowStyleEx(pivw, WS_EX_TOPMOST);
+					pivw->lpVtbl->put_AutoShow(pivw,-1);
+					// won't send WM_ messages when fullscreen activated
+					// pivw->lpVtbl->put_FullScreenMode(pivw,-1);
+			
+					//GetClientRect(hwnd,&rc);
+					//pivw->lpVtbl->SetWindowPosition(pivw,rc.left,rc.top,rc.right,rc.bottom);
+					pivw->lpVtbl->SetWindowPosition(pivw,0,0,640,480);
+					pivw->lpVtbl->HideCursor(pivw,OATRUE);
+					pivw->lpVtbl->put_MessageDrain(pivw,(OAHWND)hwnd);
+					pivw->lpVtbl->SetWindowForeground(pivw,-1);
+			
+					hr = pigb->lpVtbl->QueryInterface(pigb, &IID_IMediaControl, (void **)&pimc);
+					hr = pigb->lpVtbl->QueryInterface(pigb, &IID_IMediaEventEx, (void **)&pime);
+					hr = pime->lpVtbl->SetNotifyWindow(pime, (OAHWND)hwnd, WM_MEDIAEVENT, 0);
+					pimc->lpVtbl->Run(pimc);
+			
+					//while (!dshow_StopReceived) {
+					//    WaitMessage();
+					//    if (GetMessage(&msg,NULL,0,0)) {
+					//        TranslateMessage(&msg);
+					//        DispatchMessage(&msg);
+					//    };
+					//};
+			
+					while (1)
+					{
+						if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+						{
+							TranslateMessage(&msg);
+							DispatchMessage(&msg);
+						}
+						else
+						{
+							WaitMessage();
+						}
+						if (dshow_StopReceived)
+							break;
+					}
+			
+			
+					if (lpDD)
+					{
+						if (!b640x480)
+							lpDD->lpVtbl->RestoreDisplayMode(lpDD);
+						lpDD->lpVtbl->Release(lpDD);
+						lpDD=NULL;
+					}
+			
+					/*** originale WinProc wieder installieren ***/
+					SetWindowLong(hwnd,GWL_WNDPROC,oldWinProc);
+					pimc->lpVtbl->Stop(pimc);
+					pivw->lpVtbl->put_Owner(pivw, NULL);
+				}
+			}
 		}
-		if (dshow_StopReceived)
-			break;
+
+		dshow_Cleanup();
+
+		if (lpDD)
+		{
+			lpDD->lpVtbl->Release(lpDD);
+			lpDD=NULL;
+		}
 	}
 
 
-
-    /*** originale WinProc wieder installieren ***/
-    SetWindowLong(hwnd,GWL_WNDPROC,oldWinProc);
-    pimc->lpVtbl->Stop(pimc);
-    pivw->lpVtbl->put_Owner(pivw, NULL);
-    dshow_Cleanup();
     return(TRUE);
 }
 
