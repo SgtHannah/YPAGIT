@@ -152,8 +152,15 @@ struct idev_remap winp_RemapTable[] = {
     {"extra7",  IDEVTYPE_BUTTON, KEYCODE_EXTRA_7,       0},
     {"extra8",  IDEVTYPE_BUTTON, KEYCODE_EXTRA_8,       0},
     {"extra9",  IDEVTYPE_BUTTON, KEYCODE_EXTRA_9,       0},
-    {"extra10",  IDEVTYPE_BUTTON, KEYCODE_EXTRA_10,     0},
-    {"extra11",  IDEVTYPE_BUTTON, KEYCODE_EXTRA_11,     0},
+    {"extra10", IDEVTYPE_BUTTON, KEYCODE_EXTRA_10,      0},
+    {"extra11", IDEVTYPE_BUTTON, KEYCODE_EXTRA_11,      0},
+    {"extra12", IDEVTYPE_BUTTON, KEYCODE_EXTRA_12,      0},
+    {"extra13", IDEVTYPE_BUTTON, KEYCODE_EXTRA_13,      0},
+    {"extra14", IDEVTYPE_BUTTON, KEYCODE_EXTRA_14,      0},
+    {"extra15", IDEVTYPE_BUTTON, KEYCODE_EXTRA_15,      0},
+    {"extra16", IDEVTYPE_BUTTON, KEYCODE_EXTRA_16,      0},
+    {"extra17", IDEVTYPE_BUTTON, KEYCODE_EXTRA_17,      0},
+    {"extra18", IDEVTYPE_BUTTON, KEYCODE_EXTRA_18,      0},
 
     /*** Mouse-Buttons ***/
     {"lmb",    IDEVTYPE_BUTTON, WINP_CODE_LMB, 0},

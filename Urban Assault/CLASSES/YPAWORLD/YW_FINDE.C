@@ -285,6 +285,10 @@ UBYTE *yw_FRBuildCmdrItem(struct ypaworld_data *ywd,
 **                            Beamzustand nicht aktiviert
 **      20-May-98   floh    + Last-Message-Indikator gefixt...
 **      12-Jun-98   floh    + jetzt mit Lifemeter ueber der Selbact
+**      13-Jun-98   floh    + es gab noch eine Offset-Verschiebung bei
+**                            toten Bakterien (das Lifemeter wurde dann
+**                            ueber einer anderen Bact, oder ueber leerem
+**                            Space gezeichnet).
 */
 {
     UBYTE str_buf[64];
@@ -344,10 +348,10 @@ UBYTE *yw_FRBuildCmdrItem(struct ypaworld_data *ywd,
             }else{
                 str_buf[i++] = yw_FRGetTypeIcon(ywd,b);
             };
+            if (sel_bact == b) sel_bact_x = act_x;
+            act_x += FR.type_icon_width;
             if (i >= 60) break; // damit kein Overflow auftritt
         };
-        if (sel_bact == b) sel_bact_x = act_x;
-        act_x += FR.type_icon_width;
     };
     str_buf[i++] = 0;
 

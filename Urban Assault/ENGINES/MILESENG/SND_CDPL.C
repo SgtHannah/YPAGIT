@@ -10,7 +10,7 @@
 **
 **  (C) Copyright 1997 by A.Weissflog
 */
-#include "thirdparty/mss.h"
+#include "thirdparty/mssw.h"
 
 #ifndef NULL
 #define NULL (0)

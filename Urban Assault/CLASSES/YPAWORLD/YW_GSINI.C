@@ -4189,49 +4189,77 @@ void yw_InitKeyTable( struct ypaworld_data *ywd )
     GlobalKeyTable[KEYCODE_NUM_DIV].ascii  = 0;
     GlobalKeyTable[KEYCODE_NUM_DIV].config = "numdiv";
 
-    GlobalKeyTable[KEYCODE_EXTRA_1].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_1,",");
+    GlobalKeyTable[KEYCODE_EXTRA_1].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_1,"EXTRA_1");
     GlobalKeyTable[KEYCODE_EXTRA_1].ascii  = ',';
     GlobalKeyTable[KEYCODE_EXTRA_1].config = "extra1";
 
-    GlobalKeyTable[KEYCODE_EXTRA_2].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_2,".");
+    GlobalKeyTable[KEYCODE_EXTRA_2].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_2,"EXTRA_2");
     GlobalKeyTable[KEYCODE_EXTRA_2].ascii  = '.';
     GlobalKeyTable[KEYCODE_EXTRA_2].config = "extra2";
 
-    GlobalKeyTable[KEYCODE_EXTRA_3].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_3,"-");
+    GlobalKeyTable[KEYCODE_EXTRA_3].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_3,"EXTRA_3");
     GlobalKeyTable[KEYCODE_EXTRA_3].ascii  = '-';
     GlobalKeyTable[KEYCODE_EXTRA_3].config = "extra3";
 
-    GlobalKeyTable[KEYCODE_EXTRA_4].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_4,"<");
+    GlobalKeyTable[KEYCODE_EXTRA_4].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_4,"EXTRA_4");
     GlobalKeyTable[KEYCODE_EXTRA_4].ascii  = '<';
     GlobalKeyTable[KEYCODE_EXTRA_4].config = "extra4";
 
-    GlobalKeyTable[KEYCODE_EXTRA_5].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_5,"Ü");
+    GlobalKeyTable[KEYCODE_EXTRA_5].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_5,"EXTRA_5");
     GlobalKeyTable[KEYCODE_EXTRA_5].ascii  = (UBYTE)'ü';
     GlobalKeyTable[KEYCODE_EXTRA_5].config = "extra5";
 
-    GlobalKeyTable[KEYCODE_EXTRA_6].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_6,"+");
+    GlobalKeyTable[KEYCODE_EXTRA_6].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_6,"EXTRA_6");
     GlobalKeyTable[KEYCODE_EXTRA_6].ascii  = '+';
     GlobalKeyTable[KEYCODE_EXTRA_6].config = "extra6";
 
-    GlobalKeyTable[KEYCODE_EXTRA_7].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_7,"Ö");
+    GlobalKeyTable[KEYCODE_EXTRA_7].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_7,"EXTRA_7");
     GlobalKeyTable[KEYCODE_EXTRA_7].ascii  = (UBYTE)'ö';
     GlobalKeyTable[KEYCODE_EXTRA_7].config = "extra7";
 
-    GlobalKeyTable[KEYCODE_EXTRA_8].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_8,"Ä");
+    GlobalKeyTable[KEYCODE_EXTRA_8].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_8,"EXTRA_8");
     GlobalKeyTable[KEYCODE_EXTRA_8].ascii  = (UBYTE)'ä';
     GlobalKeyTable[KEYCODE_EXTRA_8].config = "extra8";
 
-    GlobalKeyTable[KEYCODE_EXTRA_9].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_9,"#");
+    GlobalKeyTable[KEYCODE_EXTRA_9].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_9,"EXTRA_9");
     GlobalKeyTable[KEYCODE_EXTRA_9].ascii  = '#';
     GlobalKeyTable[KEYCODE_EXTRA_9].config = "extra9";
 
-    GlobalKeyTable[KEYCODE_EXTRA_10].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_10,"BLUB");
+    GlobalKeyTable[KEYCODE_EXTRA_10].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_10,"EXTRA_10");
     GlobalKeyTable[KEYCODE_EXTRA_10].ascii  = '`';
     GlobalKeyTable[KEYCODE_EXTRA_10].config = "extra10";
 
-    GlobalKeyTable[KEYCODE_EXTRA_11].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_11,"BLOB");
+    GlobalKeyTable[KEYCODE_EXTRA_11].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_11,"EXTRA_11");
     GlobalKeyTable[KEYCODE_EXTRA_11].ascii  = '^';
     GlobalKeyTable[KEYCODE_EXTRA_11].config = "extra11";
+
+    GlobalKeyTable[KEYCODE_EXTRA_12].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_12,"EXTRA_12");
+    GlobalKeyTable[KEYCODE_EXTRA_12].ascii  = 0;
+    GlobalKeyTable[KEYCODE_EXTRA_12].config = "extra12";
+    
+    GlobalKeyTable[KEYCODE_EXTRA_13].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_13,"EXTRA_13");
+    GlobalKeyTable[KEYCODE_EXTRA_13].ascii  = 0;
+    GlobalKeyTable[KEYCODE_EXTRA_13].config = "extra13";
+    
+    GlobalKeyTable[KEYCODE_EXTRA_14].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_14,"EXTRA_14");
+    GlobalKeyTable[KEYCODE_EXTRA_14].ascii  = 0;
+    GlobalKeyTable[KEYCODE_EXTRA_14].config = "extra14";
+    
+    GlobalKeyTable[KEYCODE_EXTRA_15].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_15,"EXTRA_15");
+    GlobalKeyTable[KEYCODE_EXTRA_15].ascii  = 0;
+    GlobalKeyTable[KEYCODE_EXTRA_15].config = "extra15";
+    
+    GlobalKeyTable[KEYCODE_EXTRA_16].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_16,"EXTRA_16");
+    GlobalKeyTable[KEYCODE_EXTRA_16].ascii  = 0;
+    GlobalKeyTable[KEYCODE_EXTRA_16].config = "extra16";
+    
+    GlobalKeyTable[KEYCODE_EXTRA_17].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_17,"EXTRA_17");
+    GlobalKeyTable[KEYCODE_EXTRA_17].ascii  = 0;
+    GlobalKeyTable[KEYCODE_EXTRA_17].config = "extra17";
+    
+    GlobalKeyTable[KEYCODE_EXTRA_18].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_EXTRA_18,"EXTRA_18");
+    GlobalKeyTable[KEYCODE_EXTRA_18].ascii  = 0;
+    GlobalKeyTable[KEYCODE_EXTRA_18].config = "extra18";
 
     GlobalKeyTable[WINP_CODE_MMB].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_MMB,"MIDDLE MOUSE");
     GlobalKeyTable[WINP_CODE_MMB].ascii  = 0;
