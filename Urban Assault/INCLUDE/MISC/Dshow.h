@@ -22,9 +22,10 @@
         #endif
 
         #ifndef _MSC_VER
-        #define IErrorLog void
-        #define BEGIN_INTERFACE
-        #define END_INTERFACE
+            #define IErrorLog void
+            #define BEGIN_INTERFACE
+            #define END_INTERFACE
+            #define __RP_STUB
         #endif
      
         #ifndef __strmif_h__
