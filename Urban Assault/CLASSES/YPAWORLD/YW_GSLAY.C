@@ -808,8 +808,6 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
                     raus = FALSE;
                     sprintf( block_size, "%d X %d\0", level->size_x, level->size_y );
                     
-                    strcpy( block_slow, " " );
-                    
                     /*** Welche Rassen sind im Spiel? ***/
                     if( i != GSR->NSel ) {
                         if( level->races & 2 )  strcat( block_plys, "5" );
@@ -818,7 +816,9 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
                         if( level->races & 16 ) strcat( block_plys, "8" );
                         
                         if( level->slow_conn )
-                            strcpy( block_slow, "X" );    
+                            strcpy( block_slow, "X" );
+                        else 
+                            strcpy( block_slow, "k" );
                         }
                     else {   
                         if( level->races & 2 )  strcat( block_plys, "1" );
@@ -827,7 +827,9 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
                         if( level->races & 16 ) strcat( block_plys, "4" );
                         
                         if( level->slow_conn )
-                            strcpy( block_slow, "Y" );    
+                            strcpy( block_slow, "Y" );
+                        else
+                            strcpy( block_slow, "j" );    
                         }
                         
                     if( (-1 == GSR->NSel) && (0 == count) ) {
@@ -967,17 +969,23 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
                     col[2].string      = block_plys;
                     col[2].width       = (WORD)(fnt->fchars['P'].width * 4 + 6);
                     col[2].font_id     = FONTID_MENUDOWN;
-                    col[2].space_chr   = space_chr;
+                    if( GSR->NSel == i)
+                        col[2].space_chr   = space_chr;
+                    else
+                        col[2].space_chr   = '9'; 
                     col[2].prefix_chr  = prefix_chr;
                     col[2].postfix_chr = postfix_chr;
                     col[2].flags       = YPACOLF_ALIGNLEFT;
                     
                     col[3].string      = block_slow;
                     col[3].width       = (WORD)(fnt->fchars['P'].width );
+                    col[3].font_id     = FONTID_GADGET;
                     
                     /*** Tricksen, weil leerzeichen in diesem Font nicht existieren ***/
-                    col[3].font_id     = FONTID_GADGET;
-                    col[3].space_chr   = space_chr;
+                    if( GSR->NSel == i )
+                        col[3].space_chr   = 'j';
+                    else
+                        col[3].space_chr   = 'k'; 
                     col[3].prefix_chr  = prefix_chr;
                     col[3].postfix_chr = postfix_chr;
                     col[3].flags       = YPACOLF_ALIGNLEFT;
