@@ -79,6 +79,7 @@ _dispatcher( void, yw_YWM_TRIGGERGAMESHELL, struct GameShellReq *GSR )
 **              und .... noch viel mehr
 **
 **  CHANGED     af 14-Apr-96 created
+**              25-May-98   floh    Maus setzen rausgenommen
 */
 
     struct ypaworld_data *ywd;
@@ -90,11 +91,6 @@ _dispatcher( void, yw_YWM_TRIGGERGAMESHELL, struct GameShellReq *GSR )
 
     /*** LastAction löschen ***/
     GSR->GSA.LastAction = A_NOACTION;
-
-    /*** Maus setzen, kann nachkorrigiert werden  ***/
-    dpm.pointer = GSR->ywd->MousePtrBmp[ YW_MOUSE_POINTER ];
-    dpm.type    = DISP_PTRTYPE_NORMAL;
-    _methoda( GSR->ywd->GfxObject, DISPM_SetPointer, &dpm );
 
     /*** mit Sound anfangen ***/
     _StartAudioFrame( GSR->frame_time, &null_vec, &null_vec, &e_dir );
