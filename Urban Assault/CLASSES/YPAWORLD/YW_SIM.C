@@ -139,6 +139,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
 **                            akzeptiert, und nicht, wenn NEW,ADD,BUILD,BEAM oder
 **                            CONTROL aktiviert ist.
 **      15-May-98   floh    + Joystick-Handling umgeschrieben...
+**      16-May-98   floh    + alternatives Joystick-Handling
 */
 {
     struct ClickInfo *ci = &(ip->ClickInfo);
@@ -221,7 +222,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
     /*** Joystick-Control-Handling ***/
     if (!joy_disable) {
 
-        #define JOY_EQUAL(old,new) (fabs(old-new)<0.2)
+        #define JOY_EQUAL(old,new) (fabs(old-new)<0.3)
         ULONG joy_moved;
 
         /*** Sonderfall 1.Frame, definierten Anfangszustand herstellen ***/
@@ -229,14 +230,20 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
             ywd->PrevJoyX = ip->Slider[12];
             ywd->PrevJoyY = ip->Slider[13];
             ywd->PrevJoyZ = ip->Slider[14];
+            ywd->PrevJoyHatX = ip->Slider[15];
+            ywd->PrevJoyHatY = ip->Slider[16]; 
         };
         joy_moved = ((!JOY_EQUAL(ywd->PrevJoyX,ip->Slider[12]))||
                      (!JOY_EQUAL(ywd->PrevJoyY,ip->Slider[13]))||
-                     (!JOY_EQUAL(ywd->PrevJoyZ,ip->Slider[14])));
+                     (!JOY_EQUAL(ywd->PrevJoyZ,ip->Slider[14]))||
+                     (!JOY_EQUAL(ywd->PrevJoyHatX,ip->Slider[15]))||
+                     (!JOY_EQUAL(ywd->PrevJoyHatY,ip->Slider[16])));                   
         if (joy_moved) {
             ywd->PrevJoyX = ip->Slider[12];
             ywd->PrevJoyY = ip->Slider[13];
             ywd->PrevJoyZ = ip->Slider[14];
+            ywd->PrevJoyHatX = ip->Slider[15];
+            ywd->PrevJoyHatY = ip->Slider[16]; 
         };
 
         /*** Joystick deaktivieren? ***/
@@ -261,11 +268,23 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
         };
 
         if (ywd->DoJoystick) {
+
             ip->Slider[0] += ip->Slider[12];    // JoyX: Flugrichtung
             ip->Slider[1] += ip->Slider[13];    // JoyY: Flughoehe
             ip->Slider[3] += ip->Slider[12];    // JoyX: Fahrrichtung
-            ip->Slider[4] += ip->Slider[14];    // Throttle: Speed
-            ip->Slider[5] -= ip->Slider[13] * 2.5;    // JoyY: Kanone hoch runter
+            ip->Slider[5] += ip->Slider[16];    // Hatswitch: ebenfalls Gun Up/Down 
+
+            // Throttle == Speed
+            if ((ywd->UVBact->BactClassID == BCLID_YPATANK) ||
+                (ywd->UVBact->BactClassID == BCLID_YPACAR))
+            {
+                if (ywd->Prefs.Flags & YPA_PREFS_JOYMODEL2) {
+                    ip->Slider[4] += ip->Slider[14];    // Throttle: Speed
+                    ip->Slider[5] = ip->Slider[13];     // JoyY: Kanone hoch runter
+                } else {
+                    ip->Slider[4] -= ip->Slider[13];    // JoyY: Speed
+                };
+            };       
 
             /*** Joyenable Flag an ***/
             ip->Buttons |= (1<<31);
@@ -274,7 +293,10 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
             if ((ywd->UVBact->BactClassID == BCLID_YPATANK) ||
                 (ywd->UVBact->BactClassID == BCLID_YPACAR))
             {
-                if (JOY_EQUAL(ip->Slider[14],0.0)) {    // Throttle
+                ULONG brake_slider;
+                if (ywd->Prefs.Flags & YPA_PREFS_JOYMODEL2) brake_slider=14;    // Throttle
+                else                                        brake_slider=13;    // JoyY                
+                if (JOY_EQUAL(ip->Slider[brake_slider],0.0)) {    // Throttle
                     /*** Brakes ***/
                     ip->Buttons |= (1<<3);
                 } else {
@@ -289,6 +311,9 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
                 if ((ip->Slider[14] < -0.3) || (ip->Slider[14] > 0.3)) {
                     ip->Slider[4] += ip->Slider[14];
                     ip->Slider[2] += ip->Slider[14];
+                } else {
+                    /*** Bremse ***/
+                    ip->Buttons |= (1<<3);
                 };
             };
         };

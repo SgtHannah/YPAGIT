@@ -646,7 +646,7 @@ _dispatcher(void, winp_IDEVM_GETSLIDER, struct idev_status_msg *msg)
                 break;
 
             case WINP_CODE_JY:
-                wid->mouse_slider = winp_GetSlider(wid->mouse_slider,winp_JoyPrimAxes.y);
+                wid->mouse_slider = winp_JoyPrimAxes.y; // winp_GetSlider(wid->mouse_slider,winp_JoyPrimAxes.y);
                 rubber_band = FALSE;
                 break;
 
@@ -661,12 +661,12 @@ _dispatcher(void, winp_IDEVM_GETSLIDER, struct idev_status_msg *msg)
                 break;
 
             case WINP_CODE_HATX:
-                wid->mouse_slider = winp_GetSlider(wid->mouse_slider,winp_JoyHatAxes.x);
+                wid->mouse_slider = winp_JoyHatAxes.x; // winp_GetSlider(wid->mouse_slider,winp_JoyHatAxes.x);
                 rubber_band = FALSE;
                 break;
 
             case WINP_CODE_HATY:
-                wid->mouse_slider = winp_GetSlider(wid->mouse_slider,winp_JoyHatAxes.y);
+                wid->mouse_slider = winp_JoyHatAxes.y; // winp_GetSlider(wid->mouse_slider,winp_JoyHatAxes.y);
                 rubber_band = FALSE;
                 break;
 

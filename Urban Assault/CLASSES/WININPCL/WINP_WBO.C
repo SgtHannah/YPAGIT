@@ -122,6 +122,9 @@ DIPROPDWORD winp_DipDw =
 extern void winp_KeyDown(unsigned long);
 extern void winp_KeyUp(unsigned long);
 
+/*** aus winp_log.c ***/
+void winp_Log(char *string,...);
+
 /*** Größe des Backbuffers (für Maus-Rückrechnung) ***/
 extern long winp_SizeX;
 extern long winp_SizeY;
@@ -751,6 +754,8 @@ void winp_GetJoystickState(void)
 **      18-Feb-98   floh    JoyBtn hält jetzt den letzten
 **                          Zustand, um KeyDown und KeyUp
 **                          Events zu generieren.
+**      16-May-98   floh    hat nicht abgefragt, ob der Joystick
+**                          tatsaechlich einen Hatswitch hat      
 */
 {
     if (winp_DI.Joyst2) {
@@ -778,9 +783,15 @@ void winp_GetJoystickState(void)
             winp_JoyPrimAxes.x = js.lX;     // X-Achse
             winp_JoyPrimAxes.y = js.lY;     // Y-Achse
             if (winp_DI.JCaps.dwAxes > 2) winp_JoySecAxes.x=js.lZ;
-            else                          winp_JoySecAxes.x=0;
+            else {
+                /*** falls kein Throttle, diesen immer auf 1 ***/
+                winp_JoySecAxes.x=-300;
+            };
             if (winp_DI.JCaps.dwAxes > 3) winp_JoySecAxes.y=js.lRz;
-            else                          winp_JoySecAxes.y=0;
+            else {
+                /*** falls kein Ruder, dieses auf 0 ***/
+                winp_JoySecAxes.y=0;
+            };
 
             /*** Joystick-Buttons ***/
             for (i=0; i<8; i++) {
@@ -794,25 +805,31 @@ void winp_GetJoystickState(void)
                 };
             };
 
-            /*** Hat View ***/
-            if ((js.rgdwPOV[0]<0)||(js.rgdwPOV[0]>35999)) {
+            /*** POVs ***/
+            if (winp_DI.JCaps.dwPOVs > 0) {
+                if (LOWORD(js.rgdwPOV[0]) == 0xFFFF) {            
+                    winp_JoyHatAxes.x = 0;
+                    winp_JoyHatAxes.y = 0;
+                }else{
+                    /*** nur 4 Stellungen auswerten ***/
+                    if ((js.rgdwPOV[0]>=31500) || (js.rgdwPOV[0]<4500)){
+                        winp_JoyHatAxes.x = 0;
+                        winp_JoyHatAxes.y = 300;
+                    }else if ((js.rgdwPOV[0]>=4500) && (js.rgdwPOV[0]<13500)){
+                        winp_JoyHatAxes.x = 300;
+                        winp_JoyHatAxes.y = 0;
+                    }else if ((js.rgdwPOV[0]>=13500) && (js.rgdwPOV[0]<22500)){
+                        winp_JoyHatAxes.x = 0;
+                        winp_JoyHatAxes.y = -300;
+                    }else if ((js.rgdwPOV[0]>=22500) && (js.rgdwPOV[0]<31500)) {
+                        winp_JoyHatAxes.x = -300;
+                        winp_JoyHatAxes.y = 0;
+                    };
+                };
+            } else {
+                /*** kein POV ***/
                 winp_JoyHatAxes.x = 0;
                 winp_JoyHatAxes.y = 0;
-            }else{
-                /*** nur 4 Stellungen auswerten ***/
-                if ((js.rgdwPOV[0]>=31500) || (js.rgdwPOV[0]<4500)){
-                    winp_JoyHatAxes.x = 0;
-                    winp_JoyHatAxes.y = 300;
-                }else if ((js.rgdwPOV[0]>=4500) && (js.rgdwPOV[0]<13500)){
-                    winp_JoyHatAxes.x = 300;
-                    winp_JoyHatAxes.y = 0;
-                }else if ((js.rgdwPOV[0]>=13500) && (js.rgdwPOV[0]<22500)){
-                    winp_JoyHatAxes.x = 0;
-                    winp_JoyHatAxes.y = -300;
-                }else if ((js.rgdwPOV[0]>=22500) && (js.rgdwPOV[0]<31500)) {
-                    winp_JoyHatAxes.x = -300;
-                    winp_JoyHatAxes.y = 0;
-                };
             };
         };
     };
