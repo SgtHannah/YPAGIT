@@ -478,7 +478,9 @@ typedef interface IDvdGraphBuilder IDvdGraphBuilder;
 /* header files for imported files */
 #include "unknwn.h"
 #include "objidl.h"
+#ifdef _MSC_VER
 #include "ocidl.h"
+#endif
 
 void __RPC_FAR * __RPC_USER MIDL_user_allocate(size_t);
 void __RPC_USER MIDL_user_free( void __RPC_FAR * ); 
@@ -1294,7 +1296,7 @@ HRESULT STDMETHODCALLTYPE IEnumMediaTypes_Reset_Proxy(
     IEnumMediaTypes __RPC_FAR * This);
 
 
-void __RPC_STUB IEnumMediaTypes_Reset_Stub(
+void __RP_STUB IEnumMediaTypes_Reset_Stub(
     IRpcStubBuffer *This,
     IRpcChannelBuffer *_pRpcChannelBuffer,
     PRPC_MESSAGE _pRpcMessage,
@@ -1517,7 +1519,7 @@ HRESULT STDMETHODCALLTYPE IFilterGraph_EnumFilters_Proxy(
     /* [out] */ IEnumFilters __RPC_FAR *__RPC_FAR *ppEnum);
 
 
-void __RPC_STUB IFilterGraph_EnumFilters_Stub(
+void __RPC_STUB IFilterGraph_EnumFiltersStub(
     IRpcStubBuffer *This,
     IRpcChannelBuffer *_pRpcChannelBuffer,
     PRPC_MESSAGE _pRpcMessage,
@@ -2342,7 +2344,7 @@ EXTERN_C const IID IID_IReferenceClock;
             /* [in] */ REFERENCE_TIME baseTime,
             /* [in] */ REFERENCE_TIME streamTime,
             /* [in] */ HEVENT hEvent,
-            /* [out] */ DWORD __RPC_FAR *pdwAdviseCookie);
+            /* [ut] */ DWORD __RPC_FAR *pdwAdviseCookie);
         
         HRESULT ( STDMETHODCALLTYPE __RPC_FAR *AdvisePeriodic )( 
             IReferenceClock __RPC_FAR * This,
@@ -3102,7 +3104,7 @@ EXTERN_C const IID IID_IMediaSample2;
         ULONG ( STDMETHODCALLTYPE __RPC_FAR *AddRef )( 
             IMediaSample2 __RPC_FAR * This);
         
-        ULONG ( STDMETHODCALLTYPE __RPC_FAR *Release )( 
+        ULONG ( STDMETHODCALLTYPE __RPC_FAR Release )( 
             IMediaSample2 __RPC_FAR * This);
         
         HRESULT ( STDMETHODCALLTYPE __RPC_FAR *GetPointer )( 
@@ -3428,7 +3430,7 @@ EXTERN_C const IID IID_IMemAllocator;
 #define IMemAllocator_Commit(This)      \
     (This)->lpVtbl -> Commit(This)
 
-#define IMemAllocator_Decommit(This)    \
+#define IMemAllocator_Decommit(This)   \
     (This)->lpVtbl -> Decommit(This)
 
 #define IMemAllocator_GetBuffer(This,ppBuffer,pStartTime,pEndTime,dwFlags)      \
@@ -4471,7 +4473,7 @@ EXTERN_C const IID IID_IEnumRegFilters;
     public:
         virtual HRESULT STDMETHODCALLTYPE Next( 
             /* [in] */ ULONG cFilters,
-            /* [out] */ REGFILTER __RPC_FAR *__RPC_FAR *apRegFilter,
+            /* [out] */ REGFILTER __RPC_FAR *__RPC_FAR *apRegFlter,
             /* [out] */ ULONG __RPC_FAR *pcFetched) = 0;
         
         virtual HRESULT STDMETHODCALLTYPE Skip( 
@@ -4913,7 +4915,7 @@ HRESULT STDMETHODCALLTYPE IFilterMapper_UnregisterFilterInstance_Proxy(
 
 void __RPC_STUB IFilterMapper_UnregisterFilterInstance_Stub(
     IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
+    IRpcChannelBuffer *_pRpcCannelBuffer,
     PRPC_MESSAGE _pRpcMessage,
     DWORD *_pdwStubPhase);
 
@@ -6994,7 +6996,7 @@ void __RPC_STUB IGraphBuilder_Connect_Stub(
 
 HRESULT STDMETHODCALLTYPE IGraphBuilder_Render_Proxy( 
     IGraphBuilder __RPC_FAR * This,
-    /* [in] */ IPin __RPC_FAR *ppinOut);
+    /* [in] */ IPin __RPCFAR *ppinOut);
 
 
 void __RPC_STUB IGraphBuilder_Render_Stub(
@@ -7676,7 +7678,7 @@ EXTERN_C const IID IID_IFilterGraph2;
     (This)->lpVtbl -> Render(This,ppinOut)
 
 #define IFilterGraph2_RenderFile(This,lpcwstrFile,lpcwstrPlayList)      \
-    (This)->lpVtbl -> RenderFile(This,lpcwstrFile,lpcwstrPlayList)
+    (This)->lpVtbl -> RenderFile(This,lpcwstrFile,lpcwstrPlayList
 
 #define IFilterGraph2_AddSourceFilter(This,lpcwstrFileName,lpcwstrFilterName,ppFilter)  \
     (This)->lpVtbl -> AddSourceFilter(This,lpcwstrFileName,lpcwstrFilterName,ppFilter)
@@ -8060,7 +8062,7 @@ HRESULT STDMETHODCALLTYPE IAsyncReader_Request_Proxy(
 void __RPC_STUB IAsyncReader_Request_Stub(
     IRpcStubBuffer *This,
     IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
+    PRPC_MESSAGE _pRpcMessage
     DWORD *_pdwStubPhase);
 
 
@@ -11514,7 +11516,7 @@ EXTERN_C const IID IID_IAMVideoProcAmp;
         
         HRESULT ( STDMETHODCALLTYPE __RPC_FAR *GetRange )( 
             IAMVideoProcAmp __RPC_FAR * This,
-            /* [in] */ long Property,
+            /* [in] */ long Proerty,
             /* [out] */ long __RPC_FAR *pMin,
             /* [out] */ long __RPC_FAR *pMax,
             /* [out] */ long __RPC_FAR *pSteppingDelta,
@@ -13048,7 +13050,7 @@ EXTERN_C const IID IID_IBPCSatelliteTuner;
         HRESULT ( STDMETHODCALLTYPE __RPC_FAR *QueryInterface )( 
             IBPCSatelliteTuner __RPC_FAR * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void __RPC_FAR *__RPC_FAR *ppvObject);
+            /* [iid_s][out] */ void __RPC_FAR *__RPC_FAR *ppvObject);
         
         ULONG ( STDMETHODCALLTYPE __RPC_FAR *AddRef )( 
             IBPCSatelliteTuner __RPC_FAR * This);
@@ -13528,7 +13530,7 @@ EXTERN_C const IID IID_IAMTVAudioNotification;
         BEGIN_INTERFACE
         
         HRESULT ( STDMETHODCALLTYPE __RPC_FAR *QueryInterface )( 
-            IAMTVAudioNotification __RPC_FAR * This,
+            IAMTVAudioNotification __RPC_FAR  This,
             /* [in] */ REFIID riid,
             /* [iid_is][out] */ void __RPC_FAR *__RPC_FAR *ppvObject);
         
@@ -13711,7 +13713,7 @@ EXTERN_C const IID IID_IAMAnalogVideoEncoder;
 #define IAMAnalogVideoEncoder_get_TVFormat(This,plAnalogVideoStandard)  \
     (This)->lpVtbl -> get_TVFormat(This,plAnalogVideoStandard)
 
-#define IAMAnalogVideoEncoder_put_CopyProtection(This,lVideoCopyProtection)     \
+#define IAMAnalogVideoEncoder_put_CopyProtection(This,lVideoCopyProtectio)     \
     (This)->lpVtbl -> put_CopyProtection(This,lVideoCopyProtection)
 
 #define IAMAnalogVideoEncoder_get_CopyProtection(This,lVideoCopyProtection)     \
@@ -19385,3 +19387,4 @@ void __RPC_STUB IDvdGraphBuilder_RenderDvdVideoVolume_Stub(
 #endif
 
 #endif
+n*ip,)_hi *o_C
