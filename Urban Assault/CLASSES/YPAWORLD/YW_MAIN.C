@@ -472,12 +472,16 @@ _dispatcher(Object *, yw_OM_NEW, struct TagItem *attrs)
 **                            angeschaltet
 **      23-Mar-98   floh    + temporäre Assign-Initialisierung
 **      04-Apr-98   floh    + Display-Resolution-Zeug wird initialisiert
+**      24-May-98   floh    + initialisiert Default-Sprache "language"
+**                          + macht CD Check fuer Typical und Minimum
+**                            Installation
 */
 {
     Object *newo;
     struct ypaworld_data *ywd;
     ULONG xres, yres;
     ULONG i,j;
+    struct setlanguage_msg slm;
 
     /* Methode an Superclass */
     newo = (Object *) _supermethoda(cl,o,OM_NEW,(Msg *)attrs);
@@ -505,6 +509,24 @@ _dispatcher(Object *, yw_OM_NEW, struct TagItem *attrs)
         _LogMsg("Warning, no env/assign.txt script.\n");
     };
     yw_ParseAssignRegistryKeys();
+    
+    /*** Locale-System initialisieren ***/
+    if (!yw_InitLocale(ywd)) {
+        _LogMsg("yw_main.c/OM_NEW: yw_InitLocale() failed!\n");
+        _methoda(newo, OM_DISPOSE, NULL);
+        return(NULL);
+    };
+    slm.lang = "language";
+    _methoda(o,YWM_SETLANGUAGE,&slm);    
+    
+    /*** CD-Check ***/
+    if (!yw_CheckCD(TRUE,TRUE,
+            ypa_GetStr(ywd->LocHandle,STR_APPNAME,"YOUR PERSONAL AMOK"),
+            ypa_GetStr(ywd->LocHandle,STR_CDREQUEST_BODYTEXT,"THE YPA CD IS REQUIRED FOR COMPACT AND TYPICAL INSTALL.")))
+    {
+        _methoda(newo, OM_DISPOSE, NULL);
+        return(NULL);
+    };
 
     /*** alloziere Arrays ***/
     ywd->VisProtos = (struct VisProto *)
@@ -591,13 +613,6 @@ _dispatcher(Object *, yw_OM_NEW, struct TagItem *attrs)
     /*** Scene-Recorder initialisieren ***/
     if (!yw_InitSceneRecorder(ywd)) {
         _LogMsg("yw_main.c/OM_NEW: init scene recorder failed!\n");
-        _methoda(newo, OM_DISPOSE, NULL);
-        return(NULL);
-    };
-
-    /*** Locale-System initialisieren ***/
-    if (!yw_InitLocale(ywd)) {
-        _LogMsg("yw_main.c/OM_NEW: yw_InitLocale() failed!\n");
         _methoda(newo, OM_DISPOSE, NULL);
         return(NULL);
     };
