@@ -495,7 +495,7 @@ _dispatcher(void, yb_YBM_AI_LEVEL2, struct trigger_logic_msg *msg)
             ** brauchen, egal welche Ziele oder Aggr wir haben.
             ** -----------------------------------------------------------*/
 
-            if( ybd->bact.internal_time - ybd->bact.time_search2 > 1500 ) {
+            if( ybd->bact.internal_time - ybd->bact.time_search2 > 500 ) {
 
                 struct getsectar_msg st;
 
@@ -792,7 +792,6 @@ _dispatcher( void, yb_YBM_GETSECTARGET, struct getsectar_msg *st)
         FLOAT  distance;
         int    i, j;
 
-        /*** Diese Entfernung gilt fuer die Zielaufnahme ***/
         distance      = 1.5 * SECTOR_SIZE;
         points        = 0;
         st->SecTarget = NULL;

@@ -292,7 +292,15 @@ void yb_setAttrs(Object *o, struct ypabact_data *ybd, struct TagItem *attrs)
                     ywd = INST_DATA( ((struct nucleusdata *)ybd->world)->o_Class, ybd->world);
 
                     if (data) {
-
+                    
+                        /* ----------------------------------------------------
+                        ** Zaehler fuer Salve zuruecksetzen, wenn wir nicht aus
+                        ** einer rakete kommen (MissileCam) 
+                        ** --------------------------------------------------*/
+                        if( (ybd->ywd->Viewer) &&
+                            (BCLID_YPAMISSY != ybd->ywd->Viewer->BactClassID))
+                            ybd->bact.salve_count = 0;
+    
                         /*** Welt-Object benachrichtigen ***/
                         _methoda(ybd->world, YWM_SETVIEWER, &(ybd->bact));
 
@@ -304,9 +312,6 @@ void yb_setAttrs(Object *o, struct ypabact_data *ybd, struct TagItem *attrs)
                         if( ywd->playing_network )
                             vm.viewer = 1;
                         #endif
-
-                        /*** Zaehler fuer Salve zuruecksetzen ***/
-                        ybd->bact.salve_count = 0;
 
                         /*** Wenn fliegender Hubschrauber, dan Kraft auf max ***/
                         if( (BCLID_YPABACT == ybd->bact.BactClassID) &&
