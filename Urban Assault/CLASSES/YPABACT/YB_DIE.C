@@ -535,10 +535,12 @@ _dispatcher(void, yb_YBM_DIE, void *nix)
             vkill.cmd    = YPAHIST_VHCLKILL;
             vkill.owners = ((owner<<3) | (ybd->bact.Owner));
             _get(ybd->bact.killer->BactObject,YBA_Viewer,&is_user);
-            if (is_user) {
+            if (is_user || (ybd->bact.killer->ExtraState & EXTRA_ISVIEWER)) {
                 vkill.owners |= (1<<7); // Killer war ein User
             };
-            if (ybd->bact.ExtraState & EXTRA_ISVIEWER) {
+            _get(ybd->bact.BactObject,YBA_Viewer,&is_user);
+            
+            if (is_user || (ybd->bact.ExtraState & EXTRA_ISVIEWER)) {
                 vkill.owners |= (1<<6); // Opfer war ein User
             };
             vkill.vp = ybd->bact.TypeID;
