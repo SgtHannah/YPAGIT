@@ -81,24 +81,29 @@ _dispatcher( void, ym_YMM_DOIMPULSE, void *nix )
     struct Bacterium *kandidat;
     struct impulse_msg imp;
 
-    #ifdef __NETWORK__
     struct ypaworld_data *ywd;
     struct ypamessage_impulse im;
     struct sendmessage_msg sm;
-    #endif
 
     ymd = INST_DATA(cl, o );
 
-    #ifdef __NETWORK__
     ywd = INST_DATA( ((struct nucleusdata *)(ymd->world))->o_Class,
                      ymd->world );
-    #endif
 
     imp.pos       = ymd->bact->pos;
     imp.impulse   = ymd->bact->Energy;
     imp.miss      = ymd->bact->dof;
     imp.miss_mass = ymd->bact->mass;
 
+    /*** Impulsebegrenzung ***/
+    if( ((ymd->bact->dof.v * ymd->bact->mass) > ywd->max_impulse) &&
+        (ywd->max_impulse > 0.0) ) {
+        
+        FLOAT factor   = ywd->max_impulse / (ymd->bact->mass * ymd->bact->dof.v);
+        imp.miss.v    *= factor;
+        imp.miss_mass *= factor;
+        }
+        
     kandidat = (struct Bacterium *) ymd->bact->Sector->BactList.mlh_Head;
     while( kandidat->SectorNode.mln_Succ ) {
 
