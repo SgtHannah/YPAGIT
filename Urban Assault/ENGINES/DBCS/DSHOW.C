@@ -14,6 +14,9 @@
 #include <string.h>
 
 #define DSHOW_PADDEDCELL (1)
+#ifdef _MSC_VER
+#define IErrorLog void
+#endif
 #include "misc/dshow.h"
 
 /*-----------------------------------------------------------------**
