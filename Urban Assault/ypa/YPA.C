@@ -196,15 +196,15 @@ BOOL GetSettings( void )
 
             /*** Existiert nicht. Standard nehmen ***/
             _LogMsg("Warning: default user file doesn't exist (%s)\n",fn);
-            strcpy( fn, "standard/user.txt\0" );
-            strcpy( GSR.UserName, "STANDARD\0" );
+            strcpy( fn, "sdu7/user.txt\0" );
+            strcpy( GSR.UserName, "SDU7\0" );
             }
         _FClose( F );
         }
     else {
 
-        strcpy( fn, "standard/user.txt" );
-        strcpy( GSR.UserName, "STANDARD" );
+        strcpy( fn, "sdu7/user.txt" );
+        strcpy( GSR.UserName, "SDU7" );
         _LogMsg("Warning: No default user set\n");
         }
 
