@@ -53,6 +53,11 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib ddraw.lib dinput.lib dplayx.lib quartz.lib strmbase.lib wsock32.lib imm32.lib /nologo /subsystem:windows /machine:I386 /out:"Release/ua_msvc.exe"
+# Begin Special Build Tool
+TargetPath=.\Release\ua_msvc.exe
+SOURCE=$(InputPath)
+PostBuild_Cmds=copy $(TargetPath) \\A360498\ypa
+# End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "WINYPA - Win32 Debug"
 
@@ -78,7 +83,12 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib ddraw.lib dinput.lib dplayx.lib quartz.lib strmbase.lib wsock32.lib imm32.lib /nologo /subsystem:windows /debug /machine:I386 /out:"Debug\ua_msvcd.exe" /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib ddraw.lib dinput.lib dplayx.lib quartz.lib strmbase.lib wsock32.lib imm32.lib /nologo /subsystem:windows /map /debug /machine:I386 /out:"Debug\ua_msvcd.exe" /pdbtype:sept
+# Begin Special Build Tool
+TargetPath=.\Debug\ua_msvcd.exe
+SOURCE=$(InputPath)
+PostBuild_Cmds=copy $(TargetPath) \\BigLitterBox\ua	copy $(TargetPath) \public
+# End Special Build Tool
 
 !ENDIF 
 
@@ -101,6 +111,13 @@ SOURCE=.\YPA.C
 # Begin Source File
 
 SOURCE=.\res\ypa.rc
+
+!IF  "$(CFG)" == "WINYPA - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "WINYPA - Win32 Debug"
+
+!ENDIF 
+
 # End Source File
 # End Target
 # End Project
