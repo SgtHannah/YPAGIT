@@ -1063,7 +1063,7 @@ _dispatcher(BOOL, yb_YBM_FIREMISSILE, struct firemissile_msg *fire)
             }
 
         /*** gleich noch fuers Netz... ***/
-        nwm.target_pos = rbact->PrimPos;
+        nwm.target_pos = fire->target_pos;
 
         if( Handle == YMF_Simple ) {
 
