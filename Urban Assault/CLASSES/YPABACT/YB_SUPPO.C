@@ -746,7 +746,6 @@ _dispatcher( void, yb_YBM_ORGANIZE, struct organize_msg *org )
 
                     _get( ybd->bact.robo, YRA_CommandCount, &cc );
                     ybd->bact.CommandID  = cc;
-                    ybd->bact.CommandID |= (((ULONG)ybd->bact.Owner) << 24);
                     cc++;
                     _set( ybd->bact.robo, YRA_CommandCount, cc );
                     }
