@@ -108,22 +108,22 @@ BOOL init(void)
         _ConfigOverride("input.wimp     = winp");
         _ConfigOverride("input.keyboard = winp");
 
-        _ConfigOverride("input.slider[10] = winp:mouse_x");
-        _ConfigOverride("input.slider[11] = winp:mouse_y");
-        _ConfigOverride("input.slider[12] = winp:joy_x winp:joy_rudder");
-        _ConfigOverride("input.slider[13] = winp:joy_y");
-        _ConfigOverride("input.slider[14] = winp:joy_throttle");
-        _ConfigOverride("input.slider[15] = winp:joy_hat_x");
-        _ConfigOverride("input.slider[16] = winp:joy_hat_y");
+        _ConfigOverride("input.slider[10] = winp:mousex");
+        _ConfigOverride("input.slider[11] = winp:mousey");
+        _ConfigOverride("input.slider[12] = winp:joyx winp:joyrudder");
+        _ConfigOverride("input.slider[13] = winp:joyy");
+        _ConfigOverride("input.slider[14] = winp:joythrottle");
+        _ConfigOverride("input.slider[15] = winp:joyhat_x");
+        _ConfigOverride("input.slider[16] = winp:joyhat_y");
 
-        _ConfigOverride("input.button[16] = winp:joy_b0");
-        _ConfigOverride("input.button[17] = winp:joy_b1");
-        _ConfigOverride("input.button[18] = winp:joy_b2");
-        _ConfigOverride("input.button[19] = winp:joy_b3");
-        _ConfigOverride("input.button[20] = winp:joy_b4");
-        _ConfigOverride("input.button[21] = winp:joy_b5");
-        _ConfigOverride("input.button[22] = winp:joy_b6");
-        _ConfigOverride("input.button[23] = winp:joy_b7");
+        _ConfigOverride("input.button[16] = winp:joyb0");
+        _ConfigOverride("input.button[17] = winp:joyb1");
+        _ConfigOverride("input.button[18] = winp:joyb2");
+        _ConfigOverride("input.button[19] = winp:joyb3");
+        _ConfigOverride("input.button[20] = winp:joyb4");
+        _ConfigOverride("input.button[21] = winp:joyb5");
+        _ConfigOverride("input.button[22] = winp:joyb6");
+        _ConfigOverride("input.button[23] = winp:joyb7");
     #endif
 
 
