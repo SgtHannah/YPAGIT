@@ -465,7 +465,7 @@ BOOL yw_LaunchChatSample( struct ypaworld_data *ywd, WORD number )
         ywd->gsr->ChatSound.pos.x = 0.0;
         ywd->gsr->ChatSound.pos.y = 0.0;
         ywd->gsr->ChatSound.pos.z = 0.0;
-        ywd->gsr->ChatSound.src[ 0 ].volume = 127;
+        ywd->gsr->ChatSound.src[ 0 ].volume = 500;
         ywd->gsr->ChatSound.src[ 0 ].pitch  = 0;
 
         /*** Abfeuern ***/

@@ -842,7 +842,7 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
                     if( (-1 == GSR->NSel) && (0 == count) ) {
 
                         /*** keiner ausgewählt aber einer da --> setzen ***/
-                        yw_StrUpper( GSR->N_Name, GSR->netlevel[ i ].name );
+                        strcpy( GSR->N_Name, GSR->netlevel[ i ].name );
                         ss.unpressed_text = GSR->N_Name;
                         _methoda( GSR->bnet, BTM_SETSTRING, &ss );
 
@@ -1092,34 +1092,6 @@ char *yw_AddEmptyLinesToMenu( struct ypaworld_data *ywd, struct YPAListReq *Menu
         str = yw_MenuLayoutItem( ywd, Menu, str, " ", 0);
 
     return( str );
-}
-
-
-/// "2 ToUpper-Routinen"
-void yw_StrUpper( char *ziel, char *quelle )
-{
-    int i = 0;
-    while( quelle[ i ] ) {
-
-        ziel[ i ] = toupper( quelle[ i ] );
-        i++;
-        }
-
-    ziel[ i ] = 0;
-}
-
-void yw_StrUpper2( char *ziel, char *quelle )
-{
-    /*** Korrigiert auch gleichzeitig ***/
-    int i = 0;
-    while( quelle[ i ] ) {
-
-        ziel[ i ] = toupper( quelle[ i ] );
-        if( (ziel[ i ] < 32) || (ziel[ i ] > 90) ) ziel[ i ] = '*';
-        i++;
-        }
-
-    ziel[ i ] = 0;
 }
 ///
 

@@ -1125,6 +1125,34 @@ _dispatcher(void, yw_BSM_TRIGGER, struct trigger_msg *msg)
         msg->frame_time       = 40;
         msg->global_time += msg->frame_time;
     };
+    
+    /***-----------------------------------***/
+    /***--- Audio-Frame-Initialisierung ---***/
+    /***-----------------------------------***/
+    if (ywd->UVBact) {
+        if (ywd->FrameCount == 1) {
+            /*** im ersten Frame ist die Viewerpos noch nicht gueltig ***/    
+            ywd->ViewerPos = ywd->UVBact->pos;
+            ywd->ViewerDir = ywd->UVBact->dir;
+        };
+        vwr_vec.x = ywd->UVBact->dof.x * ywd->UVBact->dof.v;
+        vwr_vec.y = ywd->UVBact->dof.y * ywd->UVBact->dof.v;
+        vwr_vec.z = ywd->UVBact->dof.z * ywd->UVBact->dof.v;
+        _StartAudioFrame(msg->frame_time,
+                         &(ywd->ViewerPos),
+                         &(vwr_vec),
+                         &(ywd->ViewerDir));
+    };
+                         
+    /*** Welcome Message ***/                         
+    if (ywd->FrameCount == 1) {
+        struct logmsg_msg lm;
+        lm.bact = ywd->URBact;
+        lm.pri  = 128;
+        lm.msg  = NULL;
+        lm.code = LOGMSG_HOST_ONLINE;
+        _methoda(ywd->world,YWM_LOGMSG,&lm);
+    };
 
     /*** Verwaltungs-Kram ***/
     yw_ComputeRatios(ywd);
@@ -1224,25 +1252,6 @@ _dispatcher(void, yw_BSM_TRIGGER, struct trigger_msg *msg)
     #ifdef YPA_DESIGNMODE
         yw_RemapSectors(ywd);
     #endif
-
-    /***-----------------------------------***/
-    /***--- Audio-Frame-Initialisierung ---***/
-    /***-----------------------------------***/
-    vwr_vec.x = ywd->UVBact->dof.x * ywd->UVBact->dof.v;
-    vwr_vec.y = ywd->UVBact->dof.y * ywd->UVBact->dof.v;
-    vwr_vec.z = ywd->UVBact->dof.z * ywd->UVBact->dof.v;
-    _StartAudioFrame(msg->frame_time,
-                     &(ywd->ViewerPos),
-                     &(vwr_vec),
-                     &(ywd->ViewerDir));
-    if (ywd->FrameCount == 1) {
-        struct logmsg_msg lm;
-        lm.bact = ywd->URBact;
-        lm.pri  = 128;
-        lm.msg  = NULL;
-        lm.code = LOGMSG_HOST_ONLINE;
-        _methoda(ywd->world,YWM_LOGMSG,&lm);
-    };
 
     /***-----------------------------------------***/
     /***--- BeamGates und BuildJobs abhandeln ---***/

@@ -4902,7 +4902,7 @@ void yw_OKLevel( struct GameShellReq *GSR )
 
             /*** Name in player2 merken ***/
             _get( GSR->ywd->nwo, NWA_NumPlayers, &np );
-            yw_StrUpper( GSR->player2[ np-1 ].name, cp.name);
+            strcpy( GSR->player2[ np-1 ].name, cp.name);
 
             /*** Pauschal bekommt er die erste freie Rasse ***/
             yw_DoRaceInit( GSR );
@@ -5026,7 +5026,7 @@ void yw_OKSessions( struct GameShellReq *GSR )
                 gpd.askmode = GPD_ASKNUMBER;
                 while( _methoda( ywd->nwo, NWM_GETPLAYERDATA, &gpd) ) {
 
-                    yw_StrUpper( ywd->gsr->player2[ gpd.number ].name,
+                    strcpy( ywd->gsr->player2[ gpd.number ].name,
                                  gpd.name );
 
                     /*** Nicht ganz wasserdicht...***/
@@ -5056,7 +5056,7 @@ void yw_OKSessions( struct GameShellReq *GSR )
 
                     /*** Name in player2 merken ***/
                     _get( ywd->nwo, NWA_NumPlayers, &np );
-                    yw_StrUpper( GSR->player2[ np-1 ].name, cp.name);
+                    strcpy( GSR->player2[ np-1 ].name, cp.name);
 
                     yw_DoRaceInit( GSR );
                     

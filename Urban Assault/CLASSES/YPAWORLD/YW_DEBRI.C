@@ -1463,7 +1463,7 @@ UBYTE *yw_DBLayoutSingleTechupgrade(struct ypaworld_data *ywd,
         case YPAHIST_TECHTYPE_ARMOR:
             if (vp) {
                 type_str = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_TU_ARMOR,"ARMOR UPGRADE:");
-                sprintf(buf_0,"%d%%", vp->Shield);
+                sprintf(buf_0,"(%d%%)", vp->Shield);
                 value_str = buf_0;
             };
             break;
@@ -1508,7 +1508,7 @@ UBYTE *yw_DBLayoutSingleTechupgrade(struct ypaworld_data *ywd,
         struct ypa_ColumnItem col[3];
 
         col[0].string       = type_str;
-        col[0].width        = w * 0.5;
+        col[0].width        = w * 0.48;
         col[0].font_id      = FONTID_TRACY;
         col[0].space_chr    = ' ';
         col[0].prefix_chr   = 0;
@@ -1516,7 +1516,7 @@ UBYTE *yw_DBLayoutSingleTechupgrade(struct ypaworld_data *ywd,
         col[0].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
         
         col[1].string       = name_str;
-        col[1].width        = w * 0.3;
+        col[1].width        = w * 0.30;
         col[1].font_id      = FONTID_TRACY;
         col[1].space_chr    = ' ';
         col[1].prefix_chr   = 0;
@@ -1524,7 +1524,7 @@ UBYTE *yw_DBLayoutSingleTechupgrade(struct ypaworld_data *ywd,
         col[1].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
         
         col[2].string       = value_str;
-        col[2].width        = w * 0.2;
+        col[2].width        = w * 0.22;
         col[2].font_id      = FONTID_TRACY;
         col[2].space_chr    = ' ';
         col[2].prefix_chr   = 0;

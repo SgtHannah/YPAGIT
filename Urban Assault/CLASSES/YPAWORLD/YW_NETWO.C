@@ -472,7 +472,7 @@ BOOL yw_PlayersInGame( struct ypaworld_data *ywd )
 
                 /*** Sagen, auf wen wir warten ***/
                 strcpy( buffer, "     ");
-                yw_StrUpper2( &( buffer[3] ), waiting_array[ cnt ] );
+                strcpy( &( buffer[3] ), waiting_array[ cnt ] );
                 
                 #ifdef __DBCS__
                 freeze_dbcs_pos( str );
@@ -1119,7 +1119,7 @@ void yw_HandleNetMessages( struct ypaworld_data *ywd )
 
                 /*** Name in player2 merken ***/
                 _get( ywd->nwo, NWA_NumPlayers, &i );
-                yw_StrUpper( GSR->player2[ i-1 ].name, (char *)(rm.data));
+                strcpy( GSR->player2[ i-1 ].name, (char *)(rm.data));
 
                 /* ----------------------------------------------------
                 ** von neuen bekomme ich keine Welcome-Msg, also selbst
