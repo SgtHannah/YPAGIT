@@ -801,6 +801,7 @@ static UBYTE *ypa_GetStr(UBYTE **loc, ULONG id, UBYTE *def)
 #define STR_NETWORK_DEFEATED            (2469)
 #define STR_CONFIRM_TUTORIALEXIT        (2470)
 #define STR_SUPERITEM_TRIGGERED         (2471)
+#define STR_DISPLAY_SOFTWARE            (2472)
 
 /*** Confirm-Req-Inhalt ***/
 #define STR_CONFIRM_EXIT                (2480)

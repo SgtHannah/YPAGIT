@@ -1043,7 +1043,7 @@ struct video_node {
 
     struct MinNode node;
 
-    char   name[ 32 ];  // Name des Modus
+    char   name[128];   // Name des Modus
     ULONG  modus;       // DisplayID
     WORD   res_x;       // Auflösung, vorerst nur Platz dafür reservieren
     WORD   res_y;
