@@ -131,13 +131,6 @@ struct YPAThing {
 **  Der Status-Requester ist der StatusBar am unteren
 **  Screen-Rand. Er ist die Zentrale des gesamten GUIs...
 */
-struct YPAWinStatus {
-    ULONG IsValid;              // überhaupt gültig?
-    ULONG IsOpen;               // für jedes offene Window ein Flag
-    struct ClickRect Rect;
-    ULONG Data[8];              // beliebige fensterspezifische Daten
-};
-
 struct YPAStatusReq {
 
     struct YPAReq req;
@@ -170,11 +163,6 @@ struct YPAStatusReq {
     LONG ActWeapon;         // Index in Vehicle-Remap-Tabelle!
     LONG ActBuilding;       // Index in Building-Remap-Tabelle!
     LONG ActThing;
-
-    struct YPAWinStatus RoboMapStatus;
-    struct YPAWinStatus RoboFinderStatus;
-    struct YPAWinStatus VhclMapStatus;
-    struct YPAWinStatus VhclFinderStatus;
 
     /*** Dynamic Layout Stuff ***/
     LONG GroupSpace;        // Platz zwischen Button-Gruppen

@@ -115,19 +115,6 @@ BOOL yw_InitLogWin(Object *o, struct ypaworld_data *ywd)
                          2 * ywd->Fonts[LW_ItemFont]->fchars[':'].width +
                          12;
 
-        /*** Prefs-Handling ***/
-        if (ywd->Prefs.valid) {
-
-            struct YPAWinPrefs *p = &(ywd->Prefs.WinLog);
-
-            /*** Ausdehnungs-Korrektur ***/
-            if (p->rect.w > ywd->DspXRes) p->rect.w = ywd->DspXRes;
-            if (p->rect.h > (ywd->DspYRes-ywd->UpperTabu-ywd->LowerTabu)) p->rect.h =ywd->DspYRes-ywd->UpperTabu-ywd->LowerTabu;
-            LW.l.ActEntryWidth = p->rect.w-ywd->PropW;
-            LW.l.ShownEntries  = (p->rect.h-ywd->FontH-LW.l.UpperVBorder-LW.l.LowerVBorder)/LW.l.EntryHeight;
-            yw_ListSetRect(ywd,&(LW.l),p->rect.x,p->rect.y);
-        };
-
         retval = TRUE;
     };
 

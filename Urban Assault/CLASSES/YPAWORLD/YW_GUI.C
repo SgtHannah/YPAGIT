@@ -588,6 +588,8 @@ BOOL yw_InitGUIModule(Object *o, struct ypaworld_data *ywd)
 **      26-Oct-97   floh    + yw_InitKeycode2StrTable() wieder raus
 **      10-Dec-97   floh    + yw_InitER() (Energiewindow) endgueltig raus.
 **      23-Apr-98   floh    + ConfirmRequester
+**      30-May-98   floh    + die "normalen" Requester werden jetzt vor
+**                            dem Statusreq per ADDREQUESTER angehaengt,
 */
 { 
     if (!(ywd->GUI_Ok)) {
@@ -601,9 +603,7 @@ BOOL yw_InitGUIModule(Object *o, struct ypaworld_data *ywd)
         ywd->ClickControlY         = 0;
         ywd->ClickControlBact      = NULL;
 
-        #ifdef __WINDOWS__
-            yw_InitForceFeedback(ywd);
-        #endif
+        yw_InitForceFeedback(ywd);
         yw_InitHUD(ywd);
         yw_InitEB(ywd);
         yw_InitMapReq(o,ywd);
@@ -611,6 +611,16 @@ BOOL yw_InitGUIModule(Object *o, struct ypaworld_data *ywd)
         yw_InitLogWin(o,ywd);
         yw_InitAMR(ywd);
         yw_InitCR(ywd);
+        yw_InitMW(ywd);
+
+        _methoda(o, YWM_ADDREQUESTER, &MR);
+        _methoda(o, YWM_ADDREQUESTER, &FR);
+        _methoda(o, YWM_ADDREQUESTER, &LW);
+        _methoda(o, YWM_ADDREQUESTER, &AMR);
+        _methoda(o, YWM_ADDREQUESTER, &CR);
+        _methoda(o, YWM_ADDREQUESTER, &MW);
+
+        /*** Status-Req MUSS nach den anderen Fenstern initialisiert werden! ***/        
         if (yw_InitStatusReq(o,ywd)) {
 
             struct VFMBitmap *shade_lum,*tracy_lum;
@@ -621,17 +631,6 @@ BOOL yw_InitGUIModule(Object *o, struct ypaworld_data *ywd)
             _get(ywd->ShadeRemap, BMA_Bitmap, &shade_lum);
 
             /*** alle Requester anmelden ***/
-            _methoda(o, YWM_ADDREQUESTER, &MR);
-            _methoda(o, YWM_ADDREQUESTER, &FR);
-            _methoda(o, YWM_ADDREQUESTER, &LW);
-            _methoda(o, YWM_ADDREQUESTER, &AMR);
-            _methoda(o, YWM_ADDREQUESTER, &CR);
-
-            #ifdef __NETWORK__
-            yw_InitMW(ywd);
-            _methoda(o, YWM_ADDREQUESTER, &MW);
-            #endif
-
             ywd->GUI_Ok = TRUE;
 
             /*** Starten Lied ***/
@@ -646,6 +645,14 @@ BOOL yw_InitGUIModule(Object *o, struct ypaworld_data *ywd)
             };
             return(TRUE);
         };
+        
+        /*** ab hier Fehler ***/        
+        _methoda(o, YWM_REMREQUESTER, &CR);
+        _methoda(o, YWM_REMREQUESTER, &AMR);
+        _methoda(o, YWM_REMREQUESTER, &LW);
+        _methoda(o, YWM_REMREQUESTER, &FR);
+        _methoda(o, YWM_REMREQUESTER, &MR);
+        _methoda(o, YWM_REMREQUESTER, &MW);
         yw_KillAMR(ywd);
         yw_KillLogWin(o,ywd);
         yw_KillFinder(o,ywd);
@@ -700,23 +707,10 @@ void yw_KillGUIModule(Object *o, struct ypaworld_data *ywd)
 **      10-Dec-97   floh    + yw_KillER() raus
 **      23-Apr-98   floh    + ConfirmReq
 **      07-May-98   floh    + Ooops, KillCR vergessen...
+**      30-May-98   floh    + Prefs-Handling ist rausgeflogen...
 */
 {
     if (ywd->GUI_Ok) {
-
-        struct YPAGamePrefs *p = &(ywd->Prefs);
-
-        /*** Prefs-Struktur ausfüllen ***/
-        p->valid = TRUE;
-        p->WinMap.rect = MR.req.req_cbox.rect;
-        p->MapLayers   = MR.layers;
-        p->MapZoom     = MR.zoom;
-        p->WinFinder.rect = FR.l.Req.req_cbox.rect;
-        p->WinLog.rect    = LW.l.Req.req_cbox.rect;
-
-        #ifdef __NETWORK__
-        p->WinMessage.rect = MW.Req.req_cbox.rect;
-        #endif
 
         /*** Requester dehydrieren, ähh... ***/
         _methoda(o, YWM_REMREQUESTER, &CR);
@@ -724,10 +718,7 @@ void yw_KillGUIModule(Object *o, struct ypaworld_data *ywd)
         _methoda(o, YWM_REMREQUESTER, &LW);
         _methoda(o, YWM_REMREQUESTER, &FR);
         _methoda(o, YWM_REMREQUESTER, &MR);
-
-        #ifdef __NETWORK__
         _methoda(o, YWM_REMREQUESTER, &MW);
-        #endif
         yw_KillAMR(ywd);
         yw_KillLogWin(o,ywd);
         yw_KillFinder(o,ywd);
@@ -735,13 +726,8 @@ void yw_KillGUIModule(Object *o, struct ypaworld_data *ywd)
         yw_KillEB(ywd);
         yw_KillHUD(ywd);
         yw_KillCR(ywd);
-        #ifdef __WINDOWS__
-            yw_KillForceFeedback(ywd);
-        #endif
-
-        #ifdef __NETWORK__
+        yw_KillForceFeedback(ywd);
         yw_KillMW(ywd);
-        #endif
 
         ywd->MouseBlanked = FALSE;
         ywd->GUI_Ok = FALSE;

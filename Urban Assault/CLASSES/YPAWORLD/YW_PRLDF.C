@@ -51,6 +51,8 @@ ULONG yw_LevelDataParser(struct ScriptParser *p)
 **      25-Oct-97   floh    + die GUI-Sound-Keywords sind raus
 **      26-Jan-98   floh    + <movie> Keyword
 **      19-Apr-98   floh    + <event_loop> Keyword
+**      30-May-98   floh    + Lose-Movie wurde immer gespielt,
+**                            wenn man tot ging...
 */
 {
     UBYTE *kw   = p->keyword;
@@ -64,7 +66,9 @@ ULONG yw_LevelDataParser(struct ScriptParser *p)
 
             /*** ein paar defaults... ***/
             strcpy(ywd->Level->Title,"<NO NAME>");
-            ywd->Level->Movie[0] = 0;
+            ywd->Level->Movie[0]     = 0;
+            ywd->Level->WinMovie[0]  = 0;
+            ywd->Level->LoseMovie[0] = 0;
             p->status = PARSESTAT_RUNNING;
             return(PARSE_ENTERED_CONTEXT);
 

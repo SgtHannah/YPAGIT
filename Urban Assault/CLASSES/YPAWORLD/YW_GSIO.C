@@ -1078,28 +1078,19 @@ ULONG yw_ParseVideoData( struct ScriptParser *parser )
 
                     /*** Weitsicht erwünscht? ***/
                     if( stricmp( parser->data, "yes" ) == 0 ) {
-
-                        GSR->video_flags      |= VF_DRAWPRIMITIVE;
-                        //GSR->ywd->Prefs.Flags |= YPA_PREFS_FILTERING;
-                        //_set(GSR->ywd->GfxObject,WINDDA_TextureFilter,TRUE);
-                        }
-                    else {
-
-                        GSR->video_flags      &= ~VF_DRAWPRIMITIVE;
-                        //GSR->ywd->Prefs.Flags &= ~YPA_PREFS_FILTERING;
-                        //_set(GSR->ywd->GfxObject,WINDDA_TextureFilter,FALSE);
-                        }
+                        GSR->video_flags |= VF_DRAWPRIMITIVE;
+                    } else {
+                        GSR->video_flags &= ~VF_DRAWPRIMITIVE;
+                    }
 
                 } else {
 
                 if( stricmp( parser->keyword, "16bittexture") == 0 ) {
 
                     if( stricmp( parser->data, "yes" ) == 0 ) {
-                        GSR->video_flags      |=  VF_16BITTEXTURE;
-                        //GSR->ywd->Prefs.Flags |= YPA_PREFS_SOUNDENABLE;
+                        GSR->video_flags |=  VF_16BITTEXTURE;
                     } else {
-                        GSR->video_flags      &= ~VF_16BITTEXTURE;
-                        //GSR->ywd->Prefs.Flags &= ~YPA_PREFS_SOUNDENABLE;
+                        GSR->video_flags &= ~VF_16BITTEXTURE;
                     }
                 
                 } else {
@@ -1181,14 +1172,37 @@ ULONG yw_ParseVideoData( struct ScriptParser *parser )
         }
 }
 
+/*-----------------------------------------------------------------*/
+void yw_ParseWinStatus(struct ypaworld_data *ywd,
+                       struct YPAWinStatus *win_stat,
+                       UBYTE *data)
+/*
+**  CHANGED
+**      30-May-98   floh    created
+*/
+{
+    UBYTE *tok;
+    ULONG i;
+
+    memset(win_stat,0,sizeof(struct YPAWinStatus));
+    if (tok = strtok(data," _")) win_stat->IsValid = atol(tok);
+    if (tok = strtok(NULL," _")) win_stat->IsOpen  = atol(tok);
+    if (tok = strtok(NULL," _")) win_stat->Rect.x  = atol(tok);
+    if (tok = strtok(NULL," _")) win_stat->Rect.y  = atol(tok);
+    if (tok = strtok(NULL," _")) win_stat->Rect.w  = atol(tok);
+    if (tok = strtok(NULL," _")) win_stat->Rect.h  = atol(tok);
+    for (i=0; i<8; i++) {
+        if (tok = strtok(NULL," _")) win_stat->Data[i] = atol(tok);
+    };
+}
+
+/*-----------------------------------------------------------------*/
+    
 ULONG yw_ParseShellData( struct ScriptParser *parser )
 {
-    struct GameShellReq *GSR;
-    Object *World;
-    struct ypaworld_data *ywd;
-
-
-    World = (Object *) parser->store[ 0 ];  // im Nachhinein doppelt gemoppelt...
+    struct GameShellReq *GSR = (struct GameShellReq *) parser->target;
+    Object *World = (Object *) parser->store[0];
+    struct ypaworld_data *ywd = GSR->ywd;
     
     if( PARSESTAT_READY == parser->status ) {
 
@@ -1209,264 +1223,81 @@ ULONG yw_ParseShellData( struct ScriptParser *parser )
 
         /*** Wir bearbeiten das schon. Ist es das Ende? ***/
         if( stricmp( parser->keyword, "end") == 0 ) {
-
             /*** Das Ende naht! ***/
+            ywd->Prefs.valid = (LONG)TRUE;
             parser->status = PARSESTAT_READY;
             return( PARSE_LEFT_CONTEXT );
             }
         else {
 
             /*** Es sollte also ein  normales keyword sein ***/
-            if( parser->target ) {
+            char *p;
+            char data[ 300 ];
 
-                char *p;
-                char data[ 300 ];
+            GSR->FoundContent |= DM_SHELL; // weil hier GSR da ist
+            strncpy( data, parser->data, 299 );
 
-                GSR = (struct GameShellReq *) parser->target;
-                GSR->FoundContent |= DM_SHELL; // weil hier GSR da ist
+            if( stricmp( parser->keyword, "LANGUAGE" ) == 0 ) {
 
-                ywd = GSR->ywd;
-                strncpy( data, parser->data, 299 );
+                /*** Welche Sprache soll verwendet werden ***/
+                struct localeinfonode *ln, *found = NULL, *english = NULL;
 
-                if( stricmp( parser->keyword, "LANGUAGE" ) == 0 ) {
+                ln = (struct localeinfonode *) GSR->localelist.mlh_Head;
+                while( ln->node.mln_Succ ) {
 
-                    /*** Welche Sprache soll verwendet werden ***/
-                    struct localeinfonode *ln, *found = NULL, *english = NULL;
+                    if( stricmp(ln->language, parser->data) == 0 )
+                        found = ln;
 
-                    ln = (struct localeinfonode *) GSR->localelist.mlh_Head;
-                    while( ln->node.mln_Succ ) {
+                    if( stricmp(ln->language, "language") == 0 )
+                        english = ln;
 
-                        if( stricmp(ln->language, parser->data) == 0 )
-                            found = ln;
-
-                        if( stricmp(ln->language, "language") == 0 )
-                            english = ln;
-
-                        ln = (struct localeinfonode *) ln->node.mln_Succ;
-                        }
-
-                    /*** kein "Not-Englisch" mehr ***/
-                    if( found )
-                        GSR->lsel = found;
-                    else
-                        GSR->lsel = english;
-                    GSR->new_lsel = GSR->lsel;
-
-                    /*** Nun Aktion auslösen ***/
-                    if( !_methoda( World, YWM_SETGAMELANGUAGE, GSR )) {
-
-                        _LogMsg("Unable to set new language\n");
-                        /*** kein return FALSE!!! es kann ja weitergehen ***/
-                        }
+                    ln = (struct localeinfonode *) ln->node.mln_Succ;
                     }
-                else {
 
-                if( stricmp( parser->keyword, "SOUND" ) == 0 ) {
+                /*** kein "Not-Englisch" mehr ***/
+                if( found )
+                    GSR->lsel = found;
+                else
+                    GSR->lsel = english;
+                GSR->new_lsel = GSR->lsel;
 
-                    /*** Not longer supported ***/
+                /*** Nun Aktion auslösen ***/
+                if( !_methoda( World, YWM_SETGAMELANGUAGE, GSR )) {
+
+                    _LogMsg("Unable to set new language\n");
+                    /*** kein return FALSE!!! es kann ja weitergehen ***/
                     }
-                else {
-
-                if( stricmp( parser->keyword, "VIDEO" ) == 0 ) {
-
-                    /*** Not longer supported ***/
-                    }
-                else {
-
-                if( stricmp( parser->keyword, "INPUT" ) == 0 ) {
-
-                    /*** not longer supported ***/
-                    }
-                else {
-
-                if( stricmp( parser->keyword, "DISK" ) == 0 ) {
-
-                    /*** not longer supported ***/
-                    }
-                else {
-
-                if( stricmp( parser->keyword, "LOCALE" ) == 0 ) {
-
-                    /*** not longer supported ***/
-                    }
-                else {
-
-                if( stricmp( parser->keyword, "NET" ) == 0 ) {
-
-                    /*** not longer supported ***/
-                    }
-                else {
-
-                if( stricmp( parser->keyword, "FINDER" ) == 0 ) {
-
-                    if( p = strtok( data, "_ \t") ) {
-
-                        /*** auch Fensterpos, obwohl noch nicht ausgewertet ***/
-                        if( p = strtok( NULL, "_ \t") ) {
-                          ywd->Prefs.WinFinder.rect.x = (WORD) atol( p );
-
-                          if( p = strtok( NULL, "_ \t") ) {
-                            ywd->Prefs.WinFinder.rect.y = (WORD) atol( p );
-
-                            if( p = strtok( NULL, "_ \t") ) {
-                              ywd->Prefs.WinFinder.rect.w = (WORD) atol( p );
-
-                              if( p = strtok( NULL, "_ \t") ) {
-                                ywd->Prefs.WinFinder.rect.h = (WORD) atol( p );
-                                }
-                              else return( PARSE_BOGUS_DATA );
-                              }
-                            else return( PARSE_BOGUS_DATA );
-                            }
-                          else return( PARSE_BOGUS_DATA );
-                          }
-                        else return( PARSE_BOGUS_DATA );
-                        }
-                    }
-                else {
-
-                if( stricmp( parser->keyword, "LOG" ) == 0 ) {
-
-                    if( p = strtok( data, "_ \t") ) {
-
-                        /*** auch Fensterpos, obwohl noch nicht ausgewertet ***/
-                        if( p = strtok( NULL, "_ \t") ) {
-                          ywd->Prefs.WinLog.rect.x = (WORD) atol( p );
-
-                          if( p = strtok( NULL, "_ \t") ) {
-                            ywd->Prefs.WinLog.rect.y = (WORD) atol( p );
-
-                            if( p = strtok( NULL, "_ \t") ) {
-                              ywd->Prefs.WinLog.rect.w = (WORD) atol( p );
-
-                              if( p = strtok( NULL, "_ \t") ) {
-                                ywd->Prefs.WinLog.rect.h = (WORD) atol( p );
-                                }
-                              else return( PARSE_BOGUS_DATA );
-                              }
-                            else return( PARSE_BOGUS_DATA );
-                            }
-                          else return( PARSE_BOGUS_DATA );
-                          }
-                        else return( PARSE_BOGUS_DATA );
-                        }
-                    }
-                else {
-
-                if( stricmp( parser->keyword, "ENERGY" ) == 0 ) {
-
-                    if( p = strtok( data, "_ \t") ) {
-
-                        /*** auch Fensterpos, obwohl noch nicht ausgewertet ***/
-                        if( p = strtok( NULL, "_ \t") ) {
-                          ywd->Prefs.WinEnergy.rect.x = (WORD) atol( p );
-
-                          if( p = strtok( NULL, "_ \t") ) {
-                            ywd->Prefs.WinEnergy.rect.y = (WORD) atol( p );
-
-                            if( p = strtok( NULL, "_ \t") ) {
-                              ywd->Prefs.WinEnergy.rect.w = (WORD) atol( p );
-
-                              if( p = strtok( NULL, "_ \t") ) {
-                                ywd->Prefs.WinEnergy.rect.h = (WORD) atol( p );
-                                }
-                              else return( PARSE_BOGUS_DATA );
-                              }
-                            else return( PARSE_BOGUS_DATA );
-                            }
-                          else return( PARSE_BOGUS_DATA );
-                          }
-                        else return( PARSE_BOGUS_DATA );
-                        }
-                    }
-                else {
-
-                if( stricmp( parser->keyword, "MESSAGE" ) == 0 ) {
-
-                    /* --------------------------------------------------
-                    ** Ebenso netzspezifisch. Gelesen wird es immer, denn
-                    ** jede version muß es schlucken. Auswertung erfolgt
-                    ** aber nur im Netzmodus
-                    ** ------------------------------------------------*/
-                    #ifdef __NETWORK__
-                    if( p = strtok( data, "_ \t") ) {
-
-                        /*** auch Fensterpos, obwohl noch nicht ausgewertet ***/
-                        if( p = strtok( NULL, "_ \t") ) {
-                          ywd->Prefs.WinMessage.rect.x = (WORD) atol( p );
-
-                          if( p = strtok( NULL, "_ \t") ) {
-                            ywd->Prefs.WinMessage.rect.y = (WORD) atol( p );
-
-                            if( p = strtok( NULL, "_ \t") ) {
-                              ywd->Prefs.WinMessage.rect.w = (WORD) atol( p );
-
-                              if( p = strtok( NULL, "_ \t") ) {
-                                ywd->Prefs.WinMessage.rect.h = (WORD) atol( p );
-                                }
-                              else return( PARSE_BOGUS_DATA );
-                              }
-                            else return( PARSE_BOGUS_DATA );
-                            }
-                          else return( PARSE_BOGUS_DATA );
-                          }
-                        else return( PARSE_BOGUS_DATA );
-                        }
-                    #endif
-                    }
-                else {
-
-                if( stricmp( parser->keyword, "MAP" ) == 0 ) {
-
-                    if( p = strtok( data, "_ \t") ) {
-
-                        /*** auch Fensterpos, obwohl noch nicht ausgewertet ***/
-                        if( p = strtok( NULL, "_ \t") ) {
-                          ywd->Prefs.WinMap.rect.x = (WORD) atol( p );
-
-                          if( p = strtok( NULL, "_ \t") ) {
-                            ywd->Prefs.WinMap.rect.y = (WORD) atol( p );
-
-                            if( p = strtok( NULL, "_ \t") ) {
-                              ywd->Prefs.WinMap.rect.w = (WORD) atol( p );
-
-                              if( p = strtok( NULL, "_ \t") ) {
-                                ywd->Prefs.WinMap.rect.h = (WORD) atol( p );
-
-                                if( p = strtok( NULL, "_ \t") ) {
-                                  ywd->Prefs.MapLayers = (WORD) atol( p );
-
-                                  if( p = strtok( NULL, "_ \t") ) {
-                                    ywd->Prefs.MapZoom = (WORD) atol( p );
-
-                                    /* -------------------------------------
-                                    ** Obwohl es nicht eindeutig ist,
-                                    ** setze ich das "valid-Flag" hier, weil
-                                    ** es die letztmögliche Stelle ist.
-                                    ** Ansonsten müßte ich jedes Fenster
-                                    ** einzeln freischalten
-                                    ** -----------------------------------*/
-                                    ywd->Prefs.valid = (LONG)TRUE;
-                                    }
-                                  else return( PARSE_BOGUS_DATA );
-                                  }
-                                else return( PARSE_BOGUS_DATA );
-                                }
-                              else return( PARSE_BOGUS_DATA );
-                              }
-                            else return( PARSE_BOGUS_DATA );
-                            }
-                          else return( PARSE_BOGUS_DATA );
-                          }
-                        else return( PARSE_BOGUS_DATA );
-                        }
-                    }
-                else {
-
-                    return( PARSE_UNKNOWN_KEYWORD );
-                    } } } } } } } } } } } }
-                }
-
+            } else if( stricmp( parser->keyword, "SOUND" ) == 0 ) {
+                /*** Not longer supported ***/
+            } else if( stricmp( parser->keyword, "VIDEO" ) == 0 ) {
+                /*** Not longer supported ***/
+            } else if( stricmp( parser->keyword, "INPUT" ) == 0 ) {
+                /*** not longer supported ***/
+            } else if( stricmp( parser->keyword, "DISK" ) == 0 ) {
+                /*** not longer supported ***/
+            } else if( stricmp( parser->keyword, "LOCALE" ) == 0 ) {
+                /*** not longer supported ***/
+            } else if( stricmp( parser->keyword, "NET" ) == 0 ) {
+                /*** not longer supported ***/
+            } else if( stricmp( parser->keyword, "FINDER" ) == 0 ) {
+                /*** FIXME_FLOH: obsolete ***/
+            } else if( stricmp( parser->keyword, "LOG" ) == 0 ) {
+                /*** FIXME_FLOH: obsolete ***/
+            } else if( stricmp( parser->keyword, "ENERGY" ) == 0 ) {
+                /*** FIXME_FLOH: obsolete ***/
+            } else if( stricmp( parser->keyword, "MESSAGE" ) == 0 ) {
+                /*** FIXME_FLOH: obsolete ***/
+            } else if( stricmp( parser->keyword, "MAP" ) == 0 ) {
+                /*** FIXME_FLOH: obsolete ***/
+            } else if (stricmp(parser->keyword, "robo_map_status")==0) {
+                yw_ParseWinStatus(ywd,&(ywd->Prefs.RoboMapStatus),parser->data);
+            } else if (stricmp(parser->keyword, "robo_finder_status")==0) {
+                yw_ParseWinStatus(ywd,&(ywd->Prefs.RoboFinderStatus),parser->data);
+            } else if (stricmp(parser->keyword, "vhcl_map_status")==0) {
+                yw_ParseWinStatus(ywd,&(ywd->Prefs.VhclMapStatus),parser->data);
+            } else if (stricmp(parser->keyword, "vhcl_finder_status")==0) {
+                yw_ParseWinStatus(ywd,&(ywd->Prefs.VhclFinderStatus),parser->data);
+            } else return( PARSE_UNKNOWN_KEYWORD );
             return( PARSE_ALL_OK );
             }
         }
@@ -1588,6 +1419,36 @@ ULONG yw_ParseSoundData( struct ScriptParser *parser )
 **              die Saveroutinen
 ** -------------------------------------------------------------*/
 
+/*-----------------------------------------------------------------*/
+void yw_WriteWinStatus(struct ypaworld_data *ywd,   
+                       struct YPAWinStatus *win_stat,
+                       UBYTE *keyword,
+                       APTR fp)
+/*
+**  CHANGED
+**      30-May-98   floh    created
+*/
+{
+    char str[256];
+    sprintf(str, "    %s = %d_%d_%d_%d_%d_%d_%d_%d_%d_%d_%d_%d_%d_%d\n",
+            keyword,
+            win_stat->IsValid,
+            win_stat->IsOpen,
+            win_stat->Rect.x,
+            win_stat->Rect.y,
+            win_stat->Rect.w,
+            win_stat->Rect.h,
+            win_stat->Data[0],
+            win_stat->Data[1],
+            win_stat->Data[2],
+            win_stat->Data[3],
+            win_stat->Data[4],
+            win_stat->Data[5],
+            win_stat->Data[6],
+            win_stat->Data[7]);
+    _FWrite(str,strlen(str),1,fp);
+}
+
 BOOL yw_WriteUserData( FILE *ifile, char *name, struct GameShellReq *GSR)
 {
 /* --------------------------------------------------------
@@ -1686,42 +1547,34 @@ BOOL yw_WriteShellData( FILE *ifile, struct GameShellReq *GSR )
         }
 
     if( ywd->Prefs.valid ) {
-
-        char o_oder_c[ 50 ];
-        strcpy( o_oder_c, "closed" ); // vorerst pauschal für alle
+    
+        char *o_oder_c = "na";    
 
         /*** Der Finder ***/
-        sprintf( str, "    finder = %s_%d_%d_%d_%d\n\0", o_oder_c,
-                           ywd->Prefs.WinFinder.rect.x, ywd->Prefs.WinFinder.rect.y,
-                           ywd->Prefs.WinFinder.rect.w, ywd->Prefs.WinFinder.rect.h );
+        sprintf( str, "    finder = na_0_0_0_0\n\0");
         _FWrite( str, strlen( str ), 1, ifile );
 
         /*** das LogWindow (Nyheter) ***/
-        sprintf( str, "    log    = %s_%d_%d_%d_%d\n\0", o_oder_c,
-                           ywd->Prefs.WinLog.rect.x, ywd->Prefs.WinLog.rect.y,
-                           ywd->Prefs.WinLog.rect.w, ywd->Prefs.WinLog.rect.h );
+        sprintf( str, "    log    = na_0_0_0_0\n\0");
         _FWrite( str, strlen( str ), 1, ifile );
 
         /*** Das EnergyWindow ***/
-        sprintf( str, "    energy = %s_%d_%d_%d_%d\n\0", o_oder_c,
-                           ywd->Prefs.WinEnergy.rect.x, ywd->Prefs.WinEnergy.rect.y,
-                           ywd->Prefs.WinEnergy.rect.w, ywd->Prefs.WinEnergy.rect.h );
+        sprintf( str, "    energy = na_0_0_0_0\n\0");
         _FWrite( str, strlen( str ), 1, ifile );
 
-        #ifdef __NETWORK__
         /*** Das MessageWindow ***/
-        sprintf( str, "    message = %s_%d_%d_%d_%d\n\0", o_oder_c,
-                           ywd->Prefs.WinMessage.rect.x, ywd->Prefs.WinMessage.rect.y,
-                           ywd->Prefs.WinMessage.rect.w, ywd->Prefs.WinMessage.rect.h );
+        sprintf( str, "    message = na_0_0_0_0\n\0");
         _FWrite( str, strlen( str ), 1, ifile );
-        #endif
 
         /*** Die Map ***/
-        sprintf( str, "    map    = %s_%d_%d_%d_%d_%d_%d\n\0", o_oder_c,
-                           ywd->Prefs.WinMap.rect.x, ywd->Prefs.WinMap.rect.y,
-                           ywd->Prefs.WinMap.rect.w, ywd->Prefs.WinMap.rect.h,
-                           ywd->Prefs.MapLayers,     ywd->Prefs.MapZoom );
+        sprintf( str, "    map    = na_0_0_0_0_0_0\n\0");
         _FWrite( str, strlen( str ), 1, ifile );
+        
+        /*** FIXME_FLOH: der neue Fenster-Status ***/
+        yw_WriteWinStatus(ywd,&(ywd->Prefs.RoboMapStatus),"robo_map_status",ifile);
+        yw_WriteWinStatus(ywd,&(ywd->Prefs.RoboFinderStatus),"robo_finder_status",ifile);
+        yw_WriteWinStatus(ywd,&(ywd->Prefs.VhclMapStatus),"vhcl_map_status",ifile);
+        yw_WriteWinStatus(ywd,&(ywd->Prefs.VhclFinderStatus),"vhcl_finder_status",ifile);
         }
 
     /*** Abschluss ***/

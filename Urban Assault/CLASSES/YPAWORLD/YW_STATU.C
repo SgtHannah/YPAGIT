@@ -217,6 +217,30 @@ void yw_ReqToFront(struct ypaworld_data *ywd, struct YPAReq *req)
 }
 
 /*-----------------------------------------------------------------*/
+void yw_CheckWinStatus(struct ypaworld_data *ywd,
+                       struct YPAWinStatus *win_stat)
+/*
+**  FUNCTION
+**      Testet, ob die <win_stat> gueltig ist, und die
+**      Rechteck-Koords innerhalb des Displays
+**      liegen. Ist dem nicht so, wird der Status auf
+**      invalid gesetzt. 
+**
+**  CHANGED
+**      30-May-98   floh    created
+*/
+{
+    if (win_stat->IsValid) {
+        if ((win_stat->Rect.y < ywd->UpperTabu) ||
+            ((win_stat->Rect.x + win_stat->Rect.w) > ywd->DspXRes) ||
+            ((win_stat->Rect.y + win_stat->Rect.h) > (ywd->DspYRes-ywd->LowerTabu)))
+        {
+            win_stat->IsValid = FALSE;
+        };
+    };
+}
+
+/*-----------------------------------------------------------------*/
 void yw_OpenSubMenu(struct ypaworld_data *ywd,
                     BOOL immediate,
                     ULONG for_mode)
@@ -281,6 +305,7 @@ BOOL yw_InitStatusReq(Object *o, struct ypaworld_data *ywd)
 **      17-Feb-98   floh    + Submenu-Initialisierung mit
 **                            LIST_KeyboardInput ausgestattet.
 **      07-Apr-98   floh    + Robo/Vehicle Window Status Handling
+**      30-May-98   floh    + Window-Status-Handling geaendert
 **
 **  NOTE
 **      Das <userdata> Field bleibt mit Absicht auf NULL, damit
@@ -289,6 +314,7 @@ BOOL yw_InitStatusReq(Object *o, struct ypaworld_data *ywd)
 */
 {
     ULONG btn;
+    struct YPAWinStatus *win_stat;
 
     /*** erstmal alles löschen ***/
     memset(&SR,0,sizeof(SR));
@@ -387,20 +413,33 @@ BOOL yw_InitStatusReq(Object *o, struct ypaworld_data *ywd)
         /*** Initialisierung Sub-Mode-Menu ging schief ***/
         return(FALSE);
     };
+    
+    /*** wuerden die Fenster ins aktuelle Display passen? ***/
+    yw_CheckWinStatus(ywd,&(ywd->Prefs.RoboMapStatus));
+    yw_CheckWinStatus(ywd,&(ywd->Prefs.RoboFinderStatus));
+    yw_CheckWinStatus(ywd,&(ywd->Prefs.VhclMapStatus));
+    yw_CheckWinStatus(ywd,&(ywd->Prefs.VhclFinderStatus));    
 
-    /*** Robo/Vehicle-Switch Window-Status ***/
-    SR.RoboMapStatus.IsValid    = FALSE;
-    SR.RoboMapStatus.IsOpen     = FALSE;
-    SR.RoboMapStatus.Rect       = MR.req.req_cbox.rect;
-    SR.RoboFinderStatus.IsValid = FALSE;
-    SR.RoboFinderStatus.IsOpen  = FALSE;
-    SR.RoboFinderStatus.Rect    = FR.l.Req.req_cbox.rect;
-    SR.VhclMapStatus.IsValid    = FALSE;
-    SR.VhclMapStatus.IsOpen     = FALSE;
-    SR.VhclMapStatus.Rect       = MR.req.req_cbox.rect;
-    SR.VhclFinderStatus.IsValid = FALSE;
-    SR.VhclFinderStatus.IsOpen  = FALSE;
-    SR.VhclFinderStatus.Rect    = FR.l.Req.req_cbox.rect;
+    /*** Fensterstatus initialisieren ***/     
+    if (ywd->Prefs.RoboMapStatus.IsValid) {
+        if (ywd->Prefs.RoboMapStatus.IsOpen) {
+            yw_OpenReq(ywd,&(MR.req));
+            yw_ReqToFront(ywd,&(MR.req));
+        } else yw_CloseReq(ywd,&(MR.req));
+        MR.req.req_cbox.rect = ywd->Prefs.RoboMapStatus.Rect;
+        MR.layers    = ywd->Prefs.RoboMapStatus.Data[0];
+        MR.lock_mode = ywd->Prefs.RoboMapStatus.Data[1];
+        MR.zoom      = ywd->Prefs.RoboMapStatus.Data[2];
+        yw_MapZoom(ywd,MAP_ZOOM_CORRECT);
+    };
+    if (ywd->Prefs.RoboFinderStatus.IsValid) {
+        if (ywd->Prefs.RoboFinderStatus.IsOpen) {
+            yw_OpenReq(ywd,&(FR.l.Req));
+            yw_ReqToFront(ywd,&(FR.l.Req));
+        } else yw_CloseReq(ywd,&(FR.l.Req));
+        FR.l.Req.req_cbox.rect = ywd->Prefs.RoboFinderStatus.Rect;
+        yw_ListSetRect(ywd,&(FR.l),-2,-2);
+    };
 
     /*** Ende ***/
     return(TRUE);
@@ -2050,31 +2089,32 @@ void yw_SRGetWindowStatus(struct ypaworld_data *ywd)
 **
 **  CHANGED
 **      21-May-98   floh    created
+**      30-May-98   floh    Window-Status liegt jetzt in ywd->Prefs    
 */
 {
     if (ACTION_DEAD != ywd->UVBact->MainState) {
         if (ywd->UVBact == ywd->URBact) {
             /*** User sitzt gerade im Robo ***/
-            SR.RoboMapStatus.IsValid    = TRUE;
-            SR.RoboMapStatus.IsOpen     = (MR.req.flags & REQF_Closed) ? FALSE:TRUE;
-            SR.RoboMapStatus.Rect       = MR.req.req_cbox.rect;
-            SR.RoboMapStatus.Data[0]    = MR.layers;
-            SR.RoboMapStatus.Data[1]    = MR.lock_mode;
-            SR.RoboMapStatus.Data[2]    = MR.zoom;
-            SR.RoboFinderStatus.IsValid = TRUE;
-            SR.RoboFinderStatus.IsOpen  = (FR.l.Req.flags & REQF_Closed) ? FALSE:TRUE;
-            SR.RoboFinderStatus.Rect    = FR.l.Req.req_cbox.rect;
+            ywd->Prefs.RoboMapStatus.IsValid    = TRUE;
+            ywd->Prefs.RoboMapStatus.IsOpen     = (MR.req.flags & REQF_Closed) ? FALSE:TRUE;
+            ywd->Prefs.RoboMapStatus.Rect       = MR.req.req_cbox.rect;
+            ywd->Prefs.RoboMapStatus.Data[0]    = MR.layers;
+            ywd->Prefs.RoboMapStatus.Data[1]    = MR.lock_mode;
+            ywd->Prefs.RoboMapStatus.Data[2]    = MR.zoom;
+            ywd->Prefs.RoboFinderStatus.IsValid = TRUE;
+            ywd->Prefs.RoboFinderStatus.IsOpen  = (FR.l.Req.flags & REQF_Closed) ? FALSE:TRUE;
+            ywd->Prefs.RoboFinderStatus.Rect    = FR.l.Req.req_cbox.rect;
         } else {
             /*** User sitzt gerade in einem normalen Vehikel ***/
-            SR.VhclMapStatus.IsValid    = TRUE;
-            SR.VhclMapStatus.IsOpen     = (MR.req.flags & REQF_Closed) ? FALSE:TRUE;
-            SR.VhclMapStatus.Rect       = MR.req.req_cbox.rect;
-            SR.VhclMapStatus.Data[0]    = MR.layers;
-            SR.VhclMapStatus.Data[1]    = MR.lock_mode;
-            SR.VhclMapStatus.Data[2]    = MR.zoom;
-            SR.VhclFinderStatus.IsValid = TRUE;
-            SR.VhclFinderStatus.IsOpen  = (FR.l.Req.flags & REQF_Closed) ? FALSE:TRUE;
-            SR.VhclFinderStatus.Rect    = FR.l.Req.req_cbox.rect;
+            ywd->Prefs.VhclMapStatus.IsValid    = TRUE;
+            ywd->Prefs.VhclMapStatus.IsOpen     = (MR.req.flags & REQF_Closed) ? FALSE:TRUE;
+            ywd->Prefs.VhclMapStatus.Rect       = MR.req.req_cbox.rect;
+            ywd->Prefs.VhclMapStatus.Data[0]    = MR.layers;
+            ywd->Prefs.VhclMapStatus.Data[1]    = MR.lock_mode;
+            ywd->Prefs.VhclMapStatus.Data[2]    = MR.zoom;
+            ywd->Prefs.VhclFinderStatus.IsValid = TRUE;
+            ywd->Prefs.VhclFinderStatus.IsOpen  = (FR.l.Req.flags & REQF_Closed) ? FALSE:TRUE;
+            ywd->Prefs.VhclFinderStatus.Rect    = FR.l.Req.req_cbox.rect;
         };
     };
 }                
@@ -2092,62 +2132,63 @@ void yw_SRHandleVehicleSwitch(struct ypaworld_data *ywd,
 **  
 **  CHANGED
 **      21-May-98   floh    created
+**      30-May-98   floh    Window-Status jetzt in ywd->Prefs
 */
 {
     /*** Switch von einem Vehikel in den Robo? ***/
     if (BCLID_YPAROBO == new_vhcl->BactClassID) {
         /*** Map: Wenn RoboStatus gueltig, diesen aktivieren ***/
-        if (SR.RoboMapStatus.IsValid) {
-            if (SR.RoboMapStatus.IsOpen) {
+        if (ywd->Prefs.RoboMapStatus.IsValid) {
+            if (ywd->Prefs.RoboMapStatus.IsOpen) {
                 yw_OpenReq(ywd,&(MR.req));
                 yw_ReqToFront(ywd,&(MR.req));
             } else yw_CloseReq(ywd,&(MR.req));
-            MR.req.req_cbox.rect = SR.RoboMapStatus.Rect;
-            MR.layers    = SR.RoboMapStatus.Data[0];
-            MR.lock_mode = SR.RoboMapStatus.Data[1];
-            MR.zoom      = SR.RoboMapStatus.Data[2];
+            MR.req.req_cbox.rect = ywd->Prefs.RoboMapStatus.Rect;
+            MR.layers    = ywd->Prefs.RoboMapStatus.Data[0];
+            MR.lock_mode = ywd->Prefs.RoboMapStatus.Data[1];
+            MR.zoom      = ywd->Prefs.RoboMapStatus.Data[2];
             yw_MapZoom(ywd,MAP_ZOOM_CORRECT);
         };
 
         /*** dasselbe fuer den Finder ***/
-        if (SR.RoboFinderStatus.IsValid) {
-            if (SR.RoboFinderStatus.IsOpen) {
+        if (ywd->Prefs.RoboFinderStatus.IsValid) {
+            if (ywd->Prefs.RoboFinderStatus.IsOpen) {
                 yw_OpenReq(ywd,&(FR.l.Req));
                 yw_ReqToFront(ywd,&(FR.l.Req));
             } else yw_CloseReq(ywd,&(FR.l.Req));
-            FR.l.Req.req_cbox.rect = SR.RoboFinderStatus.Rect;
+            FR.l.Req.req_cbox.rect = ywd->Prefs.RoboFinderStatus.Rect;
             yw_ListSetRect(ywd,&(FR.l),-2,-2);
         };
     } else if (BCLID_YPAROBO == act_vhcl->BactClassID) {
         /*** Map: Wenn Vhcltatus gültig, diesen aktivieren ***/
-        if (SR.VhclMapStatus.IsValid) {
-            if (SR.VhclMapStatus.IsOpen) {
+        if (ywd->Prefs.VhclMapStatus.IsValid) {
+            if (ywd->Prefs.VhclMapStatus.IsOpen) {
                 yw_OpenReq(ywd,&(MR.req));
                 yw_ReqToFront(ywd,&(MR.req));
             } else yw_CloseReq(ywd,&(MR.req));
-            MR.req.req_cbox.rect = SR.VhclMapStatus.Rect;
-            MR.layers    = SR.VhclMapStatus.Data[0];
-            MR.lock_mode = SR.VhclMapStatus.Data[1];
-            MR.zoom      = SR.VhclMapStatus.Data[2];
+            MR.req.req_cbox.rect = ywd->Prefs.VhclMapStatus.Rect;
+            MR.layers    = ywd->Prefs.VhclMapStatus.Data[0];
+            MR.lock_mode = ywd->Prefs.VhclMapStatus.Data[1];
+            MR.zoom      = ywd->Prefs.VhclMapStatus.Data[2];
             yw_MapZoom(ywd,MAP_ZOOM_CORRECT);
         };
 
         /*** dasselbe für den Finder ***/
-        if (SR.VhclFinderStatus.IsValid) {
-            if (SR.VhclFinderStatus.IsOpen) {
+        if (ywd->Prefs.VhclFinderStatus.IsValid) {
+            if (ywd->Prefs.VhclFinderStatus.IsOpen) {
                 yw_OpenReq(ywd,&(FR.l.Req));
                 yw_ReqToFront(ywd,&(FR.l.Req));
             } else yw_CloseReq(ywd,&(FR.l.Req));
-            FR.l.Req.req_cbox.rect = SR.VhclFinderStatus.Rect;
+            FR.l.Req.req_cbox.rect = ywd->Prefs.VhclFinderStatus.Rect;
             yw_ListSetRect(ywd,&(FR.l),-2,-2);
         };
     } else if (ACTION_DEAD == act_vhcl->BactClassID) {
         /*** von einem toten Vehikel in ein lebendes Vehikel? ***/
-        if (SR.VhclMapStatus.IsValid && SR.VhclMapStatus.IsOpen) {
+        if (ywd->Prefs.VhclMapStatus.IsValid && ywd->Prefs.VhclMapStatus.IsOpen) {
             yw_OpenReq(ywd,&(MR.req));
             yw_ReqToFront(ywd,&(MR.req));
         };
-        if (SR.VhclFinderStatus.IsValid && SR.VhclFinderStatus.IsOpen) {
+        if (ywd->Prefs.VhclFinderStatus.IsValid && ywd->Prefs.VhclFinderStatus.IsOpen) {
             yw_OpenReq(ywd,&(FR.l.Req));
             yw_ReqToFront(ywd,&(FR.l.Req));
         };
@@ -3082,7 +3123,7 @@ void yw_HandleInputSR(struct ypaworld_data *ywd, struct VFMInput *ip)
                     if (ci->flags & CIF_BUTTONUP) {
                         ywd->Url = ypa_GetStr(ywd->LocHandle,STR_HELP_INGAMEGENERAL,"help\\l17.html");
                     };
-                    yw_Tooltip(ywd,TOOLTIP_GUI_ONLINEHELP);
+                    yw_TooltipHotkey(ywd,TOOLTIP_GUI_ONLINEHELP,HOTKEY_HELP);
                     break;
 
                 #ifdef YPA_DESIGNMODE

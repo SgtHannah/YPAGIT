@@ -70,36 +70,11 @@ BOOL yw_InitMW( struct ypaworld_data *ywd )
     MW.min_height = 2 * ywd->FontH;
     MW.max_height = 2 * ywd->FontH;
 
-    if( ywd->Prefs.valid ) {
-
-        /*** Position + Größe aus Prefs, + Randkorrektur ***/
-        struct YPAWinPrefs *p = &(ywd->Prefs.WinMessage);
-        struct ClickRect *r = &(MW.Req.req_cbox.rect);
-        LONG max_w = ywd->DspXRes;
-        LONG max_h = ywd->DspYRes - ywd->UpperTabu - ywd->LowerTabu;
-
-        *r = p->rect;
-
-        /*** MinSize Korrektur ***/
-        if (r->w < MW.min_width)  r->w=MW.min_width;
-        if (r->h < MW.min_height) r->h=MW.min_height;
-
-        /*** Rand-Korrektur ***/
-        if (r->x < 0)               r->x = 0;
-        if (r->w > max_w)           r->w = max_w;
-        if (r->h > max_h)           r->h = max_h;
-        if (r->y < ywd->UpperTabu)  r->y = ywd->UpperTabu;
-        if ((r->x + r->w) >= max_w) r->x = max_w - r->w;
-        if ((r->y + r->h) >= max_h) r->y = ywd->UpperTabu + (max_h - r->h);
-        }
-    else {
-
-        /*** Default-Einstellungen ***/
-        MW.Req.req_cbox.rect.x = ywd->DspXRes / 5;
-        MW.Req.req_cbox.rect.y = 2 * ywd->DspYRes / 3;
-        MW.Req.req_cbox.rect.w = ywd->DspXRes/3;
-        MW.Req.req_cbox.rect.h = 2*ywd->FontH + 2;
-        }
+    /*** Default-Einstellungen ***/
+    MW.Req.req_cbox.rect.x = ywd->DspXRes / 5;
+    MW.Req.req_cbox.rect.y = 2 * ywd->DspYRes / 3;
+    MW.Req.req_cbox.rect.w = ywd->DspXRes/3;
+    MW.Req.req_cbox.rect.h = 2*ywd->FontH + 2;
 
     MW.Req.req_cbox.num_buttons = 2;
 

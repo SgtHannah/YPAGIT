@@ -701,7 +701,9 @@ void yw_InitMapReq(Object *o, struct ypaworld_data *ywd)
 **      11-Oct-97   floh    + Prefs-Korrektur per ywd->UpperTabu und
 **                            ywd->LowerTabu
 **      11-Dec-97   floh    + NoLock Button raus
-**
+**      30-May-98   floh    + Prefs-Handling ist rausgeflogen...
+**                          + per Default groesste Zoom-Stufe und
+**                            alle Layer an
 */
 {
     /*** Global Data init... ***/
@@ -729,38 +731,15 @@ void yw_InitMapReq(Object *o, struct ypaworld_data *ywd)
     MR.min_height = MR.BorTopH + MR.BorBottomH + 96;
     MR.max_width  = 32000;
     MR.max_height = 32000;
-    if (ywd->Prefs.valid) {
-        /*** Position + Größe aus Prefs, + Randkorrektur ***/
-        struct YPAWinPrefs *p = &(ywd->Prefs.WinMap);
-        struct ClickRect *r = &(MR.req.req_cbox.rect);
-        LONG max_w = ywd->DspXRes;
-        LONG max_h = ywd->DspYRes - ywd->UpperTabu - ywd->LowerTabu;
 
-        *r = p->rect;
-        MR.layers = ywd->Prefs.MapLayers;
-        MR.zoom   = ywd->Prefs.MapZoom;
+    /*** Default-Einstellungen ***/
+    MR.req.req_cbox.rect.x = 0;
+    MR.req.req_cbox.rect.y = ywd->UpperTabu;
+    MR.req.req_cbox.rect.w = (ywd->DspXRes*2)/3;
+    MR.req.req_cbox.rect.h = (ywd->DspYRes*2)/3;
+    MR.layers = MAP_LAYER_LANDSCAPE|MAP_LAYER_OWNER|MAP_LAYER_HEIGHT;
+    MR.zoom   = 4;
 
-        /*** MinSize Korrektur ***/
-        if (r->w < MR.min_width)  r->w=MR.min_width;
-        if (r->h < MR.min_height) r->h=MR.min_height;
-
-        /*** Rand-Korrektur ***/
-        if (r->x < 0)               r->x = 0;
-        if (r->w > max_w)           r->w = max_w;
-        if (r->h > max_h)           r->h = max_h;
-        if (r->y < ywd->UpperTabu)  r->y = ywd->UpperTabu;
-        if ((r->x + r->w) >= max_w) r->x = max_w - r->w;
-        if ((r->y + r->h) >= max_h) r->y = ywd->UpperTabu + (max_h - r->h);
-
-    }else{
-        /*** Default-Einstellungen ***/
-        MR.req.req_cbox.rect.x = 0;
-        MR.req.req_cbox.rect.y = ywd->UpperTabu;
-        MR.req.req_cbox.rect.w = (ywd->DspXRes*2)/3;
-        MR.req.req_cbox.rect.h = (ywd->DspYRes*2)/3;
-        MR.layers = 0;
-        MR.zoom   = 3;
-    };
     MR.req.req_cbox.num_buttons = MAP_NUMBUTTONS;
 
     MR.req.req_cbox.buttons[MAPBTN_ICONIFY]       = &MR_Iconify;

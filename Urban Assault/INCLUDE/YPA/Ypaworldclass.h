@@ -1653,41 +1653,6 @@ struct LevelInfo {
 #define LEVELSTAT_DEBRIEFING (9)    // Debriefing läuft gerade
 
 /*-------------------------------------------------------------------
-**  YPA-Game-Pref-Struktur. Alle "Preferences-Einstellungen"
-**  im Spiel selbst werden von hier gelesen und
-**  nach hier zurückgeschrieben (die Struktur ist
-**  eingebettet in die LID des Welt-Objects.
-*/
-struct YPAWinPrefs {
-    struct ClickRect rect;  // Position und Ausdehnung
-};
-
-struct YPAGamePrefs {
-    ULONG valid;            // TRUE: auslesen ist erlaubt
-    struct YPAWinPrefs WinMap;
-    struct YPAWinPrefs WinFinder;
-    struct YPAWinPrefs WinLog;
-    struct YPAWinPrefs WinEnergy;
-    #ifdef __NETWORK__
-    struct YPAWinPrefs WinMessage;
-    #endif
-    ULONG MapLayers;        // angeschaltete Map-Layer
-    ULONG MapZoom;          // Zoom-Level der Map
-    ULONG Flags;
-};
-
-#define YPA_PREFS_MENUOPEN      (1<<0)      // Mode-Menu bleibt offen
-#define YPA_PREFS_MENUTEXT      (1<<1)      // Mode-Menu als Text
-#define YPA_PREFS_JOYDISABLE    (1<<2)      // Joystick disabled
-#define YPA_PREFS_FFDISABLE     (1<<3)      // Force-Feedback-Disable
-#define YPA_PREFS_SOUNDENABLE   (1<<4)      // Sound ist enabled
-#define YPA_PREFS_INDICATOR     (1<<5)      // zeichne Indikatoren in Welt
-#define YPA_PREFS_SOFTMOUSE     (1<<6)      // zeichne Software-Mousepointer
-#define YPA_PREFS_FILTERING     (1<<7)      // Kaffee filtern
-#define YPA_PREFS_CDSOUNDENABLE (1<<8)      // CD-Sound ist enabled
-#define YPA_PREFS_JOYMODEL2     (1<<9)      // alternatives Joystick-Modell
-
-/*-------------------------------------------------------------------
 **  Mission-Briefing-Parameter
 */
 
@@ -1912,6 +1877,50 @@ struct netplayerstatus {
                                 // Beschuss)
 #define NPS_HASLEFT     5       // name hat das Spiel (lebendig) verlassen                                
 
+/*** Window-Status ***/
+struct YPAWinStatus {
+    ULONG IsValid;              // überhaupt gültig?
+    ULONG IsOpen;               // für jedes offene Window ein Flag
+    struct ClickRect Rect;
+    ULONG Data[8];              // beliebige fensterspezifische Daten
+};
+
+/*-------------------------------------------------------------------
+**  YPA-Game-Pref-Struktur. Alle "Preferences-Einstellungen"
+**  im Spiel selbst werden von hier gelesen und
+**  nach hier zurückgeschrieben (die Struktur ist
+**  eingebettet in die LID des Welt-Objects.
+*/
+struct YPAWinPrefs {
+    struct ClickRect rect;  // Position und Ausdehnung
+};
+
+struct YPAGamePrefs {
+    ULONG valid;            // TRUE: auslesen ist erlaubt
+    struct YPAWinPrefs WinMap;      // OBSOLETE 
+    struct YPAWinPrefs WinFinder;   // OBSOLETE
+    struct YPAWinPrefs WinLog;      // OBSOLETE
+    struct YPAWinPrefs WinEnergy;   // OBSOLETE
+    struct YPAWinPrefs WinMessage;  // OBSOLETE
+    ULONG MapLayers;        // OBSOLETE
+    ULONG MapZoom;          // OBSOLETE
+    ULONG Flags;
+    struct YPAWinStatus RoboMapStatus;
+    struct YPAWinStatus RoboFinderStatus;
+    struct YPAWinStatus VhclMapStatus;
+    struct YPAWinStatus VhclFinderStatus;
+};
+
+#define YPA_PREFS_MENUOPEN      (1<<0)      // Mode-Menu bleibt offen
+#define YPA_PREFS_MENUTEXT      (1<<1)      // Mode-Menu als Text
+#define YPA_PREFS_JOYDISABLE    (1<<2)      // Joystick disabled
+#define YPA_PREFS_FFDISABLE     (1<<3)      // Force-Feedback-Disable
+#define YPA_PREFS_SOUNDENABLE   (1<<4)      // Sound ist enabled
+#define YPA_PREFS_INDICATOR     (1<<5)      // zeichne Indikatoren in Welt
+#define YPA_PREFS_SOFTMOUSE     (1<<6)      // zeichne Software-Mousepointer
+#define YPA_PREFS_FILTERING     (1<<7)      // Kaffee filtern
+#define YPA_PREFS_CDSOUNDENABLE (1<<8)      // CD-Sound ist enabled
+#define YPA_PREFS_JOYMODEL2     (1<<9)      // alternatives Joystick-Modell
 
 /*-------------------------------------------------------------------
 **  Display-Auflösungs-Definitionen

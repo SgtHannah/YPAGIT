@@ -42,11 +42,6 @@ _extern_use_ov_engine
 _extern_use_audio_engine
 _extern_use_input_engine
 
-#define YPA_NUM_CONFIG_ITEMS (1)
-struct ConfigItem ypa_ConfigItems[YPA_NUM_CONFIG_ITEMS] = {
-    {"ypa.alt_joy_model", CONFIG_BOOL, FALSE },
-};
-
 extern unsigned long wdd_DoDirect3D;
 
 /*=================================================================**
@@ -2201,18 +2196,15 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
 **      27-May-98   floh    + Ingame-Stats werden zurueckgesetzt.
 **      29-May-98   floh    + Texturefiltering-Flag ist wieder raus...
 **                          + UserRoboDied wird initialisiert
+**      30-May-98   floh    + Ooops, IngameStats wurden nicht korrekt
+**                            zurueckgesetzt...
 */
 {
     BOOL retval = FALSE;
     
-    // FIXME: ConfigItem auslesen
-    _GetConfigItems(NULL,ypa_ConfigItems,YPA_NUM_CONFIG_ITEMS);
-    if (ypa_ConfigItems[0].data) ywd->Prefs.Flags |= YPA_PREFS_JOYMODEL2;
-    else                         ywd->Prefs.Flags &= ~YPA_PREFS_JOYMODEL2;
-
     /*** allgemeine Initialisierung ***/
     memset(ld,0,sizeof(struct LevelDesc));
-    memset(&(ywd->IngameStats),0,sizeof(struct ypa_PlayerStats));
+    memset(&(ywd->IngameStats),0,sizeof(ywd->IngameStats));
     ywd->TimeStamp            = 0;
     ywd->UserInRoboTimeStamp  = 0;
     ywd->EnemySectorTimeStamp = 0;

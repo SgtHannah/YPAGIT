@@ -24,7 +24,7 @@
 #endif
 
 /*-----------------------------------------------------------------*/
-#define MAXNUM_VOICEOVERS   (2)     // max. parallel abgespielte Voiceovers
+#define MAXNUM_VOICEOVERS   (1)     // max. parallel abgespielte Voiceovers
 
 struct vo_Slot {
     LONG pri;                   // Priorität, -1 -> freier Slot

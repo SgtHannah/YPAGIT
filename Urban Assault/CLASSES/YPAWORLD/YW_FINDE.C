@@ -60,6 +60,8 @@ BOOL yw_InitFinder(Object *o, struct ypaworld_data *ywd)
 **                            Vehikel
 **      11-Oct-97   floh    + Prefs-Korrektur per ywd->UpperTabu und
 **                            ywd->LowerTabu
+**      30-May-98   floh    + Prefs-Handling raus, macht jetzt die
+**                            Status-Req-Initialisierung
 */
 {
     BOOL retval = FALSE;
@@ -106,19 +108,6 @@ BOOL yw_InitFinder(Object *o, struct ypaworld_data *ywd)
                             f->fchars['@'].width;
         FR.lborder_icon = start_icon;
         FR.lborder_aggr = start_aggr;
-
-        /*** Prefs-Handling ***/
-        if (ywd->Prefs.valid) {
-
-            struct YPAWinPrefs *p = &(ywd->Prefs.WinFinder);
-
-            /*** Korrektur ***/
-            if (p->rect.w > ywd->DspXRes) p->rect.w = ywd->DspXRes;
-            if (p->rect.h > (ywd->DspYRes-ywd->UpperTabu-ywd->LowerTabu)) p->rect.h = ywd->DspYRes-ywd->UpperTabu-ywd->LowerTabu;
-            FR.l.ActEntryWidth = p->rect.w-ywd->PropW;
-            FR.l.ShownEntries  = (p->rect.h-ywd->FontH-FR.l.UpperVBorder-FR.l.LowerVBorder)/FR.l.EntryHeight;
-            yw_ListSetRect(ywd,&(FR.l),p->rect.x,p->rect.y);
-        };
 
         retval = TRUE;
     };
