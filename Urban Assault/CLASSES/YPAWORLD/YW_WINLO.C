@@ -201,7 +201,7 @@ unsigned long yw_ReadRegistryKeyString(char *name, char *buf, long size_of_buf)
         RegCloseKey(hkey);
     };
     return(retval);
-}        
+}      
 
 /*-----------------------------------------------------------------*/
 void yw_WinMessageBox(char *title, char *text)
@@ -244,8 +244,8 @@ unsigned long yw_RawCDCheck(unsigned long check_install_type)
     unsigned long retval = TRUE;
     
     nc_LogMsg("-> yw_CDCheck() entered.\n");
-    if (yw_ReadRegistryKeyString("drive_letter",drive_letter,sizeof(drive_letter))) {
-        if (yw_ReadRegistryKeyString("install_type",install_type,sizeof(install_type))) {
+    if (yw_ReadRegistryKeyString("InstalledFrom",drive_letter,sizeof(drive_letter))) {
+        if (yw_ReadRegistryKeyString("InstalledGroup",install_type,sizeof(install_type))) {
         
             char vol_name[256];
             DWORD vol_ser_num;
@@ -255,10 +255,10 @@ unsigned long yw_RawCDCheck(unsigned long check_install_type)
             BOOL res; 
             DWORD error;           
             
-            nc_LogMsg("-> RegKeys read (drive_letter = %s, install_type = %s)\n",drive_letter, install_type);             
+            nc_LogMsg("-> RegKeys read (InstalledFrom = %s, InstalledGroup = %s)\n",drive_letter, install_type);             
             
             /*** Full Install und <check_install_type>? ***/
-            if (check_install_type && (stricmp("Complete",install_type)==0)) return(TRUE);
+            if (check_install_type && (stricmp("7",install_type)==0)) return(TRUE);
             
             /*** ansonsten checken, ob die richtige CD im Laufwerk liegt ***/
             SetErrorMode(SEM_FAILCRITICALERRORS);
