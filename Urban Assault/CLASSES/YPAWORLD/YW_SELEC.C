@@ -1050,6 +1050,7 @@ ULONG yw_BeamCheck(struct ypaworld_data *ywd)
 **                            wegen Levels, die nur 1 Sektor breit sind
 **      08-Apr-97   floh    + Beamen verhindern, wenn Zeil-Sektor
 **                            gerade bebaut wird.
+**      25-May-98   floh    + Beamen testweise relaxter gemacht
 */
 {
     ywd->TLMsg.energy = 0;
@@ -1133,7 +1134,7 @@ ULONG yw_BeamCheck(struct ypaworld_data *ywd)
         };
         /*** zu uneben? ***/
         #ifndef YPA_DESIGNMODE
-        if (abs(max_h - min_h) > 400.0) return(2);
+        if (abs(max_h - min_h) > 800.0) return(2);
         #endif
 
         /*** Weltrand-Check ***/

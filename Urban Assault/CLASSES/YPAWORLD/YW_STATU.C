@@ -2104,6 +2104,7 @@ void yw_SRHandleVehicleSwitch(struct ypaworld_data *ywd,
             MR.layers    = SR.RoboMapStatus.Data[0];
             MR.lock_mode = SR.RoboMapStatus.Data[1];
             MR.zoom      = SR.RoboMapStatus.Data[2];
+            yw_MapZoom(ywd,MAP_ZOOM_CORRECT);
         };
 
         /*** dasselbe fuer den Finder ***/
@@ -2126,6 +2127,7 @@ void yw_SRHandleVehicleSwitch(struct ypaworld_data *ywd,
             MR.layers    = SR.VhclMapStatus.Data[0];
             MR.lock_mode = SR.VhclMapStatus.Data[1];
             MR.zoom      = SR.VhclMapStatus.Data[2];
+            yw_MapZoom(ywd,MAP_ZOOM_CORRECT);
         };
 
         /*** dasselbe für den Finder ***/

@@ -114,6 +114,7 @@ void yw_RenderRadarVehicles(struct ypaworld_data *);
 UBYTE *yw_GeneralMapInterior(struct ypaworld_data *, UBYTE *, WORD, WORD, WORD, WORD);
 void yw_CheckMidPoint(struct ypaworld_data *, LONG , LONG);
 UBYTE *yw_MRLayoutMapButtons(struct ypaworld_data *, UBYTE *);
+void yw_MapZoom(struct ypaworld_data *, ULONG);
 
 /*** yw_attrs.c ***/
 BOOL yw_initAttrs(unsigned long * , struct ypaworld_data * , struct TagItem * );

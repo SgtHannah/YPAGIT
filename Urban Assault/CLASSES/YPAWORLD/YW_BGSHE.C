@@ -135,6 +135,9 @@ BOOL yw_LoadBgPicObjects(struct ypaworld_data *ywd, ULONG shell_mode)
 **      26-Feb-98   floh    + lädt zuerst, killt danach, damit
 **                            werden identische Bilder in Null-
 **                            zeit geladen
+**      25-May-98   floh    + so umgeschrieben, dass fuer alle
+**                            "normalen" Shell-Screens 2 Maps
+**                            gleichzeitig geladen sind.
 */
 {
     ULONG all_ok = TRUE;
@@ -175,15 +178,15 @@ BOOL yw_LoadBgPicObjects(struct ypaworld_data *ywd, ULONG shell_mode)
         /*** die Namen der benötigten Maps rausfummeln ***/
         switch(shell_mode) {
             case SHELLMODE_TITLE:
-                bg_name = ywd->LevelNet->MenuMaps[min_index].name;
-                break;
-
             case SHELLMODE_INPUT:
-                bg_name = ywd->LevelNet->InputMaps[min_index].name;
-                break;
-
             case SHELLMODE_SETTINGS:
-                bg_name = ywd->LevelNet->SettingsMaps[min_index].name;
+            case SHELLMODE_NETWORK:
+            case SHELLMODE_LOCALE:
+            case SHELLMODE_ABOUT:
+            case SHELLMODE_DISK:
+            case SHELLMODE_HELP:
+                bg_name       = ywd->LevelNet->MenuMaps[min_index].name;
+                rollover_name = ywd->LevelNet->SettingsMaps[min_index].name;
                 break;
 
             case SHELLMODE_TUTORIAL:
@@ -198,26 +201,6 @@ BOOL yw_LoadBgPicObjects(struct ypaworld_data *ywd, ULONG shell_mode)
                 finished_name = ywd->LevelNet->FinishedMaps[min_index].name;
                 enabled_name  = ywd->LevelNet->EnabledMaps[min_index].name;
                 mask_name     = ywd->LevelNet->MaskMaps[min_index].name;
-                break;
-
-            case SHELLMODE_NETWORK:
-                bg_name = ywd->LevelNet->NetworkMaps[min_index].name;
-                break;
-
-            case SHELLMODE_LOCALE:
-                bg_name = ywd->LevelNet->LocaleMaps[min_index].name;
-                break;
-
-            case SHELLMODE_ABOUT:
-                bg_name = ywd->LevelNet->SaveMaps[min_index].name;
-                break;
-
-            case SHELLMODE_DISK:
-                bg_name = ywd->LevelNet->AboutMaps[min_index].name;
-                break;
-
-            case SHELLMODE_HELP:
-                bg_name = ywd->LevelNet->HelpMaps[min_index].name;
                 break;
         };
 
@@ -647,7 +630,7 @@ void yw_BlitLevelsTutorial(struct ypaworld_data *ywd)
 }
 
 /*-----------------------------------------------------------------*/
-void yw_ShellBgBlt(struct ypaworld_data *ywd)
+void yw_ShellBgBlt(struct ypaworld_data *ywd, Object *bmpo)
 /*
 **  FUNCTION
 **      Einfacher Shell-Background-Blitter.
@@ -656,10 +639,10 @@ void yw_ShellBgBlt(struct ypaworld_data *ywd)
 **      22-Feb-98   floh    created
 */
 {
-    if (ywd->LevelNet->BgMap) {
+    if (bmpo) {
         struct rast_blit blt;
         _methoda(ywd->GfxObject,RASTM_Begin2D,NULL);
-        _get(ywd->LevelNet->BgMap, BMA_Bitmap, &(blt.src));
+        _get(bmpo, BMA_Bitmap, &(blt.src));
         blt.from.xmin = blt.to.xmin = -1.0;
         blt.from.ymin = blt.to.ymin = -1.0;
         blt.from.xmax = blt.to.xmax = +1.0;
@@ -804,6 +787,8 @@ void yw_TriggerShellBg(struct ypaworld_data *ywd,
 **
 **  CHANGED
 **      21-Feb-98   floh    created
+**      25-May-98   floh    + umgeschrieben fuer 2 Hintergrund-
+**                            Maps auf einmal...
 */
 {
     /*** muß neuer Shell-BG initialisiert werden? ***/
@@ -818,10 +803,15 @@ void yw_TriggerShellBg(struct ypaworld_data *ywd,
             /*** ziemlich komplex... deshalb eigene Routine ***/
             yw_TriggerShellBgGameTut(ywd,gsr,ip);
             break;
+            
+        case SHELLMODE_TITLE:
+            /*** den Title-Screen blitten ***/
+            yw_ShellBgBlt(ywd,ywd->LevelNet->BgMap);   
+            break;         
 
         default:
             /*** sonst einfach den aktuellen Hintergrund blitten ***/
-            yw_ShellBgBlt(ywd);
+            yw_ShellBgBlt(ywd,ywd->LevelNet->RolloverMap);
             break;
     };
 }
