@@ -1397,6 +1397,7 @@ UBYTE *yw_DBLayoutSingleTechupgrade(struct ypaworld_data *ywd,
 **      26-May-98   floh    + Gebaeude-Namen Multiplayer-tauglich gemacht...
 **      09-Jun-98   floh    + Weapon-Techupgrades wurden nicht immer richtig
 **                            angezeigt
+**      28-Jun-98   floh    + Combined Techupgrades wurden falsch angezeigt.
 */
 {
     UBYTE buf_0[256];
@@ -1493,7 +1494,7 @@ UBYTE *yw_DBLayoutSingleTechupgrade(struct ypaworld_data *ywd,
                 if (ywd->WasNetworkSession) name = ypa_GetStr(ywd->LocHandle,STR_NAME_NETWORK_BUILDINGS+bp_num,bp->Name);
                 else                        name = ypa_GetStr(ywd->LocHandle,STR_NAME_BUILDINGS+bp_num,bp->Name);
                 type_str = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_TU_BUILDANDVEHICLE,"COMBINED UPGRADE:");
-                sprintf(buf_0,"%s",name_str);
+                sprintf(buf_0,"%s",name);
                 value_str = buf_0;
             };
             break;

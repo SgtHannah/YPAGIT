@@ -415,7 +415,7 @@ void yw_SendChatMessage( struct ypaworld_data *ywd, char *text,
         log.pri  = 10;
         log.msg  = t;
         log.bact = NULL;
-        log.code = 0;
+        log.code = LOGMSG_CHAT;
         _methoda( ywd->world, YWM_LOGMSG, &log );
         }
         
