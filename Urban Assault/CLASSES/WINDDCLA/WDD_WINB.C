@@ -778,19 +778,24 @@ HRESULT FAR PASCAL wdd_EnumDevicesCallback(
         d->CanDoAlpha          = TRUE;
         d->CanDoAdditiveBlend  = TRUE;
         wdd_Log("enum devices: can do srcblend = srcalpha; destblend = one\n");
-    }else if (d->Desc.dpcTriCaps.dwShadeCaps &
-          (D3DPSHADECAPS_ALPHAFLATSTIPPLED|D3DPSHADECAPS_ALPHAGOURAUDSTIPPLED))
+    }
+	else if ((d->Desc.dpcTriCaps.dwShadeCaps &
+          (D3DPSHADECAPS_ALPHAFLATSTIPPLED|D3DPSHADECAPS_ALPHAGOURAUDSTIPPLED) &&
+		   ((d->Desc.dpcTriCaps.dwShadeCaps & D3DPSHADECAPS_ALPHAFLATBLEND)==0)))
     {
         /*** kann nur stippeln ***/
         d->CanDoStipple  = TRUE;
         wdd_Log("enum devices: can do alpha stippling\n");
-    }else if ((d->Desc.dpcTriCaps.dwSrcBlendCaps  & D3DPBLENDCAPS_SRCALPHA) &&
+    }
+	else if ((d->Desc.dpcTriCaps.dwSrcBlendCaps  & D3DPBLENDCAPS_SRCALPHA) &&
               (d->Desc.dpcTriCaps.dwDestBlendCaps & D3DPBLENDCAPS_INVSRCALPHA))
     {
         d->CanDoAlpha = TRUE;
         d->CanDoAdditiveBlend = FALSE;
         wdd_Log("enum devices: can do srcblend = srcalpha; destblend = invsrcalpha\n");
-    }else{
+    }
+	else
+	{
         /*** sonst geht gar nix ***/
         wdd_Log("enum devices: skip, no alpha, no stipple...\n");
         return(D3DENUMRET_OK);
