@@ -803,6 +803,12 @@ static UBYTE *ypa_GetStr(UBYTE **loc, ULONG id, UBYTE *def)
 #define STR_SUPERITEM_TRIGGERED         (2471)
 #define STR_DISPLAY_SOFTWARE            (2472)
 #define STR_UNITLIMIT                   (2473)
+#define STR_VSROBO                      (2474)
+#define STR_VSTANK                      (2475)
+#define STR_VSPLANE                     (2476)
+#define STR_VSHELI                      (2477)
+#define STR_VSRECON                     (2478)
+#define STR_VSCONQUER                   (2479)
 
 /*** Confirm-Req-Inhalt ***/
 #define STR_CONFIRM_EXIT                (2480)

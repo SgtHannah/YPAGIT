@@ -46,6 +46,7 @@ extern unsigned long wdd_DoDirect3D;
 extern struct VFMInput Ip;
 
 extern struct YPALogWin LW;
+extern struct YPAStatusReq SR;
 
 /*-----------------------------------------------------------------*/
 _dispatcher(ULONG, yw_YWM_GETSECTORINFO, struct getsectorinfo_msg *msg)
@@ -1535,5 +1536,101 @@ FLOAT yw_GetCostFactor(struct ypaworld_data *ywd)
         };
     };
     return(mul);
-}          
-          
+}       
+
+/*-----------------------------------------------------------------*/
+UBYTE *yw_RenderVsLine(struct ypaworld_data *ywd,
+                       UBYTE *str, LONG brel_xpos, LONG brel_ypos, 
+                       UBYTE *name, LONG num_stars, LONG w)
+/*
+**  FUNCTION
+**      Rendert eine einzelne Vs-Zeile.    
+**
+**  CHANGED
+**      11-Jun-98   floh    created
+*/   
+{
+
+
+    ULONG i;
+    UBYTE star_chr = ywd->URBact->Owner;
+    LONG w1, star_x_pos, star_y_pos;
+    struct ypa_ColumnItem col;
+    
+    if (ywd->DspXRes < 512) {
+        w1 = w - 7*8;
+        star_x_pos = brel_xpos + w1 + 8;
+    } else {
+        w1 = w - 9*8;
+        star_x_pos = brel_xpos + w1 + 16;
+    };
+    star_y_pos = brel_ypos + ((ywd->FontH - ywd->Fonts[FONTID_OWNER_8]->height)>>1);
+    
+    new_font(str,FONTID_TRACY);    
+    pos_brel(str,brel_xpos,brel_ypos);    
+
+    col.string      = name;
+    col.width       = w1;
+    col.font_id     = FONTID_TRACY;
+    col.space_chr   = ' ';
+    col.prefix_chr  = 0;
+    col.postfix_chr = 0;
+    col.flags       = YPACOLF_TEXT|YPACOLF_ALIGNRIGHT;
+    str = yw_TextPutAlignedClippedString(ywd,str,&col);
+    new_font(str,FONTID_OWNER_8);
+    pos_brel(str,star_x_pos,star_y_pos);
+    for (i=0; i<num_stars; i++) put(str,star_chr);
+    return(str);
+}    
+
+/*-----------------------------------------------------------------*/
+UBYTE *yw_LayoutVsValues(struct ypaworld_data *ywd, UBYTE *str)
+/*
+**  FUNCTION
+**      Falls im New oder Add Modus, und ein Vehicle ausgewaehlt,
+**      werden die Vs-Werte dieses Vehikels angezeigt.
+**
+**  CHANGED
+**      11-Jun-98   floh    created
+*/          
+{
+    if ((SR.ActiveMode & (STAT_MODEF_NEW|STAT_MODEF_ADD)) &&
+        (SR.ActVehicle != -1) &&
+        (!ywd->UserSitsInRoboFlak))
+    {
+    
+        struct VehicleProto *vp = &(ywd->VP_Array[SR.VPRemap[SR.ActVehicle]]);
+        LONG vs_tank   = vp->JobFightTank >> 1;
+        LONG vs_robo   = vp->JobFightRobo >> 1;
+        LONG vs_plane  = vp->JobFightFlyer >> 1;
+        LONG vs_heli   = vp->JobFightHelicopter >> 1;
+        LONG vs_ground = vp->JobConquer >> 1;
+        LONG vs_recon  = vp->JobReconnoitre >> 1;
+        WORD xpos,ypos,w;
+        
+        if (vs_tank==0)   vs_tank=1;
+        if (vs_robo==0)   vs_robo=1;
+        if (vs_plane==0)  vs_plane=1;
+        if (vs_heli==0)   vs_heli=1;        
+        if (vs_ground==0) vs_ground=1;
+        if (vs_recon==0)  vs_recon=1;
+
+        xpos = (ywd->DspXRes*4)/7;
+        ypos = -(ywd->LowerTabu + 7*ywd->FontH);
+        w    = ywd->DspXRes - xpos;
+        dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_TOOLTIP),yw_Green(ywd,YPACOLOR_TEXT_TOOLTIP),yw_Blue(ywd,YPACOLOR_TEXT_TOOLTIP));
+
+        str = yw_RenderVsLine(ywd,str,xpos,ypos,ypa_GetStr(ywd->LocHandle,STR_VSROBO,"2474 == VS ROBO:"),vs_robo,w);
+        ypos += ywd->FontH;
+        str = yw_RenderVsLine(ywd,str,xpos,ypos,ypa_GetStr(ywd->LocHandle,STR_VSTANK,"2475 == VS TANK:"),vs_tank,w);
+        ypos += ywd->FontH;
+        str = yw_RenderVsLine(ywd,str,xpos,ypos,ypa_GetStr(ywd->LocHandle,STR_VSPLANE,"2476 == VS PLANE:"),vs_plane,w);
+        ypos += ywd->FontH;
+        str = yw_RenderVsLine(ywd,str,xpos,ypos,ypa_GetStr(ywd->LocHandle,STR_VSHELI,"2477 == VS HELI:"),vs_heli,w);
+        ypos += ywd->FontH;
+        str = yw_RenderVsLine(ywd,str,xpos,ypos,ypa_GetStr(ywd->LocHandle,STR_VSCONQUER,"2478 == CAPTURE:"),vs_ground,w);
+        ypos += ywd->FontH;
+        str = yw_RenderVsLine(ywd,str,xpos,ypos,ypa_GetStr(ywd->LocHandle,STR_VSRECON,"2479 == RECON:"),vs_recon,w);
+    };
+    return(str);
+}

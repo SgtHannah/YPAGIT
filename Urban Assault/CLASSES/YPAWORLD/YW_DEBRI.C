@@ -1607,6 +1607,8 @@ void yw_DBL1RunningDone(struct ypaworld_data *ywd,
 **      09-Sep-97   floh    + handelt jetzt auch Power-Station-
 **                            Conquers und Tech Upgrades ab
 **      19-May-98   floh    + YPAHIST_TECHUPGRADE neu
+**      11-Jun-98   floh    + fuer Multiplayersessions sollte der
+**                            End-Score jetzt korrekt angepasst werden 
 */
 {
     LONG real_time = mb->TimeStamp - mb->StartTime;
@@ -1707,6 +1709,11 @@ void yw_DBL1RunningDone(struct ypaworld_data *ywd,
         if (!quit) {
             /*** History-Aufzeichnung war zuende, also L1_DONE setzen ***/
             mb->Status = MBSTATUS_L1_DONE;
+            /*** Multiplayer Score korrekt alignen ***/
+            if (ywd->WasNetworkSession) {
+                ULONG i;
+                for (i=0; i<MAXNUM_OWNERS; i++) mb->LocalStats[i] = ywd->IngameStats[i];
+            };
         };
     };
 }

@@ -335,7 +335,7 @@ BOOL yw_InitStatusReq(Object *o, struct ypaworld_data *ywd)
     SR.NumLines  = 1;
     SR.LBarStart = 0;
     #ifdef YPA_DESIGNMODE
-        SR.NumLines  = 2;
+        SR.NumLines  = 2;               
         SR.LBarStart = ywd->IconBH;
     #endif
     #ifdef YPA_CUTTERMODE
@@ -419,7 +419,17 @@ BOOL yw_InitStatusReq(Object *o, struct ypaworld_data *ywd)
     yw_CheckWinStatus(ywd,&(ywd->Prefs.RoboMapStatus));
     yw_CheckWinStatus(ywd,&(ywd->Prefs.RoboFinderStatus));
     yw_CheckWinStatus(ywd,&(ywd->Prefs.VhclMapStatus));
-    yw_CheckWinStatus(ywd,&(ywd->Prefs.VhclFinderStatus));    
+    yw_CheckWinStatus(ywd,&(ywd->Prefs.VhclFinderStatus));
+    
+    /*** spezieller ZipZap-Status-Check fuer die Map ***/
+    if ((ywd->Prefs.RoboMapStatus.Data[5]==0)||(ywd->Prefs.RoboMapStatus.Data[6]==0))
+    {
+        ywd->Prefs.RoboMapStatus.IsValid = FALSE;
+    };
+    if ((ywd->Prefs.VhclMapStatus.Data[5]==0)||(ywd->Prefs.VhclMapStatus.Data[6]==0))
+    {
+        ywd->Prefs.VhclMapStatus.IsValid = FALSE;
+    };
 
     /*** Fensterstatus initialisieren ***/     
     if (ywd->Prefs.RoboMapStatus.IsValid) {
@@ -431,6 +441,10 @@ BOOL yw_InitStatusReq(Object *o, struct ypaworld_data *ywd)
         MR.layers    = ywd->Prefs.RoboMapStatus.Data[0];
         MR.lock_mode = ywd->Prefs.RoboMapStatus.Data[1];
         MR.zoom      = ywd->Prefs.RoboMapStatus.Data[2];
+        MR.zip_zap.x = ywd->Prefs.RoboMapStatus.Data[3];
+        MR.zip_zap.y = ywd->Prefs.RoboMapStatus.Data[4];
+        MR.zip_zap.w = ywd->Prefs.RoboMapStatus.Data[5];
+        MR.zip_zap.h = ywd->Prefs.RoboMapStatus.Data[6];
         yw_MapZoom(ywd,MAP_ZOOM_CORRECT);
     };
     if (ywd->Prefs.RoboFinderStatus.IsValid) {
@@ -1990,6 +2004,7 @@ void yw_LayoutSR(struct ypaworld_data *ywd)
 **      29-Jul-97   floh    + DesignMode reaktiviert
 **      30-Jul-97   floh    + gefadeter Balken ist rausgeflogen
 **      20-Aug-97   floh    + Cutter reaktiviert
+**      11-Jun-98   floh    + yw_LayoutVsValues()
 */
 {
     BYTE *str = SR_ReqString;
@@ -2039,6 +2054,9 @@ void yw_LayoutSR(struct ypaworld_data *ywd)
             xpos_rel(str,SR.ModeStart);
             str = yw_PutCutterIconGroup(ywd,str);
         #endif
+        
+        /*** falls NEW oder ADD Modus, Vs-Values visualisieren ***/        
+        if (!(SubMenu.Req.flags & REQF_Closed)) str = yw_LayoutVsValues(ywd,str);        
     };
 
     /*** End Of String ***/
@@ -2102,6 +2120,10 @@ void yw_SRGetWindowStatus(struct ypaworld_data *ywd)
             ywd->Prefs.RoboMapStatus.Data[0]    = MR.layers;
             ywd->Prefs.RoboMapStatus.Data[1]    = MR.lock_mode;
             ywd->Prefs.RoboMapStatus.Data[2]    = MR.zoom;
+            ywd->Prefs.RoboMapStatus.Data[3]    = MR.zip_zap.x;
+            ywd->Prefs.RoboMapStatus.Data[4]    = MR.zip_zap.y;
+            ywd->Prefs.RoboMapStatus.Data[5]    = MR.zip_zap.w;
+            ywd->Prefs.RoboMapStatus.Data[6]    = MR.zip_zap.h;
             ywd->Prefs.RoboFinderStatus.IsValid = TRUE;
             ywd->Prefs.RoboFinderStatus.IsOpen  = (FR.l.Req.flags & REQF_Closed) ? FALSE:TRUE;
             ywd->Prefs.RoboFinderStatus.Rect    = FR.l.Req.req_cbox.rect;
@@ -2113,6 +2135,10 @@ void yw_SRGetWindowStatus(struct ypaworld_data *ywd)
             ywd->Prefs.VhclMapStatus.Data[0]    = MR.layers;
             ywd->Prefs.VhclMapStatus.Data[1]    = MR.lock_mode;
             ywd->Prefs.VhclMapStatus.Data[2]    = MR.zoom;
+            ywd->Prefs.VhclMapStatus.Data[3]    = MR.zip_zap.x;
+            ywd->Prefs.VhclMapStatus.Data[4]    = MR.zip_zap.y;
+            ywd->Prefs.VhclMapStatus.Data[5]    = MR.zip_zap.w;
+            ywd->Prefs.VhclMapStatus.Data[6]    = MR.zip_zap.h;
             ywd->Prefs.VhclFinderStatus.IsValid = TRUE;
             ywd->Prefs.VhclFinderStatus.IsOpen  = (FR.l.Req.flags & REQF_Closed) ? FALSE:TRUE;
             ywd->Prefs.VhclFinderStatus.Rect    = FR.l.Req.req_cbox.rect;
@@ -2148,6 +2174,10 @@ void yw_SRHandleVehicleSwitch(struct ypaworld_data *ywd,
             MR.layers    = ywd->Prefs.RoboMapStatus.Data[0];
             MR.lock_mode = ywd->Prefs.RoboMapStatus.Data[1];
             MR.zoom      = ywd->Prefs.RoboMapStatus.Data[2];
+            MR.zip_zap.x = ywd->Prefs.RoboMapStatus.Data[3];
+            MR.zip_zap.y = ywd->Prefs.RoboMapStatus.Data[4];
+            MR.zip_zap.w = ywd->Prefs.RoboMapStatus.Data[5];
+            MR.zip_zap.h = ywd->Prefs.RoboMapStatus.Data[6];
             yw_MapZoom(ywd,MAP_ZOOM_CORRECT);
         };
 
@@ -2171,6 +2201,10 @@ void yw_SRHandleVehicleSwitch(struct ypaworld_data *ywd,
             MR.layers    = ywd->Prefs.VhclMapStatus.Data[0];
             MR.lock_mode = ywd->Prefs.VhclMapStatus.Data[1];
             MR.zoom      = ywd->Prefs.VhclMapStatus.Data[2];
+            MR.zip_zap.x = ywd->Prefs.VhclMapStatus.Data[3];
+            MR.zip_zap.y = ywd->Prefs.VhclMapStatus.Data[4];
+            MR.zip_zap.w = ywd->Prefs.VhclMapStatus.Data[5];
+            MR.zip_zap.h = ywd->Prefs.VhclMapStatus.Data[6];
             yw_MapZoom(ywd,MAP_ZOOM_CORRECT);
         };
 

@@ -324,6 +324,7 @@ UBYTE *yw_RenderMapBact(struct ypaworld_data *ywd,
 **      11-Jul-97   floh    + Waffen werden generell nicht mehr als TypeIcon
 **                            gerendert.
 **      18-Dec-97   floh    + neue Richtungs-Indikatoren
+**      11-Jun-98   floh    + Feintuning an den Richtungspfeilen
 */
 {
     UBYTE chr;
@@ -405,21 +406,30 @@ UBYTE *yw_RenderMapBact(struct ypaworld_data *ywd,
         FLOAT mul0,mul1;
         ULONG color = yw_GetColor(ywd,YPACOLOR_OWNER_0+b->Owner);
 
-        /*** Sonderfall User-Robo: Vektor in Blickrichtung ***/
         if (b == ywd->URBact) {
+            /*** Sonderfall User-Robo: Vektor in Blickrichtung ***/
             nx0 = ywd->URBact->Viewer.dir.m11;
             ny0 = ywd->UVBact->Viewer.dir.m13;
             nx1 = ywd->URBact->Viewer.dir.m31;
             ny1 = ywd->UVBact->Viewer.dir.m33;
-            mul0 = 120.0;
-            mul1 = 450.0;
-        } else {
+            mul0 = 85.0;
+            mul1 = 700.0;
+        } else if (b == ywd->UVBact) {
+            /*** Sonderfall Viewer: etwas groesserer Vektor ***/
             nx0 = b->dir.m11;
             ny0 = b->dir.m13;
             nx1 = b->dir.m31;
             ny1 = b->dir.m33;
             mul0 = 60.0;
-            mul1 = 300.0;
+            mul1 = 500.0;
+        } else {
+            /*** alle restlichen Vehicle ***/
+            nx0 = b->dir.m11;
+            ny0 = b->dir.m13;
+            nx1 = b->dir.m31;
+            ny1 = b->dir.m33;
+            mul0 = 40.0;
+            mul1 = 350.0;
         };
         l0  = nc_sqrt(nx0*nx0 + ny0*ny0);
         if (l0 > 0.0) { 

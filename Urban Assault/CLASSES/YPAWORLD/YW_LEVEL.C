@@ -494,6 +494,8 @@ void yw_BeamGateCheck(struct ypaworld_data *ywd)
 **                            sich mehr als MaxNumBuddies drauf
 **                            befinden, und gibt in diesem Fall eine
 **                            Warnung aus.
+**      11-Jun-98   floh    + Beamgate Open wird jetzt zyklisch ausgegeben,
+**                            solange noch nicht full
 */
 {
     ULONG i;
@@ -518,7 +520,6 @@ void yw_BeamGateCheck(struct ypaworld_data *ywd)
         /*** hat sich Status des aktuellen Beamgates verändert? ***/
         if (status != g->sec->WType) {
 
-            struct logmsg_msg lm;
             struct createbuilding_msg cbm;
 
             /*** Gate-Zustand wurde geändert! ***/
@@ -530,20 +531,23 @@ void yw_BeamGateCheck(struct ypaworld_data *ywd)
             cbm.flags     = 0;
 
             if (status == WTYPE_OpenedGate){
+                struct logmsg_msg lm;
                 cbm.bp  = g->opened_bp;
-                lm.bact = NULL;
-                lm.pri  = 70;
-                lm.msg  = ypa_GetStr(ywd->LocHandle,STR_LMSG_GATEOPENED,"TRANSPORTER GATE OPENED!");
-                lm.code = LOGMSG_GATEOPENED;
+                //lm.bact = NULL;
+                //lm.pri  = 70;
+                //lm.msg  = ypa_GetStr(ywd->LocHandle,STR_LMSG_GATEOPENED,"TRANSPORTER GATE OPENED!");
+                //lm.code = LOGMSG_GATEOPENED;
+                //_methoda(ywd->world, YWM_LOGMSG, &lm);
             }else{
+                struct logmsg_msg lm;
                 cbm.bp  = g->closed_bp;
                 lm.bact = NULL;
                 lm.pri  = 65;
                 lm.msg  = ypa_GetStr(ywd->LocHandle,STR_LMSG_GATECLOSED,"TRANSPORTER GATE CLOSED!");
                 lm.code = LOGMSG_GATECLOSED;
+                _methoda(ywd->world, YWM_LOGMSG, &lm);
             };
             _methoda(ywd->world, YWM_CREATEBUILDING, &cbm);
-            _methoda(ywd->world, YWM_LOGMSG, &lm);
 
             /*** Gate-Sektor neu patchen ***/
             g->sec->WType  = status;
@@ -572,7 +576,7 @@ void yw_BeamGateCheck(struct ypaworld_data *ywd)
             if (b_count >= ywd->Level->MaxNumBuddies) {
                 /*** Grenze ist überschritten ***/
                 LONG td = ywd->TimeStamp - ywd->GateFullMsgTimeStamp;
-                if (td > 5000) {
+                if (td > 7500) {
                     struct logmsg_msg lm;
                     lm.bact = NULL;
                     lm.pri  = 10;
@@ -581,7 +585,18 @@ void yw_BeamGateCheck(struct ypaworld_data *ywd)
                     _methoda(ywd->world,YWM_LOGMSG,&lm);
                     ywd->GateFullMsgTimeStamp = ywd->TimeStamp;
                 };
-            };
+            } else {
+                LONG td = ywd->TimeStamp - ywd->GateFullMsgTimeStamp;
+                if (td > 20000) {
+                    struct logmsg_msg lm;
+                    lm.bact = NULL;
+                    lm.pri  = 49;
+                    lm.msg  = ypa_GetStr(ywd->LocHandle,STR_LMSG_GATEOPENED,"TRANSPORTER GATE OPENED!");
+                    lm.code = LOGMSG_GATEOPENED;
+                    _methoda(ywd->world,YWM_LOGMSG,&lm);
+                    ywd->GateFullMsgTimeStamp = ywd->TimeStamp;
+                };
+            };                    
         };
     };
 

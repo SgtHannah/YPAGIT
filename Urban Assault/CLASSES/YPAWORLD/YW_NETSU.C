@@ -129,7 +129,7 @@ void yw_ActivateNetWunderstein(struct ypaworld_data *ywd,
     /*** Erklärungs-Message anzeigen ***/
     strcpy(msg,ypa_GetStr(ywd->LocHandle,STR_LMSG_WUNDERSTEIN,"TECHNOLOGY UPGRADE!\n"));
     lm.bact = NULL;
-    lm.pri  = 65;
+    lm.pri  = 48;
     lm.msg  = msg;
     if (gem->type != 0) lm.code = gem->type;
     else                lm.code = 0;

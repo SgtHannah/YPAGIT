@@ -536,6 +536,7 @@ void yw_ActivateWunderstein(struct ypaworld_data *ywd,
 **      10-Feb-98   floh    + zeigt nur noch eine neutrale TECH UPGRADE
 **                            Message an, nicht mehr den im LDF definierten
 **                            Erklärungs-Text.
+**      11-Jun-98   floh    + Wunderstein-Meldung jetzt prio 48
 */
 {
     struct Wunderstein *gem = &(ywd->gem[which_gem]);
@@ -563,7 +564,7 @@ void yw_ActivateWunderstein(struct ypaworld_data *ywd,
     /*** Erklaerungs-Message anzeigen ***/
     strcpy(msg,ypa_GetStr(ywd->LocHandle,STR_LMSG_WUNDERSTEIN,"TECHNOLOGY UPGRADE!\n"));
     lm.bact = NULL;
-    lm.pri  = 65;
+    lm.pri  = 48;
     lm.msg  = msg;
     if (gem->type != 0) lm.code = gem->type;
     else                lm.code = 0;
