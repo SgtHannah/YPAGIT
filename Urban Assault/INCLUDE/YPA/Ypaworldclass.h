@@ -2223,7 +2223,10 @@ struct ypaworld_data {
     ULONG GameRes;              // DisplayID für Spiel
 
     /*** EventCatcher ***/
-	struct ypa_EventCatcher *EventCatcher;
+    struct ypa_EventCatcher *EventCatcher;
+    
+    /*** die maximale Groesse des Waffenimpulses ***/
+    FLOAT   max_impulse;
 };
 
 #define NETSTARTTIME    250000      // soviele Millisekunden warten wir auf

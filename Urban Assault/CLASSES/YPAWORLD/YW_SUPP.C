@@ -1097,7 +1097,8 @@ ULONG yw_WorldMiscParser(struct ScriptParser *p)
                 ULONG h  = strtol(h_str,NULL,0);
                 ywd->GameRes = ((w<<12)|(h));
             };
-
+        }else if (stricmp(kw,"max_impulse")==0){
+            ywd->max_impulse = atof(data);
         /*** UNKNOWN KEYWORD ***/
         }else return(PARSE_UNKNOWN_KEYWORD);
 
