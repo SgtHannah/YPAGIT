@@ -623,7 +623,10 @@ struct ypamessage_announcequit {
 
     struct ypamessage_generic generic;
 
-    //++++++++++++++++++++++++++++++++++++++++                                                                                                    
+    //++++++++++++++++++++++++++++++++++++++++
+    UBYTE   normal;                             // normal: wie bisher, wenn nicht, dann Meldung
+                                                // trotzdem geben wenn wir schon tot sind.
+    UBYTE   p[3];                                                                                                                       
 };
 
 #define YPAM_CHANGELEVEL        (YPAM_BASE+36) // Sinn ist es, dass bei einer Lobbyinit    
