@@ -112,6 +112,7 @@
 #define YMA_RadiusTank      (YMA_BASE+13)
 #define YMA_RadiusFlyer     (YMA_BASE+14)
 #define YMA_RadiusRobo      (YMA_BASE+15)
+#define YMA_StartHeight     (YMA_BASE+16)
 
 
 /*-------------------------------------------------------------------
@@ -138,6 +139,7 @@ struct ypamissile_data {
     LONG        drive_time;         // Triebwerksbrennzeit --> danach Bombe
     LONG        delay;              // nach Aufschlag --> Mine
     ULONG       flags;
+    FLOAT       startheight;        // von da falle ich, nur fuer Bomben interessant
     
     /* -----------------------------------------------------
     ** Opfer-spezifische Werte, wenn nix zutrifft, dann Wert

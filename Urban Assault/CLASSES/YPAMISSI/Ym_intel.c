@@ -855,6 +855,19 @@ BOOL ym_CheckRohr( struct ypamissile_data *ymd )
                         }
                     }
                 }
+                
+            if( YMF_Bomb == ymd->handle ) {
+            
+                /* -------------------------------------------------
+                ** Als Bombe ignoriere ich alle, die ueber dem Punkt
+                ** sind, an dem ich abgeschossen wurde
+                ** -----------------------------------------------*/
+                if( kandidat->pos.y < ymd->startheight ) {
+                
+                    kandidat = (struct Bacterium *) ((struct Node *)kandidat)->ln_Succ;
+                    continue;
+                    }
+                }
 
             /* ------------------------------------------------------------
             ** wir testen nun, ob kandidat innerhalb der Röhre liegt.

@@ -243,6 +243,11 @@ void ym_setAttrs(Object *o, struct ypamissile_data *ymd, struct TagItem *attrs)
                 case YMA_RadiusRobo:
                 
                     ymd->radius_robo = (FLOAT)data;
+                    break;
+                    
+                case YMA_StartHeight:
+                
+                    ymd->startheight = ((FLOAT)((LONG)data));
                     break;              
             };
         };
@@ -357,7 +362,11 @@ void ym_getAttrs(Object *o, struct ypamissile_data *ymd, struct TagItem *attrs)
                 
                     *value = (ULONG)ymd->radius_robo;
                     break;
-                          
+                    
+                case YMA_StartHeight:
+                
+                    *value = (LONG)ymd->startheight;
+                    break;      
             };
         };
     };

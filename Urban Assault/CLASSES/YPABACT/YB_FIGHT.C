@@ -935,11 +935,9 @@ _dispatcher(BOOL, yb_YBM_FIREMISSILE, struct firemissile_msg *fire)
     for( i = 0; i < num_weapons; i++ ) {
 
         FLOAT start_x;
-        #ifdef __NETWORK__
         struct ypaworld_data *ywd;
         struct ypamessage_newweapon nwm;
         struct sendmessage_msg sm;
-        #endif
 
         /* -----------------------------------------------------
         ** Wie ist denn die x-Startpostion. Wir zählen von
@@ -973,7 +971,7 @@ _dispatcher(BOOL, yb_YBM_FIREMISSILE, struct firemissile_msg *fire)
 
         /*** wegen Netzwerk VOR SetViewer !!!! später mit in WC ***/
         _set( rakete, YMA_RifleMan, &(ybd->bact));
-
+        _set( rakete, YMA_StartHeight, ((LONG)(cw.y)) );  // fuer Bomben
 
         rbact->Owner = ybd->bact.Owner;
 
@@ -1703,14 +1701,16 @@ _dispatcher( BOOL, yb_YBM_CHECKAUTOFIREPOS, struct checkautofirepos_msg *msg)
 
                 /* ---------------------------------------------
                 ** Bombe. Wuerde die treffen? Dann muss die x-z-
-                ** entfernung dem radius entsprechen
+                ** entfernung dem radius entsprechen.
+                ** keine Ziele ueber mir aufnehmen.
                 ** -------------------------------------------*/
                 d = nc_sqrt( (msg->target_pos.x - ybd->bact.pos.x) *
                              (msg->target_pos.x - ybd->bact.pos.x) +
                              (msg->target_pos.z - ybd->bact.pos.z) *
                              (msg->target_pos.z - ybd->bact.pos.z) );
 
-                if( o_radius > d )
+                if( (o_radius > d) && 
+                    (msg->target_pos.y > ybd->bact.pos.y) )
                     return( TRUE );
                 else
                     return( FALSE );
