@@ -1198,12 +1198,15 @@ _dispatcher(void, yw_YWM_ONLINEHELP, struct yw_onlinehelp_msg *msg)
 /*
 **  CHANGED
 **      05-Mar-98   floh    created
+**      09-Jun-98   floh    + Online-Help wurde auch im Multiplayer-
+**                            Setup-Screen nicht gestartet...
 */
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
     Object *gfx;
     _OVE_GetAttrs(OVET_Object,&gfx,TAG_DONE);
-    if (gfx && msg->url && (!ywd->playing_network)) {
+    if (gfx && msg->url && 
+        ((!ywd->playing_network) || (ywd->Level->Status != LEVELSTAT_PLAYING))) {
         UBYTE buf[256];
         _ManglePath(msg->url,buf,sizeof(buf));
         _LogMsg("Online help launched with path %s.\n",buf);

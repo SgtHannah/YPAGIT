@@ -833,8 +833,8 @@ void yw_VecRenderVehicle(struct ypaworld_data *ywd,
         // sx =  0.25;
         // sy =  0.3;
         
-        sx = 0.25;        
-        sy = 12 * h->vid_text_h;        
+        sx = 0.125 * 0.8;        
+        sy = 6 * h->vid_text_h * 0.8;        
         if (dt < 1.4) sx*=dt;
         m11 = 1.0;  m12 = 0.0;
         m21 = 0.0;  m22 = 1.0;
@@ -870,8 +870,10 @@ void yw_VecRenderWeapon(struct ypaworld_data *ywd,
             ULONG color0 = yw_GetColor(ywd,YPACOLOR_HUD_WEAPON_1);    
 
             /*** im rechten oberen Drittel des Vehikel-Wireframes ***/
-            sx =  0.083;
-            sy =  0.1;
+            // sx =  0.083;
+            // sy =  0.1;
+            sx = 0.0415;
+            sy = 0.05;
             m11 = 1.0; m12 = 0.0;
             m21 = 0.0; m22 = 1.0;
             yw_SetInterpolateColors(ywd,color0,color1);
@@ -1238,12 +1240,12 @@ UBYTE *yw_RenderVID(struct ypaworld_data *ywd,
     else                      wp = NULL;
 
     /*** und die einzelnen Elemente rendern ***/
-    if (do_vehicle) yw_VecRenderVehicle(ywd,h,vp,tx+0.1,ty-0.15,dt);
+    if (do_vehicle) yw_VecRenderVehicle(ywd,h,vp,tx,ty,dt);
     if (do_energy)  str = yw_RenderLifebar(ywd,h,str,b,vp,tx,ty+(7*h->vid_text_h));
     if (do_shield)  str = yw_RenderShieldbar(ywd,h,str,b,vp,tx,ty+(9*h->vid_text_h));
     if (do_vehicle) str = yw_RenderNamebar(ywd,h,str,b,vp,vp_num,tx,ty+(11*h->vid_text_h));
     if (wp && do_weapon) {
-        yw_VecRenderWeapon(ywd,h,wp,tx,ty-(11*h->vid_text_h));
+        yw_VecRenderWeapon(ywd,h,wp,tx,ty-(9*h->vid_text_h));
         str = yw_RenderReloadbar(ywd,h,str,b,wp,tx,ty-(7*h->vid_text_h));
         str = yw_RenderWeaponbar(ywd,h,str,b,vp,wp,tx,ty-(9*h->vid_text_h));
     };        
