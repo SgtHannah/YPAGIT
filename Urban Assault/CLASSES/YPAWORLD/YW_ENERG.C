@@ -622,7 +622,8 @@ void yw_SetOwner(struct ypaworld_data *ywd,
 void yw_NewOwner(struct ypaworld_data *ywd,
                  ULONG sec_x, ULONG sec_y,
                  struct Cell *sec,
-                 struct energymod_msg *emm)
+                 struct energymod_msg *emm,
+                 ULONG new_owner)
 /*
 **  FUNCTION
 **      Zählt die Gesamt-Energie aller Bakterien im Sektor
@@ -640,28 +641,36 @@ void yw_NewOwner(struct ypaworld_data *ywd,
 **      26-Aug-97   floh    + Sektor-Koordinaten-Args
 **      07-Oct-97   floh    + bei Kraftwerks-Eroberung wird eine
 **                            Logmsg losgeschickt
+**      26-May-98   floh    + Falls Owner == 255, wird ein Check gemacht,
+**                            ansonsten wird der Owner einfach gesetzt.
+**                            War notwendig, weil im Netzwerkspiel kein
+**                            yw_NewOwner(), sondern yw_SetOwner() gemacht
+**                            wurde, und deshalb diverse Voiceovers nicht
+**                            kamen.
 */
 {
     ULONG i;
     LONG energy[MAXNUM_OWNERS];
     struct MinNode *nd;
     struct MinList *ls;
-    UBYTE new_owner = sec->Owner;
 
-    memset(energy,0,sizeof(energy));
+    /*** falls Owner nicht zwangsgesetzt, per Energie ermitteln ***/
+    if (new_owner == 255) {
+        new_owner = sec->Owner;
+        memset(energy,0,sizeof(energy));
+        ls = &(sec->BactList);
+        for (nd=ls->mlh_Head; nd->mln_Succ; nd=nd->mln_Succ) {
+            struct Bacterium *b = (struct Bacterium *) nd;
+            energy[b->Owner] += b->Energy;
+        };
 
-    ls = &(sec->BactList);
-    for (nd=ls->mlh_Head; nd->mln_Succ; nd=nd->mln_Succ) {
-        struct Bacterium *b = (struct Bacterium *) nd;
-        energy[b->Owner] += b->Energy;
-    };
+        /*** neutrale Objekte ignorieren ***/
+        energy[0] = 0;
 
-    /*** neutrale Objekte ignorieren ***/
-    energy[0] = 0;
-
-    /*** neuer Eigentümer? ***/
-    for (i=0; i<MAXNUM_OWNERS; i++) {
-        if (energy[i] > energy[new_owner]) new_owner = i;
+        /*** neuer Eigentümer? ***/
+        for (i=0; i<MAXNUM_OWNERS; i++) {
+            if (energy[i] > energy[new_owner]) new_owner = i;
+        };
     };
     
     /*** irgendeine Meldung bei Owner-Wechsel? ***/
@@ -806,14 +815,10 @@ void yw_CheckSector(struct ypaworld_data *ywd,
         };
 
         /*** New-Owner-Check, wenn gewünscht ***/
-        if (255 == owner) {
-            if (sec->SType == SECTYPE_COMPACT) {
-                if (e < 224)   yw_NewOwner(ywd,sec_x,sec_y,sec,emm);
-            } else {
-                if (e < 9*192) yw_NewOwner(ywd,sec_x,sec_y,sec,emm);
-            };
+        if (sec->SType == SECTYPE_COMPACT) {
+            if (e < 224)   yw_NewOwner(ywd,sec_x,sec_y,sec,emm,owner);
         } else {
-            yw_SetOwner(ywd,sec,sec_x,sec_y,owner);
+            if (e < 9*192) yw_NewOwner(ywd,sec_x,sec_y,sec,emm,owner);
         };
     };
 }
@@ -932,11 +937,13 @@ void yw_CheckUnderAttack(struct ypaworld_data *ywd, struct Cell *sec,
 **
 **  CHANGED
 **      30-Apr-98   floh    created
+**      26-May-98   floh    keine Meldung mehr bei eigenem Beschuss
 */
 {
     if ((sec->WType == WTYPE_Kraftwerk)    && 
         (sec->Owner == ywd->URBact->Owner) &&
         (msg->hitman)                      &&
+        (msg->hitman->Owner != ywd->URBact->Owner) &&
         ((ywd->TimeStamp - ywd->PowerAttackTimeStamp) > 5000))
     {
         struct logmsg_msg lm;

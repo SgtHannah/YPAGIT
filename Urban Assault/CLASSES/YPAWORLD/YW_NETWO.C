@@ -2299,10 +2299,11 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
                     vkill.cmd = YPAHIST_VHCLKILL;
                     vkill.owners = ((ko<<3) | (dv->Owner));
                     _get(dv->killer->BactObject,YBA_Viewer,&is_user);
-                    if (is_user) {
+                    if (is_user || (dv->killer->ExtraState & EXTRA_ISVIEWER)) {
                         vkill.owners |= (1<<7); // Killer war ein User
                     };
-                    if (dv->ExtraState & EXTRA_ISVIEWER) {
+                    _get(dv->BactObject,YBA_Viewer,&is_user);
+                    if (is_user || (dv->ExtraState & EXTRA_ISVIEWER)) {
                         vkill.owners |= (1<<6); // Opfer war ein User
                     };
                     vkill.vp     = dv->TypeID;
@@ -2858,10 +2859,11 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
                 vkill.cmd = YPAHIST_VHCLKILL;
                 vkill.owners = ((ko<<3) | (robo->bact->Owner));
                 _get(robo->bact->killer->BactObject,YBA_Viewer,&is_user);
-                if (is_user) {
+                if (is_user || (robo->bact->ExtraState & EXTRA_ISVIEWER)) {
                     vkill.owners |= (1<<7); // Killer war ein User
                 };
-                if (dv->ExtraState & EXTRA_ISVIEWER) {
+                _get(robo->bact->BactObject,YBA_Viewer,&is_user);
+                if (is_user || (dv->ExtraState & EXTRA_ISVIEWER)) {
                     vkill.owners |= (1<<6); // Opfer war ein User
                 };
                 vkill.vp = dv->TypeID;
