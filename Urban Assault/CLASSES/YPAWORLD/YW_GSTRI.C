@@ -250,9 +250,23 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
     if( NM_SESSIONS == GSR->n_selmode) {
         if( NWFC_MODEM  == _methoda( GSR->ywd->nwo, NWM_GETPROVIDERTYPE, NULL)) {
 
-            /*** nur nach Initialisierung fragen ***/
-            if(GSR->modem_ask_session)
+            /* ------------------------------------------------------------
+            ** nur nach Initialisierung (ask_session == TRUE) und bei expl.
+            ** Wunsch (SPACEBAR) fragen 
+            ** ----------------------------------------------------------*/
+            if( (GSR->modem_ask_session) && 
+                (KEYCODE_SPACEBAR == GSR->input->NormKey) ) {
+                
+                #ifdef __WINDOWS__
+                _methoda( GSR->ywd->GfxObject, WINDDM_EnableGDI, NULL);
+                #endif
+
                 _methoda( ywd->nwo, NWM_ASKSESSIONS, NULL );
+                
+                #ifdef __WINDOWS__
+                _methoda( GSR->ywd->GfxObject, WINDDM_DisableGDI, NULL);
+                #endif
+                }
             }
         else {
 
@@ -3319,6 +3333,9 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
     ** -----------------------------------------------------------*/
     if( ((NM_SESSIONS == GSR->n_selmode) &&
         (NWFC_SERIAL == _methoda( GSR->ywd->nwo, NWM_GETPROVIDERTYPE, NULL ))) ||
+        ((NM_SESSIONS == GSR->n_selmode) &&
+        (TRUE == GSR->modem_ask_session) &&
+        (NWFC_MODEM == _methoda( GSR->ywd->nwo, NWM_GETPROVIDERTYPE, NULL ))) ||
         (NM_PROVIDER == GSR->n_selmode) ) {
         
         if( NM_PROVIDER == GSR->n_selmode) {
@@ -3329,7 +3346,7 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                          GSR->ywd->local_addressstring );
             else
                 strcpy( m, " ");
-            ss. unpressed_text = m;
+            ss.unpressed_text = m;
             }
         else {
         
@@ -3432,13 +3449,21 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
 
         case NM_SESSIONS:
 
-            /*** Mittleres gadget einschalten ***/
-            ss.number = GSID_NETNEW;
-            ss.unpressed_text = ypa_GetStr( GlobalLocaleHandle, STR_NGADGET_NEW,"NEW");
-            ss.pressed_text   = NULL;
-            _methoda( GSR->bnet, BTM_SETSTRING, &ss );
-            swb.number  = GSID_NETNEW;
-            _methoda( GSR->bnet, BTM_ENABLEBUTTON, &swb );
+            /* ------------------------------------------------------------------------
+            ** new-gadget einschalten. Im Falle des Modems nachdem man eine Verbindung
+            ** aufgebaut hat, kann man keine Session mehr erzeugen (weil die Verbindung
+            ** schon verwendet wird) 
+            ** ----------------------------------------------------------------------*/
+            if( !((NWFC_MODEM == _methoda( GSR->ywd->nwo, NWM_GETPROVIDERTYPE, NULL)) &&
+                  (GSR->modem_ask_session)) ) {
+                  
+                ss.number = GSID_NETNEW;
+                ss.unpressed_text = ypa_GetStr( GlobalLocaleHandle, STR_NGADGET_NEW,"NEW");
+                ss.pressed_text   = NULL;
+                _methoda( GSR->bnet, BTM_SETSTRING, &ss );
+                swb.number  = GSID_NETNEW;
+                _methoda( GSR->bnet, BTM_ENABLEBUTTON, &swb );
+                }
 
             /*** Titel ist select session ***/
             ss.number = GSID_NETHEADLINE;
@@ -3456,8 +3481,12 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
             gsn.number = 0;
             if( !_methoda( GSR->ywd->nwo, NWM_GETSESSIONNAME, &gsn ) ) {
                 
-                /*** nix da, aber bei Modem heisst das "Horchen" ***/
-                if( NWFC_MODEM == _methoda( GSR->ywd->nwo, NWM_GETPROVIDERTYPE, NULL ) ) {
+                /* ------------------------------------------------------------
+                ** nix da, aber bei Modem heisst das "Horchen", wenn noch nicht
+                ** gewaehlt wurde.
+                ** ----------------------------------------------------------*/
+                if( (NWFC_MODEM == _methoda( GSR->ywd->nwo, NWM_GETPROVIDERTYPE, NULL)) &&
+                    (FALSE == GSR->modem_ask_session) ) {
                     
                     /*** mache einen Search-Button ***/
                     ss.number = GSID_NETOK;
@@ -4906,7 +4935,7 @@ void yw_OKSessions( struct GameShellReq *GSR )
     ywd = GSR->ywd;
 
     if( (NWFC_MODEM == _methoda( GSR->ywd->nwo, NWM_GETPROVIDERTYPE, NULL )) &&
-        (GSR->NSel   < 0) ) {
+        (FALSE == GSR->modem_ask_session) ) {
 
         ULONG ret;
         
@@ -4948,6 +4977,15 @@ void yw_OKSessions( struct GameShellReq *GSR )
             struct joinsession_msg js;
             struct getplayerdata_msg gpd;
             js.name = gsn.name;
+            
+            /* ------------------------------------------------------
+            ** Ein Modem kann evtl. beim Joinen wieder einen
+            ** Waehlrequester bringen. Deshalb Bildschirm umschalten.
+            ** ----------------------------------------------------*/
+            #ifdef __WINDOWS__
+            if( NWFC_MODEM == _methoda( GSR->ywd->nwo, NWM_GETPROVIDERTYPE, NULL ))
+                _methoda( GSR->ywd->GfxObject, WINDDM_EnableGDI, NULL);
+            #endif
 
             /*** Es ist eine neue Session ***/
             if( _methoda( GSR->ywd->nwo, NWM_JOINSESSION, &js)) {
@@ -4956,6 +4994,11 @@ void yw_OKSessions( struct GameShellReq *GSR )
                 struct createplayer_msg cp;
                 struct ypamessage_cd cdm;
                 struct sendmessage_msg sm;
+        
+                #ifdef __WINDOWS__
+                if( NWFC_MODEM == _methoda( GSR->ywd->nwo, NWM_GETPROVIDERTYPE, NULL ))
+                    _methoda( GSR->ywd->GfxObject, WINDDM_DisableGDI, NULL);
+                #endif
 
                 GSR->N_Name[ 0 ] = 0;
                 GSR->NCursorPos  = 0;
@@ -5061,7 +5104,12 @@ void yw_OKSessions( struct GameShellReq *GSR )
                 yw_SendCheckSum( GSR->ywd, GSR->NLevelOffset );
                 }
             else {
-                
+        
+                #ifdef __WINDOWS__
+                if( NWFC_MODEM == _methoda( GSR->ywd->nwo, NWM_GETPROVIDERTYPE, NULL ))
+                    _methoda( GSR->ywd->GfxObject, WINDDM_DisableGDI, NULL);
+                #endif
+
                 yw_MessageBox( GSR->ywd, 
                                ypa_GetStr( GlobalLocaleHandle, STR_YPAERROR_HEADLINE,
                                "YPA ERROR MESSAGE"),
@@ -5080,6 +5128,7 @@ void yw_OKSessions( struct GameShellReq *GSR )
                     ** falls es sich um Modem handelt.
                     ** --------------------------------------------------------------------------*/
                     GSR->NSel = -1;
+                    yw_CloseNetRequester( GSR );
                     }
                 else
                     _methoda( GSR->ywd->nwo, NWM_ASKSESSIONS, NULL ); 

@@ -357,7 +357,8 @@ unsigned long wdp_AskSessions( struct windp_win_data *wdata )
     ** -------------------------------------------------------------*/
     
     flags = DPENUMSESSIONS_AVAILABLE; 
-    if( wdata->conn_type != NWFC_SERIAL )
+    if( (wdata->conn_type != NWFC_SERIAL) &&
+        (wdata->conn_type != NWFC_MODEM) )
         flags |= DPENUMSESSIONS_ASYNC;
         
     hr = wdata->dpo2->lpVtbl->EnumSessions( wdata->dpo2,
