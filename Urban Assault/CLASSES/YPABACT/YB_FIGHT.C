@@ -1285,6 +1285,23 @@ _dispatcher(BOOL, yb_YBM_FIREYOURGUNS, struct fireyourguns_msg *fyg )
                 continue;
                 }
 
+            /* -------------------------------------------------------
+            ** Alle 100% RoboGuns ignorieren. Die liegen sonst wie ein
+            ** Schild davor
+            ** -----------------------------------------------------*/
+            if( (BCLID_YPAGUN == kandidat->BactClassID) &&
+                (100          >= kandidat->Shield) ) {
+                
+                ULONG rgun;
+                _get( kandidat->BactObject, YGA_RoboGun, &rgun );
+                if( rgun ) {
+                
+                    kandidat = (struct Bacterium *)
+                               ((struct Node *)kandidat)->ln_Succ;
+                    continue;
+                    }
+                }
+
             /*** Automatischer Schütze? ***/
             if( !(ybd->flags & YBF_UserInput) )
                 if( kandidat->Owner == ybd->bact.Owner ) {

@@ -796,6 +796,24 @@ BOOL ym_CheckRohr( struct ypamissile_data *ymd )
                            ((struct Node *)kandidat)->ln_Succ;
                 continue;
                 }
+                
+            /* -------------------------------------------------------
+            ** Alle 100% RoboGuns ignorieren. Die liegen sonst wie ein
+            ** Schild davor
+            ** -----------------------------------------------------*/
+            if( (BCLID_YPAGUN == kandidat->BactClassID) &&
+                (100          >= kandidat->Shield) ) {
+                
+                ULONG rgun;
+                _get( kandidat->BactObject, YGA_RoboGun, &rgun );
+                if( rgun ) {
+                
+                    kandidat = (struct Bacterium *)
+                               ((struct Node *)kandidat)->ln_Succ;
+                    continue;
+                    }
+                }
+
 
             /*** Automatischer Schütze? ***/
             if( !USERINPUT )

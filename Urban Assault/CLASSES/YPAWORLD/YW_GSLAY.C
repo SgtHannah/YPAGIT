@@ -1838,7 +1838,8 @@ void yw_PaintRect( struct GameShellReq *GSR, WORD x, WORD y, WORD w, WORD h )
         }
 
     /*** Nun noch Rand der Rest-Höhe h ***/
-    off_vert( str, sfont->height - h);
+    //off_vert( str, sfont->height - h);
+    off_vert( str, sfont->height - 1);
     put( str, 'x');          // unten links
     
     lstretch_to( str, w );
