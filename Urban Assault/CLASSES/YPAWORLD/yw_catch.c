@@ -392,7 +392,7 @@ void yw_SetEventLoop(struct ypaworld_data *ywd, ULONG loop_id)
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_CONTROL);
             yw_AddComplexEvent(ywd,yw_CheckEnemiesDestroyed,60000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_DESTROYROBO);
-            yw_AddTerminateEvent(ywd,NULL,60000);
+            yw_AddTerminateEvent(ywd,NULL,15000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_COMPLETE_1);
             break;      
         
@@ -409,7 +409,7 @@ void yw_SetEventLoop(struct ypaworld_data *ywd, ULONG loop_id)
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_OPT_AGGR);
             yw_AddComplexEvent(ywd,yw_CheckEnemiesDestroyed,60000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_DESTROYALL);
-            yw_AddTerminateEvent(ywd,NULL,60000);
+            yw_AddTerminateEvent(ywd,NULL,15000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_COMPLETE_2);
             break;
         
