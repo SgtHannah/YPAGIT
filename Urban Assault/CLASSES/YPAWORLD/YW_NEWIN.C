@@ -2048,6 +2048,27 @@ _dispatcher(void, yw_YWM_KILLLEVEL, void *ignored)
         ywd->gsr->ShellSound2.pos.z = 0.0;
     };
 
+    /* -------------------------------------------------------------
+    ** Wenn es ein Netzwerkspiel war, startup-script neu laden und
+    ** selbiges mit unseren Einstellungen ueberschreiben, weil Netz-
+    ** buildings unterschiedlich sind.
+    ** Das ueberschreiben passiert in ypa.c, weil dort eh der ganze 
+    ** Kram gemacht wird.
+    ** -----------------------------------------------------------*/
+    if( ywd->WasNetworkSession ) {
+    
+        struct saveloadsettings_msg sls;
+        char   fn[ 300 ];
+
+        /*** neu initialisieren ***/
+        if (ywd->VP_Array && ywd->WP_Array && ywd->BP_Array && ywd->EXT_Array) {
+            /*** alles klaa, Startup-Script parsen ***/
+            if (!yw_ParseProtoScript(ywd, "data:scripts/startup.scr")) {
+                return;
+            };
+        };
+    };
+
     /*** das war's ***/
 }
 
