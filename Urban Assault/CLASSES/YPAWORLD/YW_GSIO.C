@@ -473,8 +473,11 @@ ULONG yw_ParseUserData( struct ScriptParser *parser )
                 } else if (stricmp( parser->keyword, "maxreloadconst") == 0) {
                     ywd->MaxReloadConst = strtol( parser->data, NULL, 0 );
                 } else if( stricmp( parser->keyword, "numbuddies") == 0) {
-                    /*** Wieviele darf ich mitnehmen? ***/
-                    ywd->Level->MaxNumBuddies = strtol( parser->data, NULL, 0 );
+                    // FIXME FLOH: OBSOLETE OBSOLETE OBSOLETE 
+                    // /*** Wieviele darf ich mitnehmen? ***/
+                    // ywd->Level->MaxNumBuddies = strtol( parser->data, NULL, 0 );
+                } else if (stricmp(parser->keyword, "beamenergy") == 0) {
+                    ywd->ActBeamEnergy = strtol(parser->data, NULL, 0);                    
                 }else if( stricmp( parser->keyword, "playerstatus") == 0) {
 
                     char  *d;
@@ -1519,6 +1522,10 @@ BOOL yw_WriteUserData( FILE *ifile, char *name, struct GameShellReq *GSR)
     /*** Wieviele Buddies duerfen mit? ***/
     sprintf( str, "    numbuddies    = %d\n\0", GSR->ywd->Level->MaxNumBuddies );
     _FWrite( str, strlen( str ), 1, ifile );
+
+    /*** schreibe die ActBeamEnergy ***/
+    sprintf( str, "    beamenergy    = %d\n", GSR->ywd->ActBeamEnergy);
+    _FWrite( str, strlen(str),1,ifile);
 
     /*** Die Rassenkontakte ***/
     sprintf( str, "    jodiefoster   = \0" );

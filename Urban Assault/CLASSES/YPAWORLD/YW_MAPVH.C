@@ -1478,9 +1478,9 @@ UBYTE *yw_RenderMapCursors(struct ypaworld_data *ywd, UBYTE *str)
     for (i=0; i<ywd->Level->NumGates; i++) {
         struct Gate *g = &(ywd->Level->Gate[i]);
         if (WTYPE_OpenedGate == g->sec->WType) {
-            LONG b_count = yw_CountVehiclesInSector(ywd,g->sec);
+            LONG b_energy = yw_CountVehicleEnergyInSector(ywd,g->sec);
             UBYTE buf[32];
-            sprintf(buf,"%d/%d",b_count,ywd->Level->MaxNumBuddies);
+            sprintf(buf,"%d/%d",b_energy,ywd->ActBeamEnergy);
             str = yw_MapString(ywd,buf,FONTID_LTRACY,str,g->sec_x,g->sec_y);
         };
     };

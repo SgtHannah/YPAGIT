@@ -67,6 +67,7 @@ void yw_CleanupPrototypeArrays(struct ypaworld_data *ywd)
 **
 **  CHANGED
 **      24-Apr-97   floh    created
+**      29-Jun-98   floh    + zusaetzliche Vehikel-Wireframes
 */
 {
     ULONG i;
@@ -78,6 +79,22 @@ void yw_CleanupPrototypeArrays(struct ypaworld_data *ywd)
             if (vp->wireframe_object) {
                 _dispose(vp->wireframe_object);
                 vp->wireframe_object = NULL;
+            };
+            if (vp->hud_wf_object) {
+                _dispose(vp->hud_wf_object);
+                vp->hud_wf_object = NULL;
+            };
+            if (vp->mg_wf_object) {
+                _dispose(vp->mg_wf_object);
+                vp->mg_wf_object = NULL;
+            };
+            if (vp->weapon_wf_object_1) {
+                _dispose(vp->weapon_wf_object_1);
+                vp->weapon_wf_object_1 = NULL;
+            };
+            if (vp->weapon_wf_object_2) {
+                _dispose(vp->weapon_wf_object_2);
+                vp->weapon_wf_object_2 = NULL;
             };
         };
     };

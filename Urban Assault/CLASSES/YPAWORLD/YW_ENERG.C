@@ -1296,6 +1296,7 @@ _dispatcher(void, yw_YWM_NOTIFYDEADROBO, struct notifydeadrobo_msg *msg)
 **                            falls der Killer der User-Robo war
 **      29-May-98   floh    + falls es der User-Robo war, wird 
 **                            UserRoboDied auf TRUE gesetzt.
+**      29-Jun-98   floh    + ActBeamEnergy Handling
 */
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
@@ -1311,9 +1312,9 @@ _dispatcher(void, yw_YWM_NOTIFYDEADROBO, struct notifydeadrobo_msg *msg)
     /*** war es der User-Robo? ***/
     if (msg->victim == ywd->URBact) ywd->UserRoboDied = TRUE;
     
-    /*** falls Killer der User war, darf er 1 Buddy mehr mitnehmen ***/
+    /*** falls Killer der User war, darf er N Energie mehr mitnehmen ***/
     if (ywd->URBact && (ywd->URBact->Owner==msg->killer_id)) {
-        ywd->Level->MaxNumBuddies++;
+        ywd->ActBeamEnergy += ywd->BeamEnergyAdd;    
     };
 
     /*** existiert noch ein Robo gleichen Owners? ***/

@@ -170,6 +170,10 @@ struct VehicleProto {
 
     /*** 2D-Vektor-Outlines ***/
     Object *wireframe_object;   // skeleton.class
+    Object *hud_wf_object;
+    Object *mg_wf_object;
+    Object *weapon_wf_object_1;
+    Object *weapon_wf_object_2;
 
     /*** Universal Attribute ***/
     struct TagItem *LastTag;        // zeigt auf TAG_DONE

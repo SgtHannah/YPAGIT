@@ -714,8 +714,8 @@ void yw_VecRenderCompass(struct ypaworld_data *ywd, struct YPAHud *h)
             r_y = b->PrimPos.z - b->pos.z;
             p_ok = TRUE;
         } else if (TARTYPE_BACTERIUM == b->PrimTargetType) {
-            r_x = b->PrimaryTarget.Bact->pos.x;
-            r_y = b->PrimaryTarget.Bact->pos.z;
+            r_x = b->PrimaryTarget.Bact->pos.x - b->pos.x;
+            r_y = b->PrimaryTarget.Bact->pos.z - b->pos.z;
             p_ok = TRUE;
         };
         if (p_ok) {
@@ -1317,14 +1317,45 @@ void yw_VecRenderVisor(struct ypaworld_data *ywd, struct YPAHud *h)
 **      06-Aug-97   floh    + Bugfix: Fahrzeuge ohne MG sollten
 **                            das autonome Visier jetzt korrekt anzeigen
 **      09-Dec-97   floh    + yw_GetColor()
+**      29-Jun-98   floh    + optionale Per-Vehikel-Wireframes
 */
 {
     FLOAT tx,ty,sx,sy,m11,m12,m21,m22;
     ULONG color0,color1;
-    struct Skeleton *sklt = NULL;
     void (*render_hook)(struct ypaworld_data *,FLOAT,FLOAT,FLOAT,FLOAT,ULONG *,ULONG *);
+    struct VehicleProto *vp;    
+    struct Skeleton *mg_sklt    = NULL;
+    struct Skeleton *hud_sklt   = NULL;
+    struct Skeleton *wpn_1_sklt = NULL;
+    struct Skeleton *wpn_2_sklt = NULL;
     FLOAT dtimer = (((LONG)(ywd->TimeStamp-h->change_vhcl_timer))-350)/200.0;
     if (dtimer <= 0.0) return;
+    
+    /*** Pointer auf Vehicleproto ***/
+    if (ywd->UVBact && ywd->VP_Array) vp = &(ywd->VP_Array[ywd->UVBact->TypeID]);
+    else                              vp = NULL;    
+    
+    /*** Skeleton-Pointer ermitteln ***/
+    if (vp->hud_wf_object)      _get(vp->hud_wf_object,SKLA_Skeleton,&hud_sklt);
+    else                        hud_sklt = NULL;
+    if (vp->mg_wf_object)       _get(vp->mg_wf_object,SKLA_Skeleton,&mg_sklt);
+    else                        mg_sklt =  h->HudVecSklt[HUDVEC_MG_VISOR];
+    if (vp->weapon_wf_object_1) _get(vp->weapon_wf_object_1,SKLA_Skeleton,&wpn_1_sklt);
+    else { 
+        switch(ywd->visor.gun_type) {
+            case VISORTYPE_GRENADE:  wpn_1_sklt = h->HudVecSklt[HUDVEC_GRENADE_VISOR_1]; break;
+            case VISORTYPE_ROCKET:   wpn_1_sklt = h->HudVecSklt[HUDVEC_ROCKET_VISOR_1];  break;
+            case VISORTYPE_MISSILE:  wpn_1_sklt = h->HudVecSklt[HUDVEC_MISSILE_VISOR_1]; break;
+        };
+    };
+    if (vp->weapon_wf_object_2) _get(vp->weapon_wf_object_2,SKLA_Skeleton,&wpn_2_sklt);
+    else {
+        switch(ywd->visor.gun_type) {
+            case VISORTYPE_GRENADE:  wpn_2_sklt = h->HudVecSklt[HUDVEC_GRENADE_VISOR_2]; break;
+            case VISORTYPE_ROCKET:   wpn_2_sklt = h->HudVecSklt[HUDVEC_ROCKET_VISOR_2];  break;
+            case VISORTYPE_MISSILE:  wpn_2_sklt = h->HudVecSklt[HUDVEC_MISSILE_VISOR_2]; break;
+        };
+    };
 
     /*** Timestamp zurücksetzen ***/
     if (ywd->visor.target) {
@@ -1335,9 +1366,22 @@ void yw_VecRenderVisor(struct ypaworld_data *ywd, struct YPAHud *h)
     } else {
         h->prev_target = NULL;
     };
+    
+    /*** HUD-Visier rendern ***/
+    if (hud_sklt) {
+        color0 = yw_GetColor(ywd,YPACOLOR_HUD_VEHICLE_1);
+        tx = ty = 0.0;
+        sx = sy = 0.99;
+        m11 = 1.0;  m12 = 0.0;
+        m21 = 0.0;  m22 = 1.0;
+        yw_VectorOutline(ywd,hud_sklt,
+                         tx, ty,
+                         m11, m12, m21, m22,
+                         sx, sy, color0, NULL, NULL);
+    };
 
     /*** MG-Visier rendern ***/
-    if (ywd->visor.mg_type) {
+    if (ywd->visor.mg_type && mg_sklt) {
         color1 = yw_GetColor(ywd,YPACOLOR_HUD_VISOR_MG_0);
         color0 = yw_GetColor(ywd,YPACOLOR_HUD_VISOR_MG_1);
         tx  = ywd->visor.x;
@@ -1349,15 +1393,12 @@ void yw_VecRenderVisor(struct ypaworld_data *ywd, struct YPAHud *h)
         };
         m11 = 1.0;  m12 = 0.0;
         m21 = 0.0;  m22 = 1.0;
-        sklt = h->HudVecSklt[HUDVEC_MG_VISOR];
-        if (sklt) {
-            render_hook = h->is_hicolor ? yw_SlowPulsateColorHook : NULL;
-            yw_SetInterpolateColors(ywd,color0,color1);
-            yw_VectorOutline(ywd,sklt,
-                             tx, ty,
-                             m11, m12, m21, m22,
-                             sx, sy, color0, render_hook, NULL);
-        };
+        render_hook = h->is_hicolor ? yw_SlowPulsateColorHook : NULL;
+        yw_SetInterpolateColors(ywd,color0,color1);
+        yw_VectorOutline(ywd,mg_sklt,
+                         tx, ty,
+                         m11, m12, m21, m22,
+                         sx, sy, color0, render_hook, NULL);
     };
 
     /*** Visier fuer autonome Waffe anzeigen ***/
@@ -1367,6 +1408,7 @@ void yw_VecRenderVisor(struct ypaworld_data *ywd, struct YPAHud *h)
         FLOAT dt[NUM_DT];
         ULONG num_dt = 0;
         ULONG i;
+        struct Skeleton *sklt;
 
         /*** ungelockt, oder Lock-Zoom? ***/
         if (ywd->visor.target) {
@@ -1414,25 +1456,8 @@ void yw_VecRenderVisor(struct ypaworld_data *ywd, struct YPAHud *h)
             };
             m11 = cos(rad); m12 = -sin(rad);
             m21 = sin(rad); m22 = cos(rad);
-
-            switch(ywd->visor.gun_type) {
-                case VISORTYPE_GRENADE:
-                    if (i&1) sklt = h->HudVecSklt[HUDVEC_GRENADE_VISOR_1];
-                    else     sklt = h->HudVecSklt[HUDVEC_GRENADE_VISOR_2];
-                    break;
-                case VISORTYPE_ROCKET:
-                    if (i&1) sklt = h->HudVecSklt[HUDVEC_ROCKET_VISOR_1];
-                    else     sklt = h->HudVecSklt[HUDVEC_ROCKET_VISOR_2];
-                    break;
-                case VISORTYPE_MISSILE:
-                    if (i&1) sklt = h->HudVecSklt[HUDVEC_MISSILE_VISOR_1];
-                    else     sklt = h->HudVecSklt[HUDVEC_MISSILE_VISOR_2];
-                    break;
-                default:
-                    sklt = NULL;
-                    break;
-            };
-
+            if (i&1) sklt = wpn_1_sklt;
+            else     sklt = wpn_2_sklt;
             if (sklt) {
                 yw_SetInterpolateColors(ywd,color0,color1);
                 yw_VectorOutline(ywd,sklt,

@@ -842,7 +842,7 @@ static UBYTE *ypa_GetStr(UBYTE **loc, ULONG id, UBYTE *def)
 
 #define STR_TIPOFDAY_FIRST              (2490)
 /*** NO NEW STRINGS IN HERE!!! ***/
-#define STR_TIPOFDAY_LAST               (2505)
+#define STR_TIPOFDAY_LAST               (2510)
 
 /*** Anpassen! ***/
 #define STR_LAST_ITEM           (2600) 

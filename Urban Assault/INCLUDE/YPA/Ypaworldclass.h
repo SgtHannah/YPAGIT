@@ -1928,6 +1928,12 @@ struct YPAGamePrefs {
 #define GFX_GAME_DEFAULT_RES    ((640<<12)|(480))
 
 /*-------------------------------------------------------------------
+**  Default-Werte fuer Beamenergie
+*/
+#define YPA_BEAMENERGY_START_DEF (5*95)        // 5 Foxes
+#define YPA_BEAMENERGY_ADD_DEF   (95)          // Energiezuwachs pro zerstoerten Robo
+
+/*-------------------------------------------------------------------
 **  Local Instance Data
 */
 struct ypaworld_data {
@@ -2272,6 +2278,10 @@ struct ypaworld_data {
     ULONG LevelUnitLimitType;       // YPA_UNITLIMITTYPE_#?
     ULONG NormKeyBackup;            // falls CreateMenu oder ConfirmReq offen, steht hier die NormKey 
     LONG TipOfTheDay;
+    LONG BeamEnergyStart;           // Start-Wert fuer Beam-Gate-Kapazitaet
+    LONG BeamEnergyAdd;             // Adder fuer Beamgate-Energy
+    LONG ActBeamEnergy;             // aktuelle Energie fuer's Fahrzeuge wegbeamen
+    LONG BeamEnergyStore;           // zusammenaddierte Energie aller gebeamten Vehikel
 };
 
 #define YPA_UNITLIMITTYPE_HARD          (0) // einfaches Hardlimit

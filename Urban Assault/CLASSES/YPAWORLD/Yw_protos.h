@@ -278,6 +278,7 @@ void yw_InitGates(struct ypaworld_data *);
 void yw_BeamGateCheck(struct ypaworld_data *);
 void yw_DoLevelStatus(struct ypaworld_data *);
 ULONG yw_CountVehiclesInSector(struct ypaworld_data *, struct Cell *);
+ULONG yw_CountVehicleEnergyInSector(struct ypaworld_data *, struct Cell *);
 
 /*** yw_tooltip.c ***/
 BOOL yw_InitTooltips(struct ypaworld_data *);

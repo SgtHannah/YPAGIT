@@ -656,7 +656,7 @@ void yw_PutDebugInfo(struct ypaworld_data *ywd, struct VFMInput *ip)
 
                 /*** etwas Sektor-Info und User-Info ***/
                 str = yw_PutDbgMsg(ywd,str,&buf_ptr,"sec type/wtype: %d/%d",ywd->UVBact->Sector->Type,ywd->UVBact->Sector->WType); new_line(str);
-                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"num beam: %d",ywd->Level->MaxNumBuddies); new_line(str);
+                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"beam energy: %d",ywd->ActBeamEnergy); new_line(str);
 
                 /*** Vehicle-Anzahl-Nummern ***/
                 str = yw_PutDbgMsg(ywd,str,&buf_ptr,"num sqd: %d,%d",ywd->AllSquads,ywd->MaxSquads); new_line(str);

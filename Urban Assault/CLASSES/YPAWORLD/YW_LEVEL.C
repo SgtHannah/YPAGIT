@@ -94,7 +94,7 @@ BOOL yw_InitLevelNet(struct ypaworld_data *ywd)
                 yw_KillLevelNet(ywd);
                 return(FALSE);
             };
-            ywd->Level->MaxNumBuddies = MAXNUM_STARTBUDDIES;
+            ywd->Level->MaxNumBuddies = MAXNUM_BUDDIES;
             memset(&(ywd->Level->RaceTouched),0,sizeof(ywd->Level->RaceTouched));
             retval = TRUE;
         };
@@ -169,8 +169,9 @@ _dispatcher(ULONG, yw_YWM_BEAMNOTIFY, struct beamnotify_msg *msg)
 **                            FALSE
 **                          + oops... ich habe getestet auf
 **                            "falls b eine Gun, oder b eine Gun...",
-**                            ich schmeiß jetzt erstmal auch Raketen
+**                            ich schmeiss jetzt erstmal auch Raketen
 **                            raus...
+**      29-Jun-98   floh    + MaxNumBuddies Test bezieht jetzt die Beamenergue mit ein
 */
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
@@ -197,14 +198,15 @@ _dispatcher(ULONG, yw_YWM_BEAMNOTIFY, struct beamnotify_msg *msg)
 
         /*** ein ordinäres Vehikel... ***/
         if ((ywd->Level->NumBuddies < MAXNUM_BUDDIES) &&
-            (ywd->Level->NumBuddies < ywd->Level->MaxNumBuddies))
+            (ywd->BeamEnergyStore < ywd->ActBeamEnergy))
         {
             struct BuddyInfo *bi = &(ywd->Level->Buddies[ywd->Level->NumBuddies]);
             bi->CommandID = b->CommandID;
             bi->TypeID    = b->TypeID;
             bi->Energy    = b->Energy;
             ywd->Level->NumBuddies++;
-        }else{
+            ywd->BeamEnergyStore += (b->Maximum+99)/100; 
+        } else {
             retval = FALSE;
         };
     };
@@ -505,6 +507,36 @@ ULONG yw_CountVehiclesInSector(struct ypaworld_data *ywd,
 }    
 
 /*-----------------------------------------------------------------*/
+ULONG yw_CountVehicleEnergyInSector(struct ypaworld_data *ywd,
+                                    struct Cell *sec)
+/*
+**  FUNCTION
+**      Wie yw_CountVehiclesInSector(), zaehlt aber deren
+**      MaxEnergie zusammen.
+**
+**  CHANGED
+**      29-Jun-98   floh    created
+*/
+{
+    struct MinList *ls;
+    struct MinNode *nd;
+    ULONG energy = 0;
+    ls = &(sec->BactList);
+    for (nd=ls->mlh_Head; nd->mln_Succ; nd=nd->mln_Succ) {
+        struct Bacterium *b = (struct Bacterium *)nd;
+        if ((ACTION_DEAD    != b->MainState)   &&
+            (ACTION_BEAM    != b->MainState)   &&
+            (BCLID_YPAROBO  != b->BactClassID) &&
+            (BCLID_YPAMISSY != b->BactClassID) &&
+            (BCLID_YPAGUN   != b->BactClassID))
+        {
+            energy += (b->Maximum+99)/100;
+        };
+    };
+    return(energy);
+}    
+
+/*-----------------------------------------------------------------*/
 void yw_BeamGateCheck(struct ypaworld_data *ywd)
 /*
 **  FUNCTION
@@ -523,7 +555,9 @@ void yw_BeamGateCheck(struct ypaworld_data *ywd)
 **                            Warnung aus.
 **      11-Jun-98   floh    + Beamgate Open wird jetzt zyklisch ausgegeben,
 **                            solange noch nicht full
-*/
+**      29-Jun-98   floh    + NumBeam-Check jetzt mit Energie, nicht mehr
+**                            Anzahl Vehikel
+*/                           
 {
     ULONG i;
 
@@ -579,9 +613,9 @@ void yw_BeamGateCheck(struct ypaworld_data *ywd)
         /*** MaxNumBuddies Test ***/
         if (WTYPE_OpenedGate == status) {
             /*** teste alle Vehikel im Sektor ***/
-            ULONG b_count = yw_CountVehiclesInSector(ywd,g->sec);
-            if (b_count >= ywd->Level->MaxNumBuddies) {
-                /*** Grenze ist überschritten ***/
+            ULONG b_energy = yw_CountVehicleEnergyInSector(ywd,g->sec);
+            if (b_energy > ywd->ActBeamEnergy) {
+                /*** Grenze ist ueberschritten ***/
                 LONG td = ywd->TimeStamp - ywd->GateFullMsgTimeStamp;
                 if (td > 20000) {
                     struct logmsg_msg lm;

@@ -530,6 +530,7 @@ ULONG yw_VhclProtoParser(struct ScriptParser *p)
 **      24-Sep-97   floh    + <vo_type> Keyword
 **      01-Oct-97   floh    + <add_energy>, <add_shield>, <add_radar>
 **      16-Dec-97   floh    + touch_stone Struktur wird ausgefuellt
+**      29-Jun-98   floh    + zusaetzliche Vehikel-Wireframes
 */
 {
     UBYTE *kw   = p->keyword;
@@ -558,6 +559,22 @@ ULONG yw_VhclProtoParser(struct ScriptParser *p)
                 if (vp->wireframe_object) {
                     _dispose(vp->wireframe_object);
                     vp->wireframe_object = NULL;
+                };
+                if (vp->hud_wf_object) {
+                    _dispose(vp->hud_wf_object);
+                    vp->hud_wf_object = NULL;
+                };
+                if (vp->mg_wf_object) {
+                    _dispose(vp->mg_wf_object);
+                    vp->mg_wf_object = NULL;
+                };
+                if (vp->weapon_wf_object_1) {
+                    _dispose(vp->weapon_wf_object_1);
+                    vp->weapon_wf_object_1 = NULL;
+                };
+                if (vp->weapon_wf_object_2) {
+                    _dispose(vp->weapon_wf_object_2);
+                    vp->weapon_wf_object_2 = NULL;
                 };
                 memset(vp, 0, sizeof(struct VehicleProto));
 
@@ -872,13 +889,39 @@ ULONG yw_VhclProtoParser(struct ScriptParser *p)
         }else if (stricmp(kw, "kamikaze") == 0) {
             yw_AddVhclTag(vp,YCA_Kamikaze,TRUE);
             yw_AddVhclTag(vp,YCA_Blast,strtol(data,NULL,0));
+        
+        /*** Wireframe Objekte ***/
         }else if (stricmp(kw, "wireframe") == 0){
-            /*** vorher aufräumen... ***/
             if (vp->wireframe_object) {
                 _dispose(vp->wireframe_object);
                 vp->wireframe_object = NULL;
             };
             vp->wireframe_object = _new("sklt.class",RSA_Name,data,TAG_DONE);
+
+        }else if (stricmp(kw, "hud_wireframe") == 0){
+            if (vp->hud_wf_object) {
+                _dispose(vp->hud_wf_object);
+                vp->hud_wf_object = NULL;
+            };
+            vp->hud_wf_object = _new("sklt.class",RSA_Name,data,TAG_DONE);
+        }else if (stricmp(kw, "mg_wireframe") == 0){
+            if (vp->mg_wf_object) {
+                _dispose(vp->mg_wf_object);
+                vp->mg_wf_object = NULL;
+            };
+            vp->mg_wf_object = _new("sklt.class",RSA_Name,data,TAG_DONE);
+        }else if (stricmp(kw, "wpn_wireframe_1") == 0){
+            if (vp->weapon_wf_object_1) {
+                _dispose(vp->weapon_wf_object_1);
+                vp->weapon_wf_object_1 = NULL;
+            };
+            vp->weapon_wf_object_1 = _new("sklt.class", RSA_Name, data, TAG_DONE);
+        }else if (stricmp(kw, "wpn_wireframe_2") == 0){
+            if (vp->weapon_wf_object_2) {
+                _dispose(vp->weapon_wf_object_2);
+                vp->weapon_wf_object_2 = NULL;
+            };
+            vp->weapon_wf_object_2 = _new("sklt.class", RSA_Name, data, TAG_DONE);
 
         /*** Sound-FX ***/
         }else if (stricmp(kw, "vo_type") == 0) {

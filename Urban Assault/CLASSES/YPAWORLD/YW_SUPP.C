@@ -1157,6 +1157,8 @@ ULONG yw_WorldMiscParser(struct ScriptParser *p)
 **      10-Jun-98   floh    + unit_limit Keyword
 **                          + unit_limit_type Keyword
 **                          + unit_limit_value Keyword
+**      29-Jun-98   floh    + beam_energy_start Keyword
+**                          + beam_energy_add Keyword
 */
 {
     UBYTE *kw   = p->keyword;
@@ -1170,6 +1172,8 @@ ULONG yw_WorldMiscParser(struct ScriptParser *p)
             ywd->GlobalUnitLimit     = 512;
             ywd->GlobalUnitLimitType = YPA_UNITLIMITTYPE_HARD;
             ywd->GlobalUnitLimitArg  = 0;
+            ywd->BeamEnergyStart     = YPA_BEAMENERGY_START_DEF;
+            ywd->BeamEnergyAdd       = YPA_BEAMENERGY_ADD_DEF;
             p->status = PARSESTAT_RUNNING;
             return(PARSE_ENTERED_CONTEXT);
         } else return(PARSE_UNKNOWN_KEYWORD);
@@ -1212,6 +1216,8 @@ ULONG yw_WorldMiscParser(struct ScriptParser *p)
         else if (stricmp(kw,"unit_limit")==0)         ywd->GlobalUnitLimit     = strtol(data,NULL,0);
         else if (stricmp(kw,"unit_limit_type")==0)    ywd->GlobalUnitLimitType = strtol(data,NULL,0);
         else if (stricmp(kw,"unit_limit_arg")==0)     ywd->GlobalUnitLimitArg  = strtol(data,NULL,0);            
+        else if (stricmp(kw,"beam_energy_start")==0)  ywd->BeamEnergyStart     = strtol(data,NULL,0);
+        else if (stricmp(kw,"beam_energy_add")==0)    ywd->BeamEnergyAdd       = strtol(data,NULL,0);                            
                             
         /*** UNKNOWN KEYWORD ***/
         else return(PARSE_UNKNOWN_KEYWORD);

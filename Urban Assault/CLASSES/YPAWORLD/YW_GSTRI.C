@@ -5721,7 +5721,10 @@ void yw_EAR_Create( struct GameShellReq *GSR )
     GSR->D_InputMode = DIM_NONE;
 
     /*** Maximale Fahrzeugzahl fuer Beamgate ruecksetzen ***/
-    GSR->ywd->Level->MaxNumBuddies = MAXNUM_STARTBUDDIES;
+    GSR->ywd->Level->MaxNumBuddies = MAXNUM_BUDDIES;
+    
+    /*** maximale Beamenergie initialisieren ***/
+    GSR->ywd->ActBeamEnergy = GSR->ywd->BeamEnergyStart;    
 
     /*** "Contact"-Flags ruecksetzen ***/
     memset( GSR->ywd->Level->RaceTouched, 0, sizeof( GSR->ywd->Level->RaceTouched ));
