@@ -52,6 +52,7 @@ unsigned long yw_GetTickCount(void)
         /*** Performance-Counter existiert, alles klar... ***/
         LARGE_INTEGER cnt;
         QueryPerformanceCounter(&cnt);
+        cnt.HighPart = 0;
         return(_tick_div(cnt.LowPart,cnt.HighPart,(freq.LowPart/10000)));
     } else return(0);
 }
