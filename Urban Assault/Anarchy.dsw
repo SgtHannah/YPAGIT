@@ -1,0 +1,74 @@
+Microsoft Developer Studio Workspace File, Format Version 5.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "DBCS"=.\Libs\Win\DBCS.DSP - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "VFM"=.\Libs\Win\Vfm.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "WINYPA"=.\YPA\WINYPA.DSP - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name DBCS
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name VFM
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name YPA
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "YPA"=.\Libs\Win\YPA.DSP - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+
