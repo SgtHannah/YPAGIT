@@ -47,6 +47,8 @@ struct ConfigItem ypa_ConfigItems[YPA_NUM_CONFIG_ITEMS] = {
     {"ypa.alt_joy_model", CONFIG_BOOL, FALSE },
 };
 
+extern unsigned long wdd_DoDirect3D;
+
 /*=================================================================**
 **  Profiler Stuff                                                 **
 **=================================================================*/
@@ -690,63 +692,62 @@ void yw_KillSet(struct ypaworld_data *ywd)
 **      03-Apr-97   floh    + DISPM_EndSession
 **      24-Feb-98   floh    + alternative Kollisionsskeletons
 **      13-Mar-98   floh    + Maus wird gekillt
+**      29-May-98   floh    + Set-Object wird nicht mehr gekillt
+**                          + Set-Object wird dorch wieder gekillt...
 */
 {
-    if (ywd->ActSet != 0) {
+    Object *gfxo;
 
-        Object *gfxo;
+    yw_KillVPSet(ywd);      // VisProtos
+    yw_KillLegoSet(ywd);    // Legos
+    yw_KillSlurpSet(ywd);   // Slurps
 
-        yw_KillVPSet(ywd);      // VisProtos
-        yw_KillLegoSet(ywd);    // Legos
-        yw_KillSlurpSet(ywd);   // Slurps
+    /*** SubSec- und Sector-Arrays cleanen ***/
+    memset(ywd->SubSects,0,MAXNUM_SUBSECTS*sizeof(struct SubSectorDesc));
+    memset(ywd->Sectors,0,MAXNUM_SECTORS*sizeof(struct SectorDesc));
 
-        /*** SubSec- und Sector-Arrays cleanen ***/
-        memset(ywd->SubSects,0,MAXNUM_SUBSECTS*sizeof(struct SubSectorDesc));
-        memset(ywd->Sectors,0,MAXNUM_SECTORS*sizeof(struct SectorDesc));
-
-        /*** BeeBox-Object ***/
-        if (ywd->BeeBox) {
-            _dispose(ywd->BeeBox);
-            ywd->BeeBox = NULL;
-        };
-
-        /*** Alternative Kollisions-Skeletons ***/
-        if (ywd->AltCollSubObject) {
-            _dispose(ywd->AltCollSubObject);
-            ywd->AltCollSubObject = NULL;
-            ywd->AltCollSubSklt   = NULL;
-        };
-        if (ywd->AltCollCompactObject) {
-            _dispose(ywd->AltCollCompactObject);
-            ywd->AltCollCompactObject = NULL;
-            ywd->AltCollCompactSklt   = NULL;
-        };
-
-        /*** Remap-Tables ***/
-        if (ywd->TracyRemap) {
-            _dispose(ywd->TracyRemap);
-            ywd->TracyRemap = NULL;
-        };
-        if (ywd->ShadeRemap) {
-            _dispose(ywd->ShadeRemap);
-            ywd->ShadeRemap = NULL;
-        };
-
-        /*** Fonts killen ***/
-        yw_KillFontSet(ywd);
-
-        /*** und finally, das Set-Object + ActSet-ID cleanen ***/
-        if (ywd->SetObject) {
-            _dispose(ywd->SetObject);
-            ywd->SetObject = NULL;
-        };
-        ywd->ActSet = 0;
-
-        /*** DISPM_EndSession ***/
-        _OVE_GetAttrs(OVET_Object,&gfxo,TAG_DONE);
-        _methoda(gfxo,DISPM_EndSession,NULL);
-        yw_KillMouse(ywd);
+    /*** BeeBox-Object ***/
+    if (ywd->BeeBox) {
+        _dispose(ywd->BeeBox);
+        ywd->BeeBox = NULL;
     };
+
+    /*** Alternative Kollisions-Skeletons ***/
+    if (ywd->AltCollSubObject) {
+        _dispose(ywd->AltCollSubObject);
+        ywd->AltCollSubObject = NULL;
+        ywd->AltCollSubSklt   = NULL;
+    };
+    if (ywd->AltCollCompactObject) {
+        _dispose(ywd->AltCollCompactObject);
+        ywd->AltCollCompactObject = NULL;
+        ywd->AltCollCompactSklt   = NULL;
+    };
+
+    /*** Remap-Tables ***/
+    if (ywd->TracyRemap) {
+        _dispose(ywd->TracyRemap);
+        ywd->TracyRemap = NULL;
+    };
+    if (ywd->ShadeRemap) {
+        _dispose(ywd->ShadeRemap);
+        ywd->ShadeRemap = NULL;
+    };
+
+    /*** Fonts killen ***/
+    yw_KillFontSet(ywd);
+    
+    /*** Set Object killen ***/
+    if (ywd->SetObject) {
+        _dispose(ywd->SetObject);
+        ywd->SetObject = NULL;
+        ywd->ActSet = 0;
+    };        
+
+    /*** DISPM_EndSession ***/
+    _OVE_GetAttrs(OVET_Object,&gfxo,TAG_DONE);
+    _methoda(gfxo,DISPM_EndSession,NULL);
+    yw_KillMouse(ywd);
 }
 
 /*-----------------------------------------------------------------*/
@@ -908,7 +909,7 @@ Object *yw_LoadSetObject(void)
             /*** slurp.base ***/
             slurp = _load("rsrc:objects/slurp.base");
             if (!slurp) {
-                _LogMsg("%s init: no slurp.base, trying single load.\n");
+                _LogMsg("init: no slurp.base, trying single load.\n");
                 slurp = yw_LoadFromList("rsrc:scripts/slurps.lst");
             };
             if (slurp)  _method(set, BSM_ADDCHILD, (ULONG)slurp);
@@ -968,6 +969,7 @@ BOOL yw_LoadSet(struct ypaworld_data *ywd, ULONG set_num)
 **      25-May-98   floh    + Maus wird jetzt am Ende der Routine initialisiert,
 **                            damit irgendwelche Warte-Pointer nicht 
 **                            ueberschrieben werden.
+**      29-May-98   floh    + jetzt mit Load-Optimierung beim Set-Object
 */
 {
     UBYTE *str;
@@ -976,6 +978,10 @@ BOOL yw_LoadSet(struct ypaworld_data *ywd, ULONG set_num)
     struct VFMBitmap *tracy_rmp;
     struct VFMBitmap *shade_rmp;
     ULONG res;
+    struct MinList *ls;
+    struct MinNode *nd;
+    ULONG j;
+    APTR sdf;
 
     _OVE_GetAttrs(OVET_Object,&(ywd->GfxObject),TAG_DONE);
 
@@ -1005,26 +1011,37 @@ BOOL yw_LoadSet(struct ypaworld_data *ywd, ULONG set_num)
         return(FALSE);
     };
 
-    /*** Set-Object laden ***/
+    /*** Set-Object bei Bedarf laden ***/
     _SetAssign("rsrc",set_path);
     if (!_LoadColorMap("palette/standard.pal")) {
         _LogMsg("WARNING: Could not load set default palette!\n");
     };
-    if (ywd->SetObject = yw_LoadSetObject()) {
-
-        struct MinList *ls;
-        struct MinNode *nd;
-        ULONG j;
-        APTR sdf;
-
-        /*** Set-Description-File öffnen ***/
+    
+    /*** Set-Object bei Bedarf laden ***/
+    if ((set_num != ywd->ActSet) && (set_num != 46)) {
+        if (ywd->SetObject) {
+            _LogMsg("yw_LoadSet(): killing set object %d\n",ywd->ActSet);
+            _dispose(ywd->SetObject);
+            ywd->SetObject = NULL;
+            ywd->ActSet    = 0;
+        };
+        if (ywd->SetObject = yw_LoadSetObject()) {
+            ywd->ActSet = set_num;
+            _LogMsg("yw_LoadSet(): loaded set object %d ok\n",set_num);
+        } else {
+            ywd->ActSet = 0;
+            _LogMsg("yw_LoadSet(): loading set object %d failed\n",set_num);
+            _SetAssign("rsrc",old_path);
+            return(FALSE);
+        };
+    };
+    
+    /*** Set-Description-File parsen ***/
+    if (set_num != 46) {
         if (sdf = _FOpen("rsrc:scripts/set.sdf", "r")) {
-
             _get(ywd->SetObject, BSA_ChildList, &ls);
             for (j=0,nd=ls->mlh_Head; nd->mln_Succ; nd=nd->mln_Succ,j++) {
-
                 Object *child = ((struct ObjectNode *)nd)->Object;
-
                 switch(j) {
                     case 0:
                         /*** visproto.base ***/
@@ -1045,15 +1062,10 @@ BOOL yw_LoadSet(struct ypaworld_data *ywd, ULONG set_num)
                 };
             };
             _FClose(sdf);
-
         } else {
             _LogMsg("Couldn't open set description file, set %d!\n",set_num);
             return(FALSE);
         };
-
-    } else {
-        _LogMsg("Couldn't create fat base object\n");
-        return(FALSE);
     };
 
     /*** Remap Tables initialisieren ***/
@@ -1098,9 +1110,6 @@ BOOL yw_LoadSet(struct ypaworld_data *ywd, ULONG set_num)
 
     /*** Mauspointer initialisieren ***/
     yw_InitMouse(ywd);
-
-    /*** ActSet-Slot "besetzen" ***/
-    ywd->ActSet = set_num;
 
     /*** that's all ***/
     return(TRUE);
@@ -2265,13 +2274,11 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
         do_soft_mouse    = ywd->Prefs.Flags & YPA_PREFS_SOFTMOUSE;
         do_txt_filtering = ywd->Prefs.Flags & YPA_PREFS_FILTERING;
         _set(ywd->GfxObject,WINDDA_CursorMode,(do_soft_mouse ? WINDD_CURSORMODE_SOFT:WINDD_CURSORMODE_HW));
-        #ifdef __DBCS__
         if (ywd->DspXRes < 512) {
             dbcs_SetFont(ypa_GetStr(ywd->LocHandle,STR_FONTDEFINE_LRES,"Arial,8,400,0"));
         } else {
             dbcs_SetFont(ypa_GetStr(ywd->LocHandle,STR_FONTDEFINE,"MS Sans Serif,12,400,0"));
         };
-        #endif
     };
     yw_ShowDiskAccess(ywd);
     yw_InitProfiler(ywd);

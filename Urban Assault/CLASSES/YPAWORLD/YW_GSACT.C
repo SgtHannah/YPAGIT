@@ -43,6 +43,8 @@ extern UBYTE  **GlobalLocaleHandle;
 #include "yw_protos.h"
 #include "yw_gsprotos.h"
 
+extern unsigned long wdd_DoDirect3D;
+
 _dispatcher( BOOL, yw_YWM_SETGAMEINPUT, struct GameShellReq *GSR )
 {
 /*
@@ -214,7 +216,7 @@ _dispatcher( BOOL, yw_YWM_SETGAMEVIDEO, struct setgamevideo_msg *sgv)
             _OVE_SetAttrs( OVET_ModeInfo,  GSR->ywd->ShellRes, TAG_DONE );
             _OVE_GetAttrs( OVET_ModeInfo, &mi, TAG_DONE );
             _IE_SetAttrs(  IET_ModeInfo,   mi, TAG_DONE );
-
+            
             _OVE_GetAttrs( OVET_XRes, &xres, OVET_YRes, &yres, TAG_DONE );
             ywd->DspXRes = (WORD) xres;
             ywd->DspYRes = (WORD) yres;

@@ -47,6 +47,7 @@
 #define OVET_Display    (OVET_BASE+12)  // (G) Ptr auf Frame-Buffer
 
 #define OVET_Object     (OVET_BASE+13)  // (G) Ptr auf eingebettetes Object
+#define OVET_MoreAttrs  (OVET_BASE+14)  // (I) Pointer auf Display-Object-Attribute
 
 /*-------------------------------------------------------------------
 **  Config-Stuff

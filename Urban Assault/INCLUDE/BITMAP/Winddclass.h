@@ -153,9 +153,10 @@
 **          Schaltet zwischen Hard- und Software-Cursor um,
 **          (WINDD_CURSORMODE_HW, WINDD_CURSORMODE_SOFT).
 **
-**      WINDDA_TextureFilter (S)
-**      WINDDA_ForceAlphaTextures (S)
-**      WINDDA_DisableLowres (S)
+**      WINDDA_TextureFilter    (S)
+**      WINDDA_16BitTextures    (I)
+**      WINDDA_UseDrawPrimitive (S)
+**      WINDDA_DisableLowres    (S)
 **-----------------------------------------------------------------*/
 
 #define WINDD_PAINTMODE_FLIP    (0)
@@ -179,6 +180,8 @@
     #define WINDDA_CursorMode       (WINDDA_BASE)
     #define WINDDA_TextureFilter    (WINDDA_BASE+1)
     #define WINDDA_DisableLowres    (WINDDA_BASE+2)
+    #define WINDDA_16BitTextures    (WINDDA_BASE+3)
+    #define WINDDA_UseDrawPrimitive (WINDDA_BASE+4)
 
     #define WINDD_CLASSID "drivers/gfx/windd.class"
 

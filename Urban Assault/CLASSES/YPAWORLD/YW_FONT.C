@@ -201,7 +201,9 @@ struct VFMFont *yw_BuildFont(UBYTE *fpage,
                     fnt->fchars[i].width  = x_size;
                 };
             };
+            _LogMsg("yw_BuildFont(): font #%d created from %s ok.\n",fnum,fpage);            
         } else {
+            _LogMsg("yw_BuildFont(): font #%d created from %s FAILED.\n",fnum,fpage);            
             yw_FreeFont(fnt);
             fnt = NULL;
         };
@@ -289,11 +291,13 @@ struct VFMFont *yw_LoadFont(struct ypaworld_data *ywd, UBYTE *fontname)
                     } else {
                         /*** konnte FontPage nicht laden ***/
                         yw_FreeFont(fnt);
+                        _LogMsg("yw_LoadFont(): font %s, couldn't load fontpage %s.\n",fontname,tok);
                         return(NULL);
                     };
                 } else {
                     /*** Font-Description-File mangled ***/
                     yw_FreeFont(fnt);
+                    _LogMsg("yw_LoadFont(): font %s, font definition file corrupt.\n",fontname);
                     return(NULL);
                 };
 
@@ -302,12 +306,14 @@ struct VFMFont *yw_LoadFont(struct ypaworld_data *ywd, UBYTE *fontname)
                     fnt->height = strtol(tok, &dummy, 0);
                 } else {
                     /*** Font-Description-File mangled ***/
+                    _LogMsg("yw_LoadFont(): font %s, font definition file corrupt.\n",fontname);
                     yw_FreeFont(fnt);
                     return(NULL);
                 };
 
             } else {
                 /*** unexpected EOF ***/
+                _LogMsg("yw_LoadFont(): font %s, font definition file corrupt.\n",fontname);
                 yw_FreeFont(fnt);
                 return(NULL);
             };
@@ -373,6 +379,7 @@ struct VFMFont *yw_LoadFont(struct ypaworld_data *ywd, UBYTE *fontname)
 
         /*** File schlieﬂen ***/
         _FClose(file);
+        _LogMsg("yw_LoadFont(): font %s loaded ok.\n",fontname);
     };
     return(fnt);
 }
@@ -427,6 +434,8 @@ BOOL yw_LoadFontSet(struct ypaworld_data *ywd)
 {
     struct VFMFont *fnt;
     LONG id;
+    
+    _LogMsg("yw_LoadFontSet() entered.\n");    
 
     /*** erstmal die Font-Description-File-Fonts ***/
     for (id=0; id<NUM_YPAFONTS; id++) {
@@ -571,6 +580,7 @@ BOOL yw_LoadFontSet(struct ypaworld_data *ywd)
     ywd->LowerTabu = ywd->IconBH;
 
     /*** Phew... ***/
+    _LogMsg("yw_LoadFontSet() left.\n");    
     return(TRUE);
 }
 
@@ -589,13 +599,12 @@ void yw_KillFontSet(struct ypaworld_data *ywd)
 */
 {
     ULONG i;
-
+    _LogMsg("yw_KillFontSet() entered.\n");    
     for (i=0; i<MAXNUM_FONTS; i++) {
         if (ywd->Fonts[i]) yw_FreeFont(ywd->Fonts[i]);
     };
-
-    /*** Radikal ***/
     memset(ywd->Fonts,0,sizeof(ywd->Fonts));
+    _LogMsg("yw_KillFontSet() left.\n");    
 }
 
 

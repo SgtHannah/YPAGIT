@@ -485,6 +485,7 @@ _dispatcher(Object *, wdd_OM_NEW, struct TagItem *attrs)
     UBYTE  *cm;
     ULONG  id,res,t=0;
     APTR fp;
+    struct TagItem *txt_ti;
     memset(ti,0,sizeof(ti));
     #define ENV_NAME ("env/vid.def")
 
@@ -528,6 +529,11 @@ _dispatcher(Object *, wdd_OM_NEW, struct TagItem *attrs)
     wdd->forcealphatextures = wdd_ConfigItems[3].data;
     wdd->usedrawprimitive   = wdd_ConfigItems[4].data;
     wdd->disablelowres      = wdd_ConfigItems[5].data;
+    
+    if (txt_ti = _FindTagItem(WINDDA_16BitTextures,attrs)) {
+        if (txt_ti->ti_Data) wdd->forcealphatextures = TRUE;
+        else                 wdd->forcealphatextures = FALSE;
+    };    
     
     /*** Mode-Flags auswerten ***/
     if (idnode->data[0] & WINDDF_IsWindowed)    wdd->flags |= WINDDF_IsWindowed;

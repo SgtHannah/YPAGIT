@@ -712,9 +712,17 @@ _dispatcher(BOOL, yw_OM_DISPOSE, void *ignored)
 **      23-Sep-97   floh    + falls existent, werden die Maps gekillt
 **                            (es kann passieren, daß diese vom Debriefing,
 **                            oder abgebrochenen Briefings übrigbleiben)
+**      29-May-98   floh    + killt jetzt Set-Object, falls vorhanden
 */
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
+    
+    /*** Set Object killen ***/
+    if (ywd->SetObject) {
+        _dispose(ywd->SetObject);
+        ywd->SetObject = NULL;
+        ywd->ActSet    = 0;
+    };    
 
     #ifdef __NETWORK__
     yw_KillNetwork( ywd );

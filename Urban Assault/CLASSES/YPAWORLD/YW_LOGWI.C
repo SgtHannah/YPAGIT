@@ -460,6 +460,7 @@ void yw_RenderQuickLog(struct ypaworld_data *ywd)
 **      06-Feb-98   floh    + Beschleuniger etwas runtergedreht
 **                          + auf 10 Zeilen max begrenzt, weil es einen
 **                            Absturz gab, wenn das Display voll war.
+**      29-May-98   floh    + Quicklog-Meldungen kommen jetzt am linken Rand
 */
 {
     /*** Alter der letzten Message ermitteln ***/
@@ -469,7 +470,8 @@ void yw_RenderQuickLog(struct ypaworld_data *ywd)
     struct drawtext_args dt;
     LONG time_diff, time_stamp;
     ULONG first_hit = FALSE;
-    WORD xpos = ywd->DspXRes/5;
+    // old: WORD xpos = ywd->DspXRes/5;
+    WORD xpos = 16;
 
     /*** Tech Upgrade, oder Logmsgs anzeigen? ***/
     if (!yw_RenderTechUpgrade(ywd)) {

@@ -151,6 +151,7 @@ void yw_MBKillSet(struct ypaworld_data *ywd)
 **
 **  CHANGED
 **      18-Oct-96   floh    created
+**      29-May-98   floh    + killt jetzt nicht mehr das SetObject
 */
 {
     Object *gfxo;
@@ -165,6 +166,7 @@ void yw_MBKillSet(struct ypaworld_data *ywd)
     if (ywd->SetObject) {
         _dispose(ywd->SetObject);
         ywd->SetObject = NULL;
+        ywd->ActSet = 0;
     };
 
     /*** DISPM_EndSession ***/
@@ -190,29 +192,46 @@ BOOL yw_MBLoadSet(struct ypaworld_data *ywd, ULONG set_num)
 **                            zu spaet, weil beim Triggern
 **                            generell durch das 3D-Rendering
 **                            gegangen wurde (konnte crashen)
+**      29-May-98   floh    + laedt das SetObject nur noch,
+**                            wenn SetNummer ungleich dem geladenen
+**                            Set ist.
 */
 {
     Object *gfxo;
     UBYTE old_path[256];
     UBYTE set_path[256];
     BOOL retval = TRUE;
+    struct MinList *ls;
+    struct MinNode *nd;
+    ULONG j;
+    APTR sdf;
 
     /*** Set-Pfad einstellen ***/
     strcpy(old_path,_GetAssign("rsrc"));
     sprintf(set_path,"data:set%d:",set_num);
     _SetAssign("rsrc",set_path);
+    
+    /*** Set-Object bei Bedarf laden ***/
+    if ((set_num != ywd->ActSet) && (set_num != 46)) {
+        if (ywd->SetObject) {
+            _LogMsg("yw_MBLoadSet(): killing set object %d\n",ywd->ActSet);
+            _dispose(ywd->SetObject);
+            ywd->SetObject = NULL;
+            ywd->ActSet    = 0;
+        };
+        if (ywd->SetObject = yw_LoadSetObject()) {
+            ywd->ActSet = set_num;
+            _LogMsg("yw_LoadSet(): loaded set object %d ok\n",set_num);
+        } else {
+            _LogMsg("yw_MBLoadSet(): loading set object %d failed\n",set_num);
+            _SetAssign("rsrc",old_path);
+            return(FALSE);
+        };
+    };
 
-    /*** Set-Object laden ***/
-    if (ywd->SetObject = yw_LoadSetObject()) {
-
-        struct MinList *ls;
-        struct MinNode *nd;
-        ULONG j;
-        APTR sdf;
-
-        /*** Set-Description-File öffnen ***/
+    /*** Set-Description-File parsen ***/
+    if (set_num != 46) {
         if (sdf = _FOpen("rsrc:scripts/set.sdf", "r")) {
-
             _get(ywd->SetObject, BSA_ChildList, &ls);
             for (j=0,nd=ls->mlh_Head; nd->mln_Succ; nd=nd->mln_Succ,j++) {
 
@@ -238,16 +257,11 @@ BOOL yw_MBLoadSet(struct ypaworld_data *ywd, ULONG set_num)
                 };
             };
             _FClose(sdf);
-
         } else {
             _LogMsg("Briefing: no set description file.\n");
             retval = FALSE;
         };
-
-    } else {
-        _LogMsg("Briefing: No fat base object\n");
-        retval = FALSE;
-    };   
+    };
 
     /*** alten Resource-Pfad wiederherstellen ***/
     _SetAssign("rsrc",old_path);
@@ -1458,12 +1472,10 @@ void yw_MBMapDone(struct ypaworld_data *ywd,
     mb->TextTimeStamp = mb->TimeStamp;
 
     /*** falls noch nicht passiert, Set laden ***/
-    if (!ywd->SetObject) {
-        if (!yw_MBLoadSet(ywd,mb->LevelDesc.set_num)) {
-            /*** Flucht nach vorn... ***/
-            mb->Status = MBSTATUS_STARTLEVEL;
-            return;
-        };
+    if (!yw_MBLoadSet(ywd,mb->LevelDesc.set_num)) {
+        /*** Flucht nach vorn... ***/
+        mb->Status = MBSTATUS_STARTLEVEL;
+        return;
     };
     mb->Status = MBSTATUS_L1_START;
 
