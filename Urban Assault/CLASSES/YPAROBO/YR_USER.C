@@ -643,35 +643,18 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
             ** erfolgen. Also setzen wir das Ziel einfach, so dass
             ** NEARTOCOM daten hat und dann machen wir es nochmal richtig.
             ** ---------------------------------------------------------*/
+                
             if( msg->tarsec ) {
-
-                m = yr_SetSectorTarget( msg->selbact, msg->tarpoint.x, msg->tarpoint.z );
+                target.pos.x       = msg->tarpoint.x;
+                target.pos.z       = msg->tarpoint.z;
+                target.target_type = TARTYPE_SECTOR;
                 }
             else {
-
-                m = yr_SetBactTarget( msg->selbact, msg->tarbact );
+                target.target.bact = msg->tarbact;
+                target.target_type = TARTYPE_BACTERIUM;
                 }
-                
-            /*** war es moeglich, dieses Ziel anzunehmen ***/
-            if( !m ) {
-            
-                /*** nicht moeglich ***/
-                if( yrd->ywd->gsr )
-                    _StartSoundSource( &(yrd->ywd->gsr->ShellSound2), SHELLSOUND_ERROR );
-                break;
-                } 
-                
-//            if( msg->tarsec ) {
-//                target.pos.x       = msg->tarpoint.x;
-//                target.pos.z       = msg->tarpoint.z;
-//                target.target_type = TARTYPE_SECTOR;
-//                }
-//            else {
-//                target.target.bact = msg->tarbact;
-//                target.target_type = TARTYPE_BACTERIUM;
-//                }
-//            target.priority    = 0;
-//            _methoda( msg->selbact->BactObject, YBM_SETTARGET, &target);
+            target.priority    = 0;
+            _methoda( msg->selbact->BactObject, YBM_SETTARGET, &target);
 
             /*** Geschwader evtl. umschichten ***/
             if( !yr_IsComNearest( msg->selbact ) ) {
@@ -701,32 +684,35 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
             /*** war es moeglich, dieses Ziel anzunehmen ***/
             if( !m ) {
             
-                /*** nicht moeglich ***/
-                break;
-                } 
+                /*** nicht moeglich, nur Sound ***/
+                if( yrd->ywd->gsr )
+                    _StartSoundSource( &(yrd->ywd->gsr->ShellSound2), SHELLSOUND_ERROR );
+                }
+            else { 
 
-            /*** selbact oder sein Master ist Sender für M. ***/
-            if( msg->selbact->master == msg->selbact->robo )
-                log.sender = msg->selbact;
-            else
-                log.sender = msg->selbact->master_bact;
-            log.para1 = log.para2 = log.para3 = 0;
-            if( TARTYPE_SECTOR == log.sender->PrimTargetType ) {
-                if( log.sender->PrimaryTarget.Sector->Owner ==
-                    yrd->bact->Owner )
-                    log.ID = LOGMSG_ORDERMOVE;
+                /*** selbact oder sein Master ist Sender für M. ***/
+                if( msg->selbact->master == msg->selbact->robo )
+                    log.sender = msg->selbact;
                 else
-                    log.ID = LOGMSG_ORDERATTACK;
+                    log.sender = msg->selbact->master_bact;
+                log.para1 = log.para2 = log.para3 = 0;
+                if( TARTYPE_SECTOR == log.sender->PrimTargetType ) {
+                    if( log.sender->PrimaryTarget.Sector->Owner ==
+                        yrd->bact->Owner )
+                        log.ID = LOGMSG_ORDERMOVE;
+                    else
+                        log.ID = LOGMSG_ORDERATTACK;
+                    }
+                else {
+                    if( log.sender->PrimaryTarget.Bact->Owner ==
+                        yrd->bact->Owner )
+                        log.ID = LOGMSG_ORDERMOVE;
+                    else
+                        log.ID = LOGMSG_ORDERATTACK;
+                    }
+                log.pri = 38;
+                _methoda( yrd->bact->BactObject, YRM_LOGMSG, &log );
                 }
-            else {
-                if( log.sender->PrimaryTarget.Bact->Owner ==
-                    yrd->bact->Owner )
-                    log.ID = LOGMSG_ORDERMOVE;
-                else
-                    log.ID = LOGMSG_ORDERATTACK;
-                }
-            log.pri = 38;
-            _methoda( yrd->bact->BactObject, YRM_LOGMSG, &log );
 
             /*** Slaves Nebenziele loeschen ***/
             yr_ClearSecondaryTargets( msg->selbact );
@@ -770,23 +756,12 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
                     }
                 else {
                     
-                    if( m ) {
-                    
-                        /*** Punkte kopieren ***/
-                        msg->selbact->num_waypoints   = 1;
-                        msg->selbact->waypoint[ 0 ].x = msg->tarpoint.x;
-                        msg->selbact->waypoint[ 0 ].z = msg->tarpoint.z;
-                        }
-                    else {
-                        
-                        /*** nicht moeglich ***/
-                        if( yrd->ywd->gsr )
-                            _StartSoundSource( &(yrd->ywd->gsr->ShellSound2), SHELLSOUND_ERROR );
-                        msg->selbact->ExtraState &= ~EXTRA_DOINGWAYPOINT;
-                        yrd->ywd->NumWayPoints = 0;
-                        yrd->ywd->WayPointMode = FALSE;
-                        break;
-                        }
+                    /*** Punkte einfach kopieren, aber warnton(?) ***/
+                    msg->selbact->num_waypoints   = 1;
+                    msg->selbact->waypoint[ 0 ].x = msg->tarpoint.x;
+                    msg->selbact->waypoint[ 0 ].z = msg->tarpoint.z;
+                    if( yrd->ywd->gsr )
+                        _StartSoundSource( &(yrd->ywd->gsr->ShellSound2), SHELLSOUND_ERROR );
                     }
                 }
             else {
@@ -862,20 +837,14 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
                     }
                 else {
                 
-                    if( m ) {
-                        
-                        /*** Punkte kopieren ***/
-                        msg->selbact->waypoint[ msg->selbact->num_waypoints ].x = msg->tarpoint.x;
-                        msg->selbact->waypoint[ msg->selbact->num_waypoints ].z = msg->tarpoint.z;
-                        msg->selbact->num_waypoints  += 1;
-                        }
-                    else {
+                    /*** Punkte kopieren ***/
+                    msg->selbact->waypoint[ msg->selbact->num_waypoints ].x = msg->tarpoint.x;
+                    msg->selbact->waypoint[ msg->selbact->num_waypoints ].z = msg->tarpoint.z;
+                    msg->selbact->num_waypoints  += 1;
                     
-                        /*** nicht moeglich ***/
-                        if( yrd->ywd->gsr )
-                            _StartSoundSource( &(yrd->ywd->gsr->ShellSound2), SHELLSOUND_ERROR );
-                        break;
-                        }
+                    /*** Warnton, weil Panzer dort nicht hinkommen ***/
+                    if( yrd->ywd->gsr )
+                        _StartSoundSource( &(yrd->ywd->gsr->ShellSound2), SHELLSOUND_ERROR );
                     }
                 }
             else {
