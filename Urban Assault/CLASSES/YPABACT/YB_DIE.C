@@ -333,7 +333,7 @@ _dispatcher(void, yb_YBM_DIE, void *nix)
                 (ybd->bact.killer->robo == user_robo) ) {
 
                 log.ID     = LOGMSG_ENEMYDESTROYED;
-                log.sender = &(ybd->bact);
+                log.sender = ybd->bact.killer;
                 log.para1  = ybd->bact.PrimCommandID;
                 log.para2  = log.para3  = 0;
                 log.pri    = 36;
