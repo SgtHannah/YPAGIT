@@ -42,6 +42,11 @@ _extern_use_ov_engine
 _extern_use_audio_engine
 _extern_use_input_engine
 
+#define YPA_NUM_CONFIG_ITEMS (1)
+struct ConfigItem ypa_ConfigItems[YPA_NUM_CONFIG_ITEMS] = {
+    {"ypa.alt_joy_model", CONFIG_BOOL, FALSE },
+};
+
 /*=================================================================**
 **  Profiler Stuff                                                 **
 **=================================================================*/
@@ -2143,9 +2148,15 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
 **      30-Apr-98   floh    + PowerAttackTimeStamp initialisiert
 **      09-May-98   floh    + setzt jetzt beim Mode-Umschalten auch 
 **                            den Font neu
+**      16-May-98   floh    + nucleus.ini Auswertung
 */
 {
     BOOL retval = FALSE;
+    
+    // FIXME: ConfigItem auslesen
+    _GetConfigItems(NULL,ypa_ConfigItems,YPA_NUM_CONFIG_ITEMS);
+    if (ypa_ConfigItems[0].data) ywd->Prefs.Flags |= YPA_PREFS_JOYMODEL2;
+    else                         ywd->Prefs.Flags &= ~YPA_PREFS_JOYMODEL2;
 
     /*** allgemeine Initialisierung ***/
     memset(ld,0,sizeof(struct LevelDesc));
