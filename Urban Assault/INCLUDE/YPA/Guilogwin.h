@@ -25,7 +25,7 @@
 /*-----------------------------------------------------------------*/
 #define LW_NumChars     (64)    // Anzahl Zeichen pro Zeile
 #define LW_NumLines     (64)    // Anzahl Zeilen im Buffer
-#define LW_Countdown	(4000)	// jede Zeile wird solang angezeigt
+#define LW_Countdown	(7000)	// jede Zeile wird solang angezeigt
 
 struct LW_Line {
     ULONG sender_id;            // wer hat diese Message abgeschickt?

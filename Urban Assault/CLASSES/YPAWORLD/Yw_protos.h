@@ -388,9 +388,10 @@ BOOL yw_SetEventLoop(struct ypaworld_data *, ULONG);
 /*** yw_confirm.c ***/
 BOOL yw_InitCR(struct ypaworld_data *);
 void yw_KillCR(struct ypaworld_data *);
-void yw_OpenCR(struct ypaworld_data *, UBYTE *); 
+void yw_OpenCR(struct ypaworld_data *, UBYTE *, void *); 
 void yw_CloseCR(struct ypaworld_data *, BOOL);
 void yw_HandleInputCR(struct ypaworld_data *, struct VFMInput *);
 ULONG yw_CRGetStatus(struct ypaworld_data *);
 ULONG yw_CRSetStatus(struct ypaworld_data *, ULONG);
+void *yw_CRGetOwner(struct ypaworld_data *);
 

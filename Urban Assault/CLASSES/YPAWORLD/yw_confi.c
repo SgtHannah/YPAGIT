@@ -225,23 +225,21 @@ void yw_CRLayoutItems(struct ypaworld_data *ywd, ULONG down_flags)
 }    
 
 /*-----------------------------------------------------------------*/
-void yw_OpenCR(struct ypaworld_data *ywd, UBYTE *text) 
+void yw_OpenCR(struct ypaworld_data *ywd, UBYTE *text, void *owner) 
 /*
 **  FUNCTION
 **      Wird von extern aufgerufen, um den ConfirmReq in
 **      einem bestimmten Modus zu oeffnen.                
 **
-**  INPUTS
-**
-**	RESULTS
-**
 **  CHANGED
+**      31-May-98   floh    neues Arg <owner>
 */
 { 
     yw_OpenReq(ywd,&(CR.l.Req));
     yw_ReqToFront(ywd,&(CR.l.Req));
     CR.text   = text;
     CR.status = YPACR_STATUS_OPEN; 
+    CR.owner  = owner;
 }
 
 /*-----------------------------------------------------------------*/
@@ -254,6 +252,16 @@ void yw_CloseCR(struct ypaworld_data *ywd, BOOL ok)
     yw_CloseReq(ywd,&(CR.l.Req));
     if (ok) CR.status = YPACR_STATUS_OK;
     else    CR.status = YPACR_STATUS_CANCEL;
+}
+
+/*-----------------------------------------------------------------*/
+void *yw_CRGetOwner(struct ypaworld_data *ywd)
+/*
+**  CHANGED
+**      31-May-98   floh    created
+*/
+{
+    return(CR.owner);
 }
 
 /*-----------------------------------------------------------------*/

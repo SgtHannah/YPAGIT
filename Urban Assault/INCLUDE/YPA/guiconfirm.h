@@ -35,6 +35,7 @@ struct YPAConfirmReq {
     LONG btn_width;         // Layout-Variable
     LONG btn_space;         // Layout-Variable
     LONG edge_width;        // Edge-Breite
+    void *owner;            // aktuelles Owner-Handle
 };
 
 #define YPACR_STATUS_CLOSED     (0) // ist zu

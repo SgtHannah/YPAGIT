@@ -243,6 +243,7 @@ void yw_StartVoiceOver(struct ypaworld_data *ywd,
 **      30-Apr-98   floh    + Power/Radar/Flak-Station Lost
 **                          + Superbomb/Superwave Messages
 **                          + Beamgate Full
+**      31-May-98   floh    + LOGMSG_CHAT 
 */
 {
     if (ywd->VoiceOver) {
@@ -452,7 +453,10 @@ void yw_StartVoiceOver(struct ypaworld_data *ywd,
                 case LOGMSG_NETWORK_YOUWIN:
                     group=2; line=5; col1=1; col2=5; num_vars=1; break;                    
                 case LOGMSG_NETWORK_PARASITE_STOPPED:
-                    group=2; line=5; col1=1; col2=0xa; num_vars=1; break;                    
+                    group=2; line=5; col1=1; col2=0xa; num_vars=1; break;
+                
+                case LOGMSG_CHAT:
+                    group=4; line=1; col1=1; col2=1; num_vars=1; break;                     
             };
 
             /*** nicht unterstützte abfangen ***/

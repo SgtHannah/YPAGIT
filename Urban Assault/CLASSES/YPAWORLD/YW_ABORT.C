@@ -286,6 +286,7 @@ void yw_HandleInputAMR(struct ypaworld_data *ywd, struct VFMInput *ip)
 **                            und Restart an.
 **      05-Mar-98   floh    + Online-Hilfe
 **      23-Apr-98   floh    + umgeschrieben fuer neuen Abort-Req
+**      3--May-98   floh    + erweitertes CR-Handling...
 */
 {
     ULONG cr_status;
@@ -322,26 +323,28 @@ void yw_HandleInputAMR(struct ypaworld_data *ywd, struct VFMInput *ip)
     };
     
     /*** Confirm-Requester auswerten und evtl. Aktion starten ***/
-    cr_status = yw_CRGetStatus(ywd);
-    if (cr_status == YPACR_STATUS_OK) {
-        switch (AMR.action) {
-            case AMR_BTN_CANCEL:
-                ywd->Level->Status = LEVELSTAT_ABORTED;
-                if(ywd->playing_network) yw_SendAnnounceQuit(ywd);
-                break;
-            case AMR_BTN_SAVE:
-                ywd->Level->Status = LEVELSTAT_SAVE;
-                break;
-            case AMR_BTN_LOAD:
-                ywd->Level->Status = LEVELSTAT_LOAD;
-                break;
-            case AMR_BTN_RESTART:
-                ywd->Level->Status = LEVELSTAT_RESTART;
-                break;
+    if (yw_CRGetOwner(ywd) == &AMR) {
+        cr_status = yw_CRGetStatus(ywd);
+        if (cr_status == YPACR_STATUS_OK) {
+            switch (AMR.action) {
+                case AMR_BTN_CANCEL:
+                    ywd->Level->Status = LEVELSTAT_ABORTED;
+                    if(ywd->playing_network) yw_SendAnnounceQuit(ywd);
+                    break;
+                case AMR_BTN_SAVE:
+                    ywd->Level->Status = LEVELSTAT_SAVE;
+                    break;
+                case AMR_BTN_LOAD:
+                    ywd->Level->Status = LEVELSTAT_LOAD;
+                    break;
+                case AMR_BTN_RESTART:
+                    ywd->Level->Status = LEVELSTAT_RESTART;
+                    break;
+            };
+            yw_CRSetStatus(ywd,YPACR_STATUS_CLOSED);
+        } else if (cr_status == YPACR_STATUS_CANCEL) {
+            yw_CRSetStatus(ywd,YPACR_STATUS_CLOSED);
         };
-        yw_CRSetStatus(ywd,YPACR_STATUS_CLOSED);
-    } else if (cr_status == YPACR_STATUS_CANCEL) {
-        yw_CRSetStatus(ywd,YPACR_STATUS_CLOSED);
     };
     
     /*** eigentliches Input-Handling ***/
@@ -385,7 +388,7 @@ void yw_HandleInputAMR(struct ypaworld_data *ywd, struct VFMInput *ip)
                     if (ci->flags & CIF_BUTTONUP) {
                         AMR.action = AMR_BTN_CANCEL;
                         yw_CloseAMR(ywd);
-                        yw_OpenCR(ywd,ypa_GetStr(ywd->LocHandle,STR_CONFIRM_EXIT,"REALLY EXIT MISSION ?"));
+                        yw_OpenCR(ywd,ypa_GetStr(ywd->LocHandle,STR_CONFIRM_EXIT,"REALLY EXIT MISSION ?"),&AMR);
                     };
                     break;
 
@@ -398,7 +401,7 @@ void yw_HandleInputAMR(struct ypaworld_data *ywd, struct VFMInput *ip)
                         if (ci->flags & CIF_BUTTONUP) {
                             AMR.action = AMR_BTN_SAVE;
                             yw_CloseAMR(ywd);
-                            yw_OpenCR(ywd,ypa_GetStr(ywd->LocHandle,STR_CONFIRM_SAVE,"REALY SAVE GAME ?"));
+                            yw_OpenCR(ywd,ypa_GetStr(ywd->LocHandle,STR_CONFIRM_SAVE,"REALLY SAVE GAME ?"),&AMR);
                         };
                     };
                     break;
@@ -412,7 +415,7 @@ void yw_HandleInputAMR(struct ypaworld_data *ywd, struct VFMInput *ip)
                         if (ci->flags & CIF_BUTTONUP) {
                             AMR.action = AMR_BTN_LOAD;
                             yw_CloseAMR(ywd);
-                            yw_OpenCR(ywd,ypa_GetStr(ywd->LocHandle,STR_CONFIRM_LOAD,"REALY LOAD GAME ?"));
+                            yw_OpenCR(ywd,ypa_GetStr(ywd->LocHandle,STR_CONFIRM_LOAD,"REALLY LOAD GAME ?"),&AMR);
                         };
                     };
                     break;
@@ -426,7 +429,7 @@ void yw_HandleInputAMR(struct ypaworld_data *ywd, struct VFMInput *ip)
                         if (ci->flags & CIF_BUTTONUP) {
                             AMR.action = AMR_BTN_RESTART;
                             yw_CloseAMR(ywd);
-                            yw_OpenCR(ywd,ypa_GetStr(ywd->LocHandle,STR_CONFIRM_RESTART,"REALLY RESTART MISSION ?"));
+                            yw_OpenCR(ywd,ypa_GetStr(ywd->LocHandle,STR_CONFIRM_RESTART,"REALLY RESTART MISSION ?"),&AMR);
                         };
                     };
                     break;
