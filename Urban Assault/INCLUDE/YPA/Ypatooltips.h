@@ -105,6 +105,7 @@
 #define TOOLTIP_SHELL_16BITTEXTURE      (78)
 #define TOOLTIP_SHELL_DRAWPRIMITIVE     (79)
 #define TOOLTIP_GUI_MOUSEMODE           (80)
+#define TOOLTIP_ERROR_UNITLIMIT         (81)    // Unitlimit reached
 
 /*** Fehlermeldungen ***/
 #define TOOLTIP_ERROR_NOTARGET          (96)    // Mode Select
@@ -218,7 +219,7 @@
 
 
 // ***ANPASSEN***
-#define TOOLTIP_LAST    (201)
+#define TOOLTIP_LAST    (198)
 
 /*-----------------------------------------------------------------*/
 #endif

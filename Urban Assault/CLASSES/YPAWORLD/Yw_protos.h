@@ -232,6 +232,8 @@ struct Bacterium *yw_GetLastMessageSender(struct ypaworld_data *);
 ULONG yw_CheckCD(ULONG, ULONG, char *, char *);
 ULONG yw_CheckCheatKey(struct ypaworld_data *, struct VFMInput *, ULONG);
 ULONG yw_CheckCheatContKey(struct ypaworld_data *, struct VFMInput *, ULONG);
+UBYTE *yw_RenderUnitLimit(struct ypaworld_data *, UBYTE *, ULONG);
+FLOAT yw_GetCostFactor(struct ypaworld_data *);
 
 /*** yw_record.c ***/
 void yw_FreeSequenceData(struct YPASeqData *);

@@ -54,6 +54,7 @@ ULONG yw_LevelDataParser(struct ScriptParser *p)
 **      30-May-98   floh    + Lose-Movie wurde immer gespielt,
 **                            wenn man tot ging...
 **      06-Jun-98   floh    + <vehicle_sector_ratio> Keyword.
+**      10-Jun-98   floh    + <unit_limit> Keyword
 */
 {
     UBYTE *kw   = p->keyword;
@@ -62,7 +63,7 @@ ULONG yw_LevelDataParser(struct ScriptParser *p)
 
     if (PARSESTAT_READY == p->status) {
 
-        /*** momentan außerhalb eines Contexts ***/
+        /*** momentan ausserhalb eines Contexts ***/
         if (stricmp(kw, "begin_level")==0) {
 
             /*** ein paar defaults... ***/
@@ -71,6 +72,9 @@ ULONG yw_LevelDataParser(struct ScriptParser *p)
             ywd->Level->WinMovie[0]  = 0;
             ywd->Level->LoseMovie[0] = 0;
             ywd->VehicleSectorRatio  = 0.0;
+            ywd->LevelUnitLimit      = ywd->GlobalUnitLimit;
+            ywd->LevelUnitLimitType  = ywd->GlobalUnitLimitType;
+            ywd->LevelUnitLimitArg   = ywd->GlobalUnitLimitArg;
             p->status = PARSESTAT_RUNNING;
             return(PARSE_ENTERED_CONTEXT);
 
@@ -208,15 +212,16 @@ ULONG yw_LevelDataParser(struct ScriptParser *p)
 
             if( (stricmp(data,"yes")==0)||(stricmp(data,"on")==0)||(stricmp(data,"true")==0))
                 ld->slow_conn = TRUE;
-            else
+            else                                             
                 ld->slow_conn = FALSE;
                 
-        /*** vehicle_sector_ratio ***/
-        } else if (stricmp(kw,"vehicle_sector_ratio")==0) {
-            ywd->VehicleSectorRatio = atof(data);
+        } else if (stricmp(kw,"vehicle_sector_ratio")==0) ywd->VehicleSectorRatio = atof(data);
+        else if (stricmp(kw,"unit_limit")==0)             ywd->LevelUnitLimit     = strtol(data,NULL,0);
+        else if (stricmp(kw,"unit_limit_type")==0)        ywd->LevelUnitLimitType = strtol(data,NULL,0);
+        else if (stricmp(kw,"unit_limit_arg")==0)         ywd->LevelUnitLimitArg  = strtol(data,NULL,0);                    
                  
         /*** UNKNOWN KEYWORD ***/
-        } else return(PARSE_UNKNOWN_KEYWORD);
+        else return(PARSE_UNKNOWN_KEYWORD);
 
         /*** all-ok ***/
         return(PARSE_ALL_OK);

@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "nucleus/nucleus2.h"
+#include "nucleus/math.h"
 #include "engine/engine.h"
 #include "bitmap/ilbmclass.h"
 #include "ypa/guilist.h"
@@ -1456,7 +1457,7 @@ void yw_SRLayoutThingMenu(struct ypaworld_data *ywd)
         
             ULONG vnum  = SR.ThingRemap[i+m->FirstShown].index;
             struct VehicleProto *vhcl = &(ywd->VP_Array[vnum]);
-            ULONG cost  = (vhcl->Energy * CREATE_ENERGY_FACTOR) / 100;
+            ULONG cost  = FLOAT_TO_INT((vhcl->Energy * CREATE_ENERGY_FACTOR * yw_GetCostFactor(ywd)) / 100);
             UBYTE *name = ypa_GetStr(ywd->LocHandle,STR_NAME_VEHICLES+vnum,vhcl->Name);
             if ((i+m->FirstShown) == m->Selected) sel=TRUE;
             str = yw_SRLayoutVhclBlgItem(ywd,sel,m,str,vhcl->TypeIcon,name,cost);
@@ -1465,7 +1466,7 @@ void yw_SRLayoutThingMenu(struct ypaworld_data *ywd)
         
             ULONG bnum = SR.ThingRemap[i+m->FirstShown].index;
             struct BuildProto *blg = &(ywd->BP_Array[bnum]);
-            ULONG cost  = (blg->CEnergy / 100);
+            ULONG cost  = FLOAT_TO_INT((blg->CEnergy * yw_GetCostFactor(ywd)) / 100);
             UBYTE *name;
             if (ywd->playing_network) name = ypa_GetStr(ywd->LocHandle,STR_NAME_NETWORK_BUILDINGS+bnum,blg->Name);
             else                      name = ypa_GetStr(ywd->LocHandle,STR_NAME_BUILDINGS+bnum,blg->Name);

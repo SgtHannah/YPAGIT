@@ -660,20 +660,23 @@ void yw_RenderSuperItemStatus(struct ypaworld_data *ywd)
 **                            werden
 **      27-May-98   floh    + handelt jetzt auch das Multiplayer-Score
 **                            Rendering ab.
+**      10-Jun-98   floh    + Rendert Unit-Limit
 */
 {
     ULONG i;
     UBYTE str_buf[1024];
     UBYTE *str = str_buf;
-    WORD xpos,ypos;
+    WORD xpos,ypos,w;
     struct rast_text rt;
 
     xpos = (ywd->DspXRes*2)/3;
+    w    = ywd->DspXRes - xpos;
     new_font(str,FONTID_TRACY);
     pos_brel(str,xpos,EB.bar_height + (ywd->FontH>>1));
     
-    /*** Ingame-Score rendern ***/    
-    str = yw_RenderIngameScore(ywd,str,&(ywd->IngameStats),(ywd->DspXRes-xpos));
+    /*** Unit-Limit und Ingame-Score rendern ***/
+    str = yw_RenderUnitLimit(ywd,str,w);    
+    str = yw_RenderIngameScore(ywd,str,&(ywd->IngameStats),w);
 
     /*** Superitem-Status ***/
     for (i=0; i<ywd->Level->NumItems; i++) {
@@ -688,10 +691,10 @@ void yw_RenderSuperItemStatus(struct ypaworld_data *ywd)
             /*** was isses denn? ***/
             switch(item->type) {
                 case SI_TYPE_BOMB:
-                    name = ypa_GetStr(ywd->LocHandle,STR_SUPERBOMB_NAME,"STOUDSON BOMB");
+                    name = ypa_GetStr(ywd->LocHandle,STR_SUPERBOMB_NAME,"18 == STOUDSON BOMB");
                     break;
                 case SI_TYPE_WAVE:
-                    name = ypa_GetStr(ywd->LocHandle,STR_SUPERWAVE_NAME,"STOUDSON WAVE");
+                    name = ypa_GetStr(ywd->LocHandle,STR_SUPERWAVE_NAME,"19 == STOUDSON WAVE");
                     break;
                 default:
                     name = "SUPER ITEM";

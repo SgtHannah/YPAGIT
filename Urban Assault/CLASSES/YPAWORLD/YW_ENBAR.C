@@ -190,12 +190,14 @@ UBYTE *yw_EBPutBar(struct ypaworld_data *ywd,
 /*-----------------------------------------------------------------*/
 UBYTE *yw_EBPutReloadBar(struct ypaworld_data *ywd,
                          UBYTE *str, WORD xpos, WORD ypos,
-                         LONG load_stat, LONG efact, LONG reload,
-                         LONG abs_real_load, LONG abs_full_load)
+                         LONG load_stat, LONG efact,
+                         LONG abs_real_load, LONG abs_full_load,
+                         FLOAT ratio)
 /*
 **  CHANGED
 **      09-Oct-97   floh    created
 **      20-May-98   floh    jetzt mit absoluten Zahlen
+**      10-Jun-98   floh    + Reload-Ratio wird jetzt direkt uebergeben
 */
 {
     UBYTE icon_chr;
@@ -203,7 +205,7 @@ UBYTE *yw_EBPutReloadBar(struct ypaworld_data *ywd,
     FLOAT fuel_width_1,fuel_width_2;
     UBYTE str_buf[32];
     UBYTE *overlay_text;
-    FLOAT reload_rel,efact_rel;
+    FLOAT efact_rel;
 
     switch(load_stat) {
         case -1:    icon_chr='R'; break;
@@ -222,22 +224,19 @@ UBYTE *yw_EBPutReloadBar(struct ypaworld_data *ywd,
         case 7: fuel_chr_1='7'; break;
     };
     if (efact > 0) {
-        efact_rel  = ((FLOAT)efact) / 255.0;
-        reload_rel = ((FLOAT)reload) / ((FLOAT)efact);
-        fuel_width_1 = reload_rel * efact_rel;
+        efact_rel    = ((FLOAT)efact) / 255.0;
+        fuel_width_1 = ratio * efact_rel;
         fuel_width_2 = efact_rel;
     }else{
-        reload_rel = 0.0;
-        efact_rel  = 0.0;
+        efact_rel    = 0.0;
         fuel_width_1 = 0.0;
         fuel_width_2 = 0.0;
     };
     if (load_stat < 0) {
         sprintf(str_buf,"%d",-abs_real_load);
     } else {
-        if (abs_real_load == 0)     sprintf(str_buf,"%d",abs_real_load);
-        else if (reload_rel >= 1.0) sprintf(str_buf,"+%d",abs_real_load);
-        else                        sprintf(str_buf,"+%d   (%d%%)",abs_real_load,(int)(reload_rel*100));
+        if (abs_real_load == 0) sprintf(str_buf,"%d",abs_real_load);
+        else                    sprintf(str_buf,"+%d   (%d%%)",abs_real_load,(int)(ratio*100));
     };
     overlay_text = str_buf;    
     str=yw_EBPutBar(ywd,str,xpos,ypos,icon_chr,
@@ -272,9 +271,9 @@ UBYTE *yw_EBPutSystemBar(struct ypaworld_data *ywd,
     } else icon_chr='D';
     
     /*** falls System-Batterie unter 20% blinken ***/
-    if ((b_sys < (b_max/5)) && ((ywd->TimeStamp/300) & 1)) {
-        fuel_chr_1  = '9';
-        str_buf_ptr = NULL;
+    if (b_sys < (b_max/5)) {
+        fuel_chr_1  = '6';      // ROT
+        if ((ywd->TimeStamp/300) & 1) str_buf_ptr = NULL;
     } else {
         fuel_chr_1 = '8';
     };
@@ -294,6 +293,11 @@ UBYTE *yw_EBPutVehicleBar(struct ypaworld_data *ywd,
 /*
 **  CHANGED
 **      09-Oct-97   floh    created
+**      10-Jun-98   floh    + Creation-Energie wird jetzt aus 
+**                            TLMsg.energy genommen
+**                          + oops, der Energieverbrauch beim
+**                            Gebaeude-Bauen wurde ueberhaupt
+**                            nicht angezeigt...
 */
 {
     UBYTE icon_chr;
@@ -314,15 +318,15 @@ UBYTE *yw_EBPutVehicleBar(struct ypaworld_data *ywd,
     fuel_chr_2   = '9';
     fuel_width_1 = ((FLOAT)b_vehicle)/((FLOAT)b_max);
     fuel_width_2 = 0.0;
-    if (SR.ActiveMode & (STAT_MODEF_NEW|STAT_MODEF_ADD)) {
-        if (SR.ActVehicle != -1) {
-            struct VehicleProto *vp = &(ywd->VP_Array[SR.VPRemap[SR.ActVehicle]]);
-            fuel_width_2 = ((FLOAT)(vp->Energy*CREATE_ENERGY_FACTOR))/((FLOAT)b_max);
+    if (SR.ActiveMode & (STAT_MODEF_NEW|STAT_MODEF_ADD|STAT_MODEF_BUILD)) {
+        if (SR.ActThing != -1) {
+            fuel_width_2 = ((FLOAT)(ywd->TLMsg.energy))/((FLOAT)b_max);
         };
     };
     if (fuel_width_2 > fuel_width_1) {
         fuel_width_2 = fuel_width_1;
         fuel_width_1 = 0.0;
+        fuel_chr_2 = '6';   // rot
     } else {
         FLOAT tmp = fuel_width_1;
         fuel_width_1 -= fuel_width_2;
@@ -370,6 +374,7 @@ UBYTE *yw_EBPutBeamBar(struct ypaworld_data *ywd,
     if (fuel_width_2 > fuel_width_1) {
         fuel_width_2 = fuel_width_1;
         fuel_width_1 = 0.0;
+        fuel_chr_2   = '6'; // rot
     } else {
         FLOAT tmp = fuel_width_1;
         fuel_width_1 -= fuel_width_2;
@@ -415,10 +420,11 @@ void yw_LayoutEB(struct ypaworld_data *ywd)
                 TAG_DONE);
         b_sys = ywd->URBact->Energy;
         b_max = ywd->URBact->Maximum;
+        
         grm.owner = ywd->URBact->Sector->Owner;
         _methoda(ywd->world,YWM_GETRLDRATIO,&grm);
         efact  = ywd->URBact->Sector->EnergyFactor;
-        reload = (LONG) (efact * grm.ratio);
+        reload = efact * grm.ratio;
         _get(ywd->UserRobo,YRA_AbsReload,&abs_full_load);
         abs_real_load = (LONG) (((FLOAT)abs_full_load) * grm.ratio);
         abs_full_load = (abs_full_load * 10) / 100; // Energie-Punkte pro 10 Sekunden
@@ -440,13 +446,13 @@ void yw_LayoutEB(struct ypaworld_data *ywd)
         else                                    vhcl_stat=0;
         if (load_flags & YRF_Fill_Beam)         beam_stat=+1;
         else if (loss_flags & YRF_Fill_Beam)    beam_stat=-1;
-        else                                    beam_stat=0; 
-
+        else                                    beam_stat=0;
+        
         /*** Energie-Balken immer vorn ***/
         _RemClickBox(&(EB.req.req_cbox));
         _AddClickBox(&(EB.req.req_cbox),IE_CBX_ADDHEAD);
         xpos += EB.bar_start;
-        str = yw_EBPutReloadBar(ywd,str,xpos,ypos,load_stat,efact,reload,abs_real_load,abs_full_load);
+        str = yw_EBPutReloadBar(ywd,str,xpos,ypos,load_stat,efact,abs_real_load,abs_full_load,grm.ratio);
         xpos += next_bar;
         str = yw_EBPutSystemBar(ywd,str,xpos,ypos,fill_modus,sys_stat,b_sys,b_max);
         xpos += next_bar;

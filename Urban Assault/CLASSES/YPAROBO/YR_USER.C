@@ -879,7 +879,7 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
             ** ------------------------------------------------------*/
 
             _get( yrd->world, YWA_VehicleArray, &array );
-            energy = array[ msg->proto_id ].Energy * CREATE_ENERGY_FACTOR;
+            energy = msg->energy;
 
             /*** Energieaufteilung ist uninteressant! ***/
             if( energy <= yrd->BattVehicle ) {
@@ -954,7 +954,7 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
                     bact->robo = yrd->bact->BactObject;
 
                     /*** Energieabzug ***/
-                    yrd->BattVehicle -= CREATE_ENERGY_FACTOR*bact->Maximum;
+                    yrd->BattVehicle -= msg->energy;
 
                     /*** Meldung machen ***/
                     yr_HistoryCreate( yrd->world, bact );
@@ -973,7 +973,7 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
             */
 
             _get( yrd->world, YWA_VehicleArray, &array );
-            energy = array[ msg->proto_id ].Energy * CREATE_ENERGY_FACTOR;
+            energy = msg->energy;
 
             /*** Energieaufteilung ist uninteressant! ***/
             if( energy <= yrd->BattVehicle ) {
@@ -1033,7 +1033,7 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
                     bact->robo =  yrd->bact->BactObject;
 
                     /*** Energieabzug ***/
-                    yrd->BattVehicle -= CREATE_ENERGY_FACTOR*bact->Maximum;
+                    yrd->BattVehicle -= msg->energy;
 
                     /*** Meldung machen ***/
                     yr_HistoryCreate( yrd->world, bact );
@@ -1117,7 +1117,7 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
             ** -------------------------------------------------*/
             
             _get( yrd->world, YWA_BuildArray, &b_array );
-            energy = b_array[ msg->proto_id ].CEnergy;
+            energy = msg->energy;
 
             if( energy <= yrd->BattVehicle ) {
 

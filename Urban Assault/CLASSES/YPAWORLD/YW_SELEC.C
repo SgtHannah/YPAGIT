@@ -863,7 +863,8 @@ ULONG yw_GenesisCheck(struct ypaworld_data *ywd, struct ClickInfo *ci)
 **      0   -> alles OK
 **      1   -> zuwenig Platz
 **      2   -> zuwenig Energie in Vehikel-Batterie
-**      3   -> others
+**      3   -> Unit-Limit reached
+**      4   -> other
 **
 **  CHANGED
 **      03-Jan-95   floh    created
@@ -878,6 +879,8 @@ ULONG yw_GenesisCheck(struct ypaworld_data *ywd, struct ClickInfo *ci)
 **      18-Sep-96   floh    numerische Rückgabewerte, statt BOOL
 **      12-Apr-97   floh    + VP_Array nicht mehr global
 **      06-Oct-97   floh    + umgebaut für yw_FindCreationPoint()
+**      10-Jun-98   floh    + falls Unit-Hardlimit, wird dieses jetzt
+**                            beachtet
 */
 {
     /*** Mouse nicht über Map! ***/
@@ -887,21 +890,24 @@ ULONG yw_GenesisCheck(struct ypaworld_data *ywd, struct ClickInfo *ci)
         if (SR.ActVehicle != -1) {
 
             LONG batt_energy;
-            LONG needed_energy;
-            struct VehicleProto *vp = &(ywd->VP_Array[SR.VPRemap[SR.ActVehicle]]);
 
+            /*** genug Energie? ***/
+            _get(ywd->UserRobo, YRA_BattVehicle, &batt_energy);
+            if (batt_energy < ywd->TLMsg.energy) return(2);
             if (!yw_FindCreationPoint(ywd,ci)) return(1);
 
-            /*** genug Energie da? ***/
-            needed_energy = CREATE_ENERGY_FACTOR*vp->Energy;
-            _get(ywd->UserRobo, YRA_BattVehicle, &batt_energy);
-            if (batt_energy < needed_energy) return(2);
-
+            /*** Unit-Limit? ***/
+            if ((ywd->playing_network) && 
+                (ywd->LevelUnitLimitType == YPA_UNITLIMITTYPE_HARD) &&
+                (ywd->VehicleCount[ywd->URBact->Owner] >= ywd->LevelUnitLimit))
+            {
+                return(3);
+            };
             return(0);
         };
     };
 
-    return(3);
+    return(4);
 }
 
 /*-----------------------------------------------------------------*/
@@ -948,55 +954,56 @@ ULONG yw_BuildCheck(struct ypaworld_data *ywd)
 */
 {
     if (ywd->FrameFlags & YWFF_MouseOverSector) {
+        if (SR.ActBuilding != -1) {
+            
+            #ifndef YPA_DESIGNMODE
+            struct Cell *sec = ywd->SelSector;
+            LONG secx = ywd->SelSecX;
+            LONG secy = ywd->SelSecY;
+            LONG dx,dy;
+            LONG batt_energy;
 
-        #ifndef YPA_DESIGNMODE
-        struct Cell *sec = ywd->SelSector;
-        struct BuildProto *bp = &(ywd->BP_Array[SR.BPRemap[SR.ActBuilding]]);
-        LONG secx = ywd->SelSecX;
-        LONG secy = ywd->SelSecY;
-        LONG dx,dy;
-        LONG batt_energy;
-
-        /*** Owner-Check ***/
-        if (sec->Owner != 0) {
-            if (sec->Owner != ywd->URBact->Owner) {
-                return(2);
+            /*** Energie-Check ***/
+            _get(ywd->UserRobo, YRA_BattVehicle, &batt_energy);
+            if (batt_energy < ywd->TLMsg.energy) {
+                return(6);
             };
+
+            /*** Owner-Check ***/
+            if (sec->Owner != 0) {
+                if (sec->Owner != ywd->URBact->Owner) {
+                    return(2);
+                };
+            };
+
+            /*** Too Far oder eigener Sektor Check ***/
+            dx = abs(secx - ywd->URBact->SectX);
+            dy = abs(secy - ywd->URBact->SectY);
+            if ((dx == 0) && (dy == 0)) return(3);
+            if ((dx > 1) || (dy > 1))   return(4);
+
+            /*** Build-Check ***/
+            if (sec->WType == WTYPE_JobLocked) {
+                return(5);
+            };
+
+            /*** Spezial-Sektor ***/
+            if ((WTYPE_Wunderstein == sec->WType) ||
+                (WTYPE_ClosedGate == sec->WType)  ||
+                (WTYPE_OpenedGate == sec->WType)  ||
+                (WTYPE_SuperItem  == sec->WType))
+
+            {
+                return(1);
+            } else if ((WTYPE_DeadWunderstein==sec->WType) && (ywd->playing_network)) {
+                /*** im Netzwerk-Spiel auch eroberten WStein nicht bebauen! ***/
+                return(1);
+            };
+            #endif
+
+            /*** alle Checks bestanden ***/
+            return(0);
         };
-
-        /*** Too Far oder eigener Sektor Check ***/
-        dx = abs(secx - ywd->URBact->SectX);
-        dy = abs(secy - ywd->URBact->SectY);
-        if ((dx == 0) && (dy == 0)) return(3);
-        if ((dx > 1) || (dy > 1))   return(4);
-
-        /*** Build-Check ***/
-        if (sec->WType == WTYPE_JobLocked) {
-            return(5);
-        };
-
-        /*** Spezial-Sektor ***/
-        if ((WTYPE_Wunderstein == sec->WType) ||
-            (WTYPE_ClosedGate == sec->WType)  ||
-            (WTYPE_OpenedGate == sec->WType)  ||
-            (WTYPE_SuperItem  == sec->WType))
-
-        {
-            return(1);
-        } else if ((WTYPE_DeadWunderstein==sec->WType) && (ywd->playing_network)) {
-            /*** im Netzwerk-Spiel auch eroberten WStein nicht bebauen! ***/
-            return(1);
-        };
-
-        /*** Energie-Check ***/
-        _get(ywd->UserRobo, YRA_BattVehicle, &batt_energy);
-        if (batt_energy < bp->CEnergy) {
-            return(6);
-        };
-        #endif
-
-        /*** alle Checks bestanden ***/
-        return(0);
     };
     /*** "anderer" Fehler ***/
     return(1);
@@ -1051,9 +1058,12 @@ ULONG yw_BeamCheck(struct ypaworld_data *ywd)
 **      08-Apr-97   floh    + Beamen verhindern, wenn Zeil-Sektor
 **                            gerade bebaut wird.
 **      25-May-98   floh    + Beamen testweise relaxter gemacht
+**      10-Jun-98   floh    + falls Entfernung zu gross, wird jetzt
+**                            auch die theoretisch benotigte Energie
+**                            nach TLMsg.energy geschrieben, damit der
+**                            Reload-Balken das korrekt anzeigt.
 */
 {
-    ywd->TLMsg.energy = 0;
     if (ywd->FrameFlags & YWFF_MouseOverSector) {
 
         struct Cell *sec = ywd->SelSector;
@@ -1096,8 +1106,8 @@ ULONG yw_BeamCheck(struct ypaworld_data *ywd)
 
         /*** Energieverbrauch zu hoch? (FIXME!) ***/
         _get(ywd->UserRobo, YRA_BattBeam, &beam_batt);
+        ywd->TLMsg.energy = e;
         if (e > beam_batt) return(1);
-        else ywd->TLMsg.energy = e;
 
         /*** LEBENDE Feindrobos im Sektor -> Abbruch ***/
         #ifndef YPA_DESIGNMODE
@@ -1457,6 +1467,38 @@ BOOL yw_CheckDoubleClick(struct ypaworld_data *ywd, struct ClickInfo *ci)
 }
 
 /*-----------------------------------------------------------------*/
+void yw_GetEnergyUseage(struct ypaworld_data *ywd)
+/*
+**  FUNCTION
+**      Fuellt TLMsg.energy aus, je nachdem, ob 
+**      Vehikel bauen oder Gebaeude bauen
+**      aktiviert ist. Beamen wird nach wie vor
+**      in DoBeamCheck() erledigt, weil dazu der
+**      Zielpunkt bekannt sein muss.
+**
+**  CHANGED
+**      10-Jun-98   floh    created
+*/
+{
+    ywd->TLMsg.energy = 0;
+    switch (SR.ActiveMode) {
+        case STAT_MODEF_NEW:
+        case STAT_MODEF_ADD:
+            if (SR.ActVehicle != -1) {
+                struct VehicleProto *vp = &(ywd->VP_Array[SR.VPRemap[SR.ActVehicle]]);
+                ywd->TLMsg.energy = FLOAT_TO_INT(CREATE_ENERGY_FACTOR * vp->Energy * yw_GetCostFactor(ywd));
+            };
+            break;
+        case STAT_MODEF_BUILD:
+            if (SR.ActBuilding != -1) {
+                struct BuildProto *bp = &(ywd->BP_Array[SR.BPRemap[SR.ActBuilding]]);
+                ywd->TLMsg.energy = FLOAT_TO_INT(bp->CEnergy * yw_GetCostFactor(ywd));
+            };
+            break;
+    };
+}
+
+/*-----------------------------------------------------------------*/
 void yw_BuildTrLogicMsg(Object *world,
                         struct ypaworld_data *ywd, 
                         struct VFMInput *ip)
@@ -1528,6 +1570,9 @@ void yw_BuildTrLogicMsg(Object *world,
 
         /*** ermitteln, ob Mouse über etwas wichtigem ist... ***/
         yw_MouseSelect(world, ywd, ip);
+
+        /*** TLMsg.energy ausfuellen ***/
+        yw_GetEnergyUseage(ywd);
 
         /*** richtigen Mouse-Pointer ermitteln ***/
         if (ywd->ControlLock) {
@@ -1643,6 +1688,10 @@ void yw_BuildTrLogicMsg(Object *world,
                                     /*** keine Energie ***/
                                     tip = TOOLTIP_ERROR_NOENERGY;
                                     break;
+                                case 3: 
+                                    /*** UnitLimit reached ***/
+                                    tip = TOOLTIP_ERROR_UNITLIMIT;
+                                    break;
                             };
                         };
                     };
@@ -1700,6 +1749,10 @@ void yw_BuildTrLogicMsg(Object *world,
                                 case 2:
                                     /*** keine Energie ***/
                                     tip = TOOLTIP_ERROR_NOENERGY;
+                                    break;
+                                case 3: 
+                                    /*** UnitLimit reached ***/
+                                    tip = TOOLTIP_ERROR_UNITLIMIT;
                                     break;
                             };
                         };

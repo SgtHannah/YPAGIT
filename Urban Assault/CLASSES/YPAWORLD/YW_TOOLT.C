@@ -238,6 +238,7 @@ BOOL yw_InitTooltips(struct ypaworld_data *ywd)
         t[TOOLTIP_SHELL_16BITTEXTURE]   = "USE 16 BIT TEXTURES";
         t[TOOLTIP_SHELL_DRAWPRIMITIVE]  = "USE DRAW PRIMITIVE D3D MODEL";
         t[TOOLTIP_GUI_MOUSEMODE]        = "880 == MOUSE CONTROL MODE ACTIVE (PRESS RMB TO DEACTIVATE)";        
+        t[TOOLTIP_ERROR_UNITLIMIT]      = "881 == UNIT LIMIT REACHED";
         
         return(TRUE);
     };

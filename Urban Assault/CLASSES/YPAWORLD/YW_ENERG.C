@@ -20,6 +20,7 @@
 #include "nucleus/math.h"
 #include "ypa/ypaworldclass.h"
 #include "ypa/ypabactclass.h"
+#include "ypa/ypagunclass.h"
 
 #include "yw_protos.h"
 
@@ -1146,6 +1147,8 @@ void yw_CountVehicles(struct ypaworld_data *ywd)
 **
 **  CHANGED
 **      06-Jun-98   floh    created
+**      10-Jun-98   floh    der Robo und dessen Flaks zaehlen nicht
+**                          mehr
 */
 {
     ULONG i;
@@ -1160,34 +1163,40 @@ void yw_CountVehicles(struct ypaworld_data *ywd)
         struct Bacterium *robo = ((struct OBNode *)r_nd)->bact;
         if ((robo->BactClassID == BCLID_YPAROBO) &&
             (robo->MainState   != ACTION_DEAD)   &&
-            (robo->MainState   != ACTION_CREATE) &&
             (robo->MainState   != ACTION_BEAM))
         {
+            
             struct MinList *c_ls;
             struct MinNode *c_nd;
-            ywd->VehicleCount[robo->Owner]++;
             
             /*** fuer alle Commander... ***/            
             c_ls = &(robo->slave_list);
             for (c_nd=c_ls->mlh_Head; c_nd->mln_Succ; c_nd=c_nd->mln_Succ) {
                 struct Bacterium *cmdr = ((struct OBNode *)c_nd)->bact;
                 if ((cmdr->MainState != ACTION_DEAD)   &&
-                    (cmdr->MainState != ACTION_CREATE) &&
                     (cmdr->MainState != ACTION_BEAM))
                 {
                     struct MinList *b_ls;
                     struct MinNode *b_nd;
-                    ywd->VehicleCount[cmdr->Owner]++;
-                    
-                    /*** fuer alle Slaves... ***/
-                    b_ls = &(cmdr->slave_list);                    
-                    for (b_nd=b_ls->mlh_Head; b_nd->mln_Succ; b_nd=b_nd->mln_Succ) {
-                        struct Bacterium *b = ((struct OBNode *)b_nd)->bact;
-                        if ((b->MainState != ACTION_DEAD)   &&
-                            (b->MainState != ACTION_CREATE) &&
-                            (b->MainState != ACTION_BEAM))
-                        {
-                            ywd->VehicleCount[b->Owner]++;
+                    ULONG is_robo_gun = FALSE;
+
+                    /*** handelt es sich hier um eine Robo-Flak? ***/
+                    if (cmdr->BactClassID == BCLID_YPAGUN) {
+                        _get(cmdr->BactObject,YGA_RoboGun,&is_robo_gun);
+                    };                    
+                    if (!is_robo_gun) {                    
+                        
+                        ywd->VehicleCount[cmdr->Owner]++;
+                        
+                        /*** fuer alle Slaves... ***/
+                        b_ls = &(cmdr->slave_list);                    
+                        for (b_nd=b_ls->mlh_Head; b_nd->mln_Succ; b_nd=b_nd->mln_Succ) {
+                            struct Bacterium *b = ((struct OBNode *)b_nd)->bact;
+                            if ((b->MainState != ACTION_DEAD)   &&
+                                (b->MainState != ACTION_BEAM))
+                            {
+                                ywd->VehicleCount[b->Owner]++;
+                            };
                         };
                     };
                 };
@@ -1212,6 +1221,9 @@ void yw_ComputeRatios(struct ypaworld_data *ywd)
 **      05-Nov-96   floh    created
 **      06-Jun-98   floh    + VehicleCount wird jetzt mit in die
 **                            Berechnung einbezogen...
+**      10-Jun-98   floh    + Vehiclecount ist aus der Berechnung
+**                            wieder raus
+**                          + UnitLimitType: Efficiency implementiert
 */
 {
     LONG needed[MAXNUM_OWNERS];
@@ -1231,17 +1243,27 @@ void yw_ComputeRatios(struct ypaworld_data *ywd)
     for (i=0; i<MAXNUM_OWNERS; i++) {
         needed[i] /= 2;
         if (needed[i] > 0) {
-            LONG have = ywd->SectorCount[i] - ((LONG)(ywd->VehicleCount[i]*ywd->VehicleSectorRatio));
-            if (have<0) have=0;
             
-            if (have >= needed[i]) {
-                ywd->RatioCache[i] = 1.0;
-                ywd->RoughRatio[i] = ((FLOAT)have)/((FLOAT)needed[i]);
-                }
-            else {
-                ywd->RatioCache[i] = ((FLOAT)have)/((FLOAT)needed[i]);
-                ywd->RoughRatio[i] = ((FLOAT)have)/((FLOAT)needed[i]);
-                }
+            LONG have = ywd->SectorCount[i];
+            if (have<0) have=0;
+            ywd->RatioCache[i] = ((FLOAT)have)/((FLOAT)needed[i]);
+            ywd->RoughRatio[i] = ((FLOAT)have)/((FLOAT)needed[i]);
+
+            /*** evtl. UnitLimit reinrechnen ***/
+            if (ywd->playing_network && (YPA_UNITLIMITTYPE_EFFICIENCY==ywd->LevelUnitLimitType)) {
+                LONG diff = ywd->VehicleCount[ywd->URBact->Owner] - ywd->LevelUnitLimit;
+                if (diff > 0) {
+                    FLOAT mod = (((FLOAT)ywd->LevelUnitLimitArg)/100.0) * ((FLOAT)diff);
+                    ywd->RatioCache[i] -= mod;
+                    ywd->RoughRatio[i] -= mod;
+                };
+            };
+            
+            /*** korrigieren ***/
+            if (ywd->RatioCache[i] < 0.0)      ywd->RatioCache[i] = 0.0;
+            else if (ywd->RatioCache[i] > 1.0) ywd->RatioCache[i] = 1.0;
+            if (ywd->RoughRatio[i] < 0.0)      ywd->RoughRatio[i] = 0.0;  
+            
         } else {
             ywd->RatioCache[i] = 0.0;
             ywd->RoughRatio[i] = 0.0;

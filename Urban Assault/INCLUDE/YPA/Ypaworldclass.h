@@ -2261,7 +2261,17 @@ struct ypaworld_data {
     FLOAT max_impulse;
     struct netplayerstatus netplayerstatus;
     FLOAT VehicleSectorRatio;
+    ULONG GlobalUnitLimit;         // global vorgegebenes Unit-Limit falls kein Per-Level-Limit definiert
+    ULONG GlobalUnitLimitArg;      // Prozent-Wert fuer Soft-Unit-Limits
+    ULONG GlobalUnitLimitType;     // YPA_UNITLIMITTYPE_#?
+    ULONG LevelUnitLimit;          // global vorgegebenes Unit-Limit falls kein Per-Level-Limit definiert
+    ULONG LevelUnitLimitArg;       // Prozent-Wert fuer Soft-Unit-Limits
+    ULONG LevelUnitLimitType;      // YPA_UNITLIMITTYPE_#?
 };
+
+#define YPA_UNITLIMITTYPE_HARD          (0) // einfaches Hardlimit
+#define YPA_UNITLIMITTYPE_EFFICIENCY    (1) // jedes neue Vehicle reduziert Effizienz um <UnitLimitPercent>
+#define YPA_UNITLIMITTYPE_COST          (2) // jede neue Unit kostet <UnitLimitType> Prozent mehr
 
 #define NETSTARTTIME    250000      // soviele Millisekunden warten wir auf
                                     // die Spieler...

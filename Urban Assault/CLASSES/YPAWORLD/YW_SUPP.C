@@ -1095,22 +1095,27 @@ ULONG yw_WorldMiscParser(struct ScriptParser *p)
 /*
 **  CHANGED
 **      04-Apr-98   floh    created
+**      10-Jun-98   floh    + unit_limit Keyword
+**                          + unit_limit_type Keyword
+**                          + unit_limit_value Keyword
 */
 {
     UBYTE *kw   = p->keyword;
     UBYTE *data = p->data;
+    struct ypaworld_data *ywd = (struct ypaworld_data *) p->store[0];
 
     if (PARSESTAT_READY == p->status) {
 
         /*** momentan ausserhalb eines Contexts ***/
         if (stricmp(kw,"begin_misc")==0) {
+            ywd->GlobalUnitLimit     = 512;
+            ywd->GlobalUnitLimitType = YPA_UNITLIMITTYPE_HARD;
+            ywd->GlobalUnitLimitArg  = 0;
             p->status = PARSESTAT_RUNNING;
             return(PARSE_ENTERED_CONTEXT);
         } else return(PARSE_UNKNOWN_KEYWORD);
 
     } else {
-
-        struct ypaworld_data *ywd = (struct ypaworld_data *) p->store[0];
 
         /*** momentan innerhalb eines Context ***/
         if (stricmp(kw,"end")==0){
@@ -1144,10 +1149,13 @@ ULONG yw_WorldMiscParser(struct ScriptParser *p)
                 ULONG h  = strtol(h_str,NULL,0);
                 ywd->GameRes = ((w<<12)|(h));
             };
-        }else if (stricmp(kw,"max_impulse")==0){
-            ywd->max_impulse = atof(data);
+        }else if (stricmp(kw,"max_impulse")==0)       ywd->max_impulse = atof(data);
+        else if (stricmp(kw,"unit_limit")==0)         ywd->GlobalUnitLimit     = strtol(data,NULL,0);
+        else if (stricmp(kw,"unit_limit_type")==0)    ywd->GlobalUnitLimitType = strtol(data,NULL,0);
+        else if (stricmp(kw,"unit_limit_arg")==0)     ywd->GlobalUnitLimitArg  = strtol(data,NULL,0);            
+                            
         /*** UNKNOWN KEYWORD ***/
-        }else return(PARSE_UNKNOWN_KEYWORD);
+        else return(PARSE_UNKNOWN_KEYWORD);
 
         /*** all-ok ***/
         return(PARSE_ALL_OK);
@@ -1464,3 +1472,68 @@ ULONG yw_CheckCheatContKey(struct ypaworld_data *ywd,
     };
 }
 
+/*-----------------------------------------------------------------*/
+UBYTE *yw_RenderUnitLimit(struct ypaworld_data *ywd, UBYTE *str, ULONG w)
+/*
+**  FUNCTION
+**      Falls Netzwerkspiel, wird das aktuelle Unit-Limit gerendert.
+**
+**  CHANGED
+**      10-Jun-98   floh    created
+*/
+{
+    if (ywd->playing_network) {
+
+        struct ypa_ColumnItem col[2];
+        UBYTE buf_0[64];
+
+        if (ywd->VehicleCount[ywd->URBact->Owner] > ywd->LevelUnitLimit) {
+            dbcs_color(str,yw_Red(ywd,YPACOLOR_OWNER_6),yw_Green(ywd,YPACOLOR_OWNER_6),yw_Blue(ywd,YPACOLOR_OWNER_6));
+        } else {
+            dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_TOOLTIP),yw_Green(ywd,YPACOLOR_TEXT_TOOLTIP),yw_Blue(ywd,YPACOLOR_TEXT_TOOLTIP));
+        };
+        col[0].string       = ypa_GetStr(ywd->LocHandle,STR_UNITLIMIT,"2473 == Units:");
+        col[0].width        = w * 0.5;
+        col[0].font_id      = FONTID_TRACY;
+        col[0].space_chr    = ' ';
+        col[0].prefix_chr   = 0;
+        col[0].postfix_chr  = 0;
+        col[0].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
+         
+        sprintf(buf_0,"%d / %d",ywd->VehicleCount[ywd->URBact->Owner],ywd->LevelUnitLimit);         
+        col[1].string       = buf_0;
+        col[1].width        = w * 0.5;
+        col[1].font_id      = FONTID_TRACY;
+        col[1].space_chr    = ' ';
+        col[1].prefix_chr   = 0;
+        col[1].postfix_chr  = 0;
+        col[1].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
+        
+        str = yw_BuildColumnItem(ywd,str,2,col);
+        new_line(str);
+    };
+    return(str);
+}
+
+/*-----------------------------------------------------------------*/
+FLOAT yw_GetCostFactor(struct ypaworld_data *ywd)
+/*
+**  FUNCTION
+**      Returniert 1.0, oder wenn es sich um ein Multiplayer-
+**      Spiel mit YPA_UNITLIMITTYPE_COST einen Wert der groesser
+**      ist.
+**
+**  CHANGED
+**      10-Jun-98   floh    created
+*/
+{
+    FLOAT mul = 1.0;
+    if (ywd->playing_network && (YPA_UNITLIMITTYPE_COST==ywd->LevelUnitLimitType)) {
+        LONG diff = ywd->VehicleCount[ywd->URBact->Owner] - ywd->LevelUnitLimit;
+        if (diff > 0) {
+            mul = 1.0 + (((FLOAT)(ywd->LevelUnitLimitArg*diff))/100.0) ;
+        };
+    };
+    return(mul);
+}          
+          
