@@ -516,7 +516,7 @@ BOOL yw_LoadKeyTable( struct GameShellReq *GSR )
     ** Load wird von Restore aufgerufen, welches per Hand aufgerufen wird.
     ** Somit dürfte immer eine Sprache eingestellt sein.
     ** -----------------------------------------------------------------*/
-    sprintf( filename, "levels:settings/%s/input.def", GSR->ywd->LocaleLang );
+    sprintf( filename, "data:settings/%s/input.def", GSR->ywd->LocaleLang );
     parser.parse_func = yw_ParseInputData;
     parser.store[0]   = (ULONG) GSR->ywd->world;
     parser.target     = GSR;
