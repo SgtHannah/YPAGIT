@@ -331,7 +331,8 @@ _dispatcher(void, yb_YBM_HANDLEINPUT, struct trigger_logic_msg *msg)
             ** -------------------------------------------------------------*/
             if( ((fabs(ybd->bact.dof.y) > 0.98) ||
                  (ybd->bact.dof.v == 0.0)) &&
-                 (ybd->bact.dir.m22 > 0.996) ) {
+                 (ybd->bact.dir.m22 > 0.996) &&
+                 (msg->input->Slider[ SL_FLY_HEIGHT ] == 0.0)) {
 
                 FLOAT len;
 

@@ -33,6 +33,7 @@
 _extern_use_nucleus
 _extern_use_tform_engine
 _extern_use_audio_engine
+void yb_TakeCommandersTarget( struct Bacterium *slave, struct Bacterium *chief, Object *world );
 
 
 /*-----------------------------------------------------------------*/
@@ -322,10 +323,8 @@ void yb_setAttrs(Object *o, struct ypabact_data *ybd, struct TagItem *attrs)
                         ybd->flags &= ~YBF_Viewer;
 
                         /*** Übers Netz ***/
-                        #ifdef __NETWORK__
                         if( ywd->playing_network )
                             vm.viewer = 0;
-                        #endif
 
                         /*** CockPitGeräusch aus ***/
                         _EndSoundSource( &(ybd->bact.sc), VP_NOISE_COCKPIT );
@@ -334,17 +333,34 @@ void yb_setAttrs(Object *o, struct ypabact_data *ybd, struct TagItem *attrs)
                         ** Wenn ich Commander war, dann meinen Slaves mein
                         ** Hauptziel geben, weil im "FORMATIONslosen Zeitalter"
                         ** die Zielweitergabe nicht mehr automatisch erfolgt.
+                        ** Ausserdem kann ich das geschwader ganz schoen auf-
+                        ** gewuehlt haben. Als Slave uebernehme ich das Haupt-
+                        ** ziel des Commanders. Das alles jedoch nur, wenn
+                        ** wir nicht im Cyclemodus sind.
                         ** --------------------------------------------------*/
-                        if( (ybd->bact.robo == ybd->bact.master) &&
-                            (BCLID_YPAMISSY != ybd->bact.BactClassID) ) {
-
-                            struct settarget_msg target;
-
-                            target.target_type = ybd->bact.PrimTargetType;
-                            target.target.bact = ybd->bact.PrimaryTarget.Bact;
-                            target.priority    = 0;
-                            target.pos         = ybd->bact.PrimPos;
-                            _methoda( o, YBM_SETTARGET, &target );
+                        if( (BCLID_YPAMISSY != ybd->bact.BactClassID) &&
+                            (BCLID_YPAROBO  != ybd->bact.BactClassID) ) {
+                        
+                            if( ybd->bact.master == ybd->bact.robo ) {
+                                
+                                if( !((ybd->bact.ExtraState & EXTRA_DOINGWAYPOINT) &&
+                                      (ybd->bact.ExtraState & EXTRA_WAYPOINTCYCLE)) ) {
+                                    /*** mein Ziel an Slaves ***/
+                                    struct OBNode *slave;
+                                    slave = (struct OBNode *) ybd->bact.slave_list.mlh_Head;
+                                    while( slave->nd.mln_Succ ) {
+                                        yb_TakeCommandersTarget( slave->bact, &(ybd->bact), ybd->world );
+                                        slave = (struct OBNode *) slave->nd.mln_Succ;
+                                        } 
+                                    }
+                                }
+                            else {
+                                if( !((ybd->bact.master_bact->ExtraState & EXTRA_DOINGWAYPOINT) &&
+                                      (ybd->bact.master_bact->ExtraState & EXTRA_WAYPOINTCYCLE)) ) {
+                                    /*** Ziel vom Commander uebernehmen ***/
+                                    yb_TakeCommandersTarget( &(ybd->bact), ybd->bact.master_bact, ybd->world );
+                                    }
+                                }
                             }
                     };
 

@@ -146,7 +146,7 @@ _dispatcher(void, yb_YBM_MOVE, struct move_msg *move)
     
     /*** bei UserInput unabhaengig vom Vorzeichen y-Komponnete staerker ***/
     if( ybd->flags & YBF_UserInput )
-        res.y *= 2.0;
+        res.y *= 3.0;
 
     /*** neuer dof - zum alten aufaddieren ***/
     if( res.v > 0.0 ) {
