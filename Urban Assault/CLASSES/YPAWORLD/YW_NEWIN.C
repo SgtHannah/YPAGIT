@@ -1968,6 +1968,9 @@ _dispatcher(void, yw_YWM_KILLLEVEL, void *ignored)
         
     if( ywd->playing_network ) {
         /*** letzte daten rausschreiben ***/
+        if( FALSE == ywd->gsr->sent_aq )
+            yw_SendAnnounceQuit( ywd, 0 );
+            
         yw_PrintNetworkInfoEnd( ywd->gsr );
         yw_CleanupNetworkSession( ywd );
         ywd->DoDebriefing      = TRUE;

@@ -6006,6 +6006,7 @@ void yw_CleanupNetworkData( struct ypaworld_data *ywd )
         GSR->NPlayerOwner         = 0;
         GSR->NLevelOffset         = 0;
         GSR->modem_ask_session    = FALSE;
+        GSR->sent_aq              = FALSE;  
 
         for( i=0; i<MAXNUM_PLAYERS; i++ ) {
 

@@ -488,6 +488,7 @@ struct GameShellReq {
     
     BOOL    dont_send;              // dann werden keine Messages mehr verschickt.
                                     // nur zum Behandeln von Problemen
+    BOOL    sent_aq;                // ein announcequit wurde gesendet                                
     UBYTE   network_trouble_owner;  // zum merken fuer spaeteres aufraeumen                              
     char    network_trouble_name[ STANDARD_NAMELEN ];                                
     WORD    network_trouble;        // der derzeitige Problemstatus, siehe ypamessages.h

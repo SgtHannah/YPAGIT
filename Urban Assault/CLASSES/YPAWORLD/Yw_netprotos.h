@@ -43,7 +43,7 @@ void yw_ExtractVehicleData( struct ypaworld_data *ywd,
                             struct ypamessage_vehicledata_i *vdm,
                             struct OBNode *robo );
 void yw_DrawNetworkStatusInfo( struct ypaworld_data *ywd );
-void yw_SendAnnounceQuit( struct ypaworld_data *ywd );
+void yw_SendAnnounceQuit( struct ypaworld_data *ywd, UBYTE normal );
 void yw_PrintNetworkInfoStart( struct GameShellReq *GSR );
 void yw_PrintNetworkInfoEnd( struct GameShellReq *GSR );
 BOOL yw_NetLog( char* string, ... );

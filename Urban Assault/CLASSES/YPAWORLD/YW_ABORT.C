@@ -329,7 +329,7 @@ void yw_HandleInputAMR(struct ypaworld_data *ywd, struct VFMInput *ip)
             switch (AMR.action) {
                 case AMR_BTN_CANCEL:
                     ywd->Level->Status = LEVELSTAT_ABORTED;
-                    if(ywd->playing_network) yw_SendAnnounceQuit(ywd);
+                    if(ywd->playing_network) yw_SendAnnounceQuit(ywd,1);
                     break;
                 case AMR_BTN_SAVE:
                     ywd->Level->Status = LEVELSTAT_SAVE;

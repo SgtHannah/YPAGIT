@@ -65,8 +65,8 @@ void yr_GiveWayPointToSlaves( struct Bacterium *bact );
 void yr_HandleSurfaceStuff( struct yparobo_data *yrd, struct trigger_logic_msg *msg );
 yr_DoBeamStuff( struct yparobo_data *yrd, LONG frame_time );
 BOOL yr_AreThereGroundVehicles( struct Bacterium *commander );
-void yr_SetBactTarget( struct Bacterium *commander, struct Bacterium *targetbact );
-void yr_SetSectorTarget( struct Bacterium *commander, FLOAT tarpoint_x, FLOAT tarpoint_z );
+BOOL yr_SetBactTarget( struct Bacterium *commander, struct Bacterium *targetbact );
+BOOL yr_SetSectorTarget( struct Bacterium *commander, FLOAT tarpoint_x, FLOAT tarpoint_z );
 void yb_TakeCommandersTarget( struct Bacterium *slave, struct Bacterium *chief, Object *world );
 void yr_SwitchEscape( struct Bacterium *com, UBYTE wat_n_nu );
 
@@ -609,6 +609,7 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
     struct bact_message log;
     struct findpath_msg fpath;
     int    merke_waypoints;
+    BOOL   m;
                                                                                                 
     #ifdef __NETWORK__
     struct ypamessage_newvehicle nvm;
@@ -643,16 +644,34 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
             ** NEARTOCOM daten hat und dann machen wir es nochmal richtig.
             ** ---------------------------------------------------------*/
             if( msg->tarsec ) {
-                target.pos.x       = msg->tarpoint.x;
-                target.pos.z       = msg->tarpoint.z;
-                target.target_type = TARTYPE_SECTOR;
+
+                m = yr_SetSectorTarget( msg->selbact, msg->tarpoint.x, msg->tarpoint.z );
                 }
             else {
-                target.target.bact = msg->tarbact;
-                target.target_type = TARTYPE_BACTERIUM;
+
+                m = yr_SetBactTarget( msg->selbact, msg->tarbact );
                 }
-            target.priority    = 0;
-            _methoda( msg->selbact->BactObject, YBM_SETTARGET, &target);
+                
+            /*** war es moeglich, dieses Ziel anzunehmen ***/
+            if( !m ) {
+            
+                /*** nicht moeglich ***/
+                if( yrd->ywd->gsr )
+                    _StartSoundSource( &(yrd->ywd->gsr->ShellSound2), SHELLSOUND_ERROR );
+                break;
+                } 
+                
+//            if( msg->tarsec ) {
+//                target.pos.x       = msg->tarpoint.x;
+//                target.pos.z       = msg->tarpoint.z;
+//                target.target_type = TARTYPE_SECTOR;
+//                }
+//            else {
+//                target.target.bact = msg->tarbact;
+//                target.target_type = TARTYPE_BACTERIUM;
+//                }
+//            target.priority    = 0;
+//            _methoda( msg->selbact->BactObject, YBM_SETTARGET, &target);
 
             /*** Geschwader evtl. umschichten ***/
             if( !yr_IsComNearest( msg->selbact ) ) {
@@ -672,13 +691,19 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
             /*** Nun richtige Zielpunktvergabe ***/
             if( msg->tarsec ) {
 
-                yr_SetSectorTarget( msg->selbact, msg->tarpoint.x, msg->tarpoint.z );
-
+                m = yr_SetSectorTarget( msg->selbact, msg->tarpoint.x, msg->tarpoint.z );
                 }
             else {
 
-                yr_SetBactTarget( msg->selbact, msg->tarbact );
+                m = yr_SetBactTarget( msg->selbact, msg->tarbact );
                 }
+                
+            /*** war es moeglich, dieses Ziel anzunehmen ***/
+            if( !m ) {
+            
+                /*** nicht moeglich ***/
+                break;
+                } 
 
             /*** selbact oder sein Master ist Sender für M. ***/
             if( msg->selbact->master == msg->selbact->robo )
@@ -725,13 +750,15 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
             
             if( yr_AreThereGroundVehicles( msg->selbact ) ) {
             
+                BOOL m;
+            
                 fpath.from_x        = msg->selbact->pos.x;
                 fpath.from_z        = msg->selbact->pos.z;
                 fpath.to_x          = msg->tarpoint.x;
                 fpath.to_z          = msg->tarpoint.z;
                 fpath.num_waypoints = MAXNUM_WAYPOINTS;
                 fpath.flags         = WPF_Normal;
-                if( _methoda( yrd->bact->BactObject, YBM_FINDPATH, &fpath) &&
+                if( m = _methoda( yrd->bact->BactObject, YBM_FINDPATH, &fpath) &&
                     (fpath.num_waypoints > 0) ) {
                 
                     int i;
@@ -743,10 +770,23 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
                     }
                 else {
                     
-                    /*** Punkte kopieren ***/
-                    msg->selbact->num_waypoints   = 1;
-                    msg->selbact->waypoint[ 0 ].x = msg->tarpoint.x;
-                    msg->selbact->waypoint[ 0 ].z = msg->tarpoint.z;
+                    if( m ) {
+                    
+                        /*** Punkte kopieren ***/
+                        msg->selbact->num_waypoints   = 1;
+                        msg->selbact->waypoint[ 0 ].x = msg->tarpoint.x;
+                        msg->selbact->waypoint[ 0 ].z = msg->tarpoint.z;
+                        }
+                    else {
+                        
+                        /*** nicht moeglich ***/
+                        if( yrd->ywd->gsr )
+                            _StartSoundSource( &(yrd->ywd->gsr->ShellSound2), SHELLSOUND_ERROR );
+                        msg->selbact->ExtraState &= ~EXTRA_DOINGWAYPOINT;
+                        yrd->ywd->NumWayPoints = 0;
+                        yrd->ywd->WayPointMode = FALSE;
+                        break;
+                        }
                     }
                 }
             else {
@@ -793,10 +833,16 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
             /*** Zuviele? ***/
             if( msg->selbact->num_waypoints >= MAXNUM_WAYPOINTS )
                 break;
+                
+            /*** ging bei START was schief? ***/
+            if( !(msg->selbact->ExtraState & EXTRA_DOINGWAYPOINT))
+                break;
 
             /*** Punkte kopieren ***/
             merke_waypoints = msg->selbact->num_waypoints;
             if( yr_AreThereGroundVehicles( msg->selbact ) ) {
+            
+                BOOL m;
             
                 fpath.from_x        = msg->selbact->waypoint[ msg->selbact->num_waypoints-1 ].x;
                 fpath.from_z        = msg->selbact->waypoint[ msg->selbact->num_waypoints-1 ].z;
@@ -804,7 +850,7 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
                 fpath.to_z          = msg->tarpoint.z;
                 fpath.num_waypoints = MAXNUM_WAYPOINTS - msg->selbact->num_waypoints;
                 fpath.flags         = WPF_Normal;
-                if( (_methoda( yrd->bact->BactObject, YBM_FINDPATH, &fpath)) &&
+                if( (m = _methoda( yrd->bact->BactObject, YBM_FINDPATH, &fpath)) &&
                     (fpath.num_waypoints > 0) ) {
                 
                     int i;
@@ -815,11 +861,21 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
                     msg->selbact->num_waypoints += fpath.num_waypoints;
                     }
                 else {
+                
+                    if( m ) {
+                        
+                        /*** Punkte kopieren ***/
+                        msg->selbact->waypoint[ msg->selbact->num_waypoints ].x = msg->tarpoint.x;
+                        msg->selbact->waypoint[ msg->selbact->num_waypoints ].z = msg->tarpoint.z;
+                        msg->selbact->num_waypoints  += 1;
+                        }
+                    else {
                     
-                    /*** Punkte kopieren ***/
-                    msg->selbact->waypoint[ msg->selbact->num_waypoints ].x = msg->tarpoint.x;
-                    msg->selbact->waypoint[ msg->selbact->num_waypoints ].z = msg->tarpoint.z;
-                    msg->selbact->num_waypoints  += 1;
+                        /*** nicht moeglich ***/
+                        if( yrd->ywd->gsr )
+                            _StartSoundSource( &(yrd->ywd->gsr->ShellSound2), SHELLSOUND_ERROR );
+                        break;
+                        }
                     }
                 }
             else {
@@ -1330,7 +1386,7 @@ BOOL yr_AreThereGroundVehicles( struct Bacterium *commander )
 }
 
 
-void yr_SetBactTarget( struct Bacterium *commander, struct Bacterium *targetbact )
+BOOL yr_SetBactTarget( struct Bacterium *commander, struct Bacterium *targetbact )
 {
     /* -------------------------------------------------------
     ** ein Bakterienziel. Hmm. Wenn wir Wegpunkte benoetigen,
@@ -1343,6 +1399,7 @@ void yr_SetBactTarget( struct Bacterium *commander, struct Bacterium *targetbact
     if( yr_AreThereGroundVehicles( commander ) ) {
 
         struct findpath_msg fp;
+        BOOL m;
 
         fp.num_waypoints = MAXNUM_WAYPOINTS;
         fp.from_x        = commander->pos.x;
@@ -1352,7 +1409,9 @@ void yr_SetBactTarget( struct Bacterium *commander, struct Bacterium *targetbact
         fp.flags         = WPF_Normal;
 
         /*** Mit FINDPATH nur testen ***/
-        _methoda( commander->BactObject, YBM_FINDPATH, &fp );
+        m = _methoda( commander->BactObject, YBM_FINDPATH, &fp );
+        if( !m ) return( FALSE );
+        
 
         /*** Wenn wir WAYPOINTS brauchen, dann SektorZiele ***/
         if( fp.num_waypoints > 1 ) {
@@ -1385,10 +1444,12 @@ void yr_SetBactTarget( struct Bacterium *commander, struct Bacterium *targetbact
         target.target_type = TARTYPE_BACTERIUM;
         _methoda( commander->BactObject, YBM_SETTARGET, &target);
         }
+        
+    return( TRUE );
 }
 
 
-void yr_SetSectorTarget( struct Bacterium *commander, FLOAT tarpoint_x, FLOAT tarpoint_z )
+BOOL yr_SetSectorTarget( struct Bacterium *commander, FLOAT tarpoint_x, FLOAT tarpoint_z )
 {
     struct settarget_msg target;
 
@@ -1403,7 +1464,8 @@ void yr_SetSectorTarget( struct Bacterium *commander, FLOAT tarpoint_x, FLOAT ta
         fp.to_x          = tarpoint_x;
         fp.to_z          = tarpoint_z;
         fp.flags         = WPF_Normal;
-        _methoda( commander->BactObject, YBM_SETWAY, &fp );
+        if( !_methoda( commander->BactObject, YBM_SETWAY, &fp ))
+            return( FALSE );
         }
     else {
 
@@ -1414,4 +1476,6 @@ void yr_SetSectorTarget( struct Bacterium *commander, FLOAT tarpoint_x, FLOAT ta
         target.priority    = 0;
         _methoda( commander->BactObject, YBM_SETTARGET, &target);
         }
+        
+    return( TRUE );
 }

@@ -4070,16 +4070,23 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
             ** -----------------------------------------------------*/
             aq = (struct ypamessage_announcequit *)( rm->data );
             size = sizeof( struct ypamessage_announcequit );
-            if( ywd->gsr->player[ owner ].was_killed ) break;
-
-            yw_NetLog(">>> received ANNOUNCEQUIT from %s at %d\n",
-                       rm->sender_id, ywd->TimeStamp/1000 );
-                       
-            ywd->gsr->player[ owner ].status = NWS_LEFTGAME;
+            if( ywd->gsr->player[ owner ].was_killed && aq->normal ) break;
             
-            /*** Wenn der Robo schon tot ist, keine Meldung ***/
+            if( aq->normal ) {
+
+                yw_NetLog(">>> received ANNOUNCEQUIT from %s at %d\n",
+                           rm->sender_id, ywd->TimeStamp/1000 );
+                           
+                ywd->gsr->player[ owner ].status = NWS_LEFTGAME;
+                }
+            
+            /* -------------------------------------------
+            ** Wenn der Robo schon tot ist, keine Meldung.
+            ** Es sei denn, es wird direkt gefordert. 
+            ** -----------------------------------------*/
             robo = yw_GetRoboByOwner( ywd, aq->generic.owner );
-            if( robo && (ACTION_DEAD != robo->bact->MainState) ) {
+            if( (robo && (ACTION_DEAD != robo->bact->MainState)) ||
+                (FALSE == aq->normal) ) {
             
                 ywd->netplayerstatus.kind = NPS_HASLEFT;
                 ywd->netplayerstatus.time = ywd->TimeStamp;

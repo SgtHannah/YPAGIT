@@ -995,7 +995,7 @@ void yw_DrawNetworkStatusInfo( struct ypaworld_data *ywd )
 }
 
 
-void yw_SendAnnounceQuit( struct ypaworld_data *ywd )
+void yw_SendAnnounceQuit( struct ypaworld_data *ywd, UBYTE normal )
 {
     /* --------------------------------------------------------------
     ** AnnounceQuit ist eine Meldung, die Anzeigt, dass ein folgendes
@@ -1007,6 +1007,7 @@ void yw_SendAnnounceQuit( struct ypaworld_data *ywd )
 
     aq.generic.message_id = YPAM_ANNOUNCEQUIT;
     aq.generic.owner      = ywd->gsr->NPlayerOwner;
+    aq.normal             = normal;  
 
     sm.receiver_id        = NULL;
     sm.receiver_kind      = MSG_ALL;
@@ -1014,6 +1015,8 @@ void yw_SendAnnounceQuit( struct ypaworld_data *ywd )
     sm.data_size          = sizeof( aq );
     sm.guaranteed         = TRUE;
     _methoda( ywd->world, YWM_SENDMESSAGE, &sm );
+    
+    ywd->gsr->sent_aq = FALSE;
 }
 
 

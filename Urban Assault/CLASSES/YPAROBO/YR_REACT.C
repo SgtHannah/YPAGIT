@@ -77,8 +77,8 @@ void yr_HistoryCreate( Object *world, struct Bacterium *bact );
 BOOL yr_AreThereGroundVehicles( struct Bacterium *commander );
 struct roboattacker *yr_GetFreeAttackerSlot( struct yparobo_data *yrd );
 void yr_ControlRoboAttacker( struct OBNode *Commander, struct roboattacker *ra );
-void yr_SetBactTarget( struct Bacterium *commander, struct Bacterium *targetbact );
-void yr_SetSectorTarget( struct Bacterium *commander, FLOAT x, FLOAT z );
+BOOL yr_SetBactTarget( struct Bacterium *commander, struct Bacterium *targetbact );
+BOOL yr_SetSectorTarget( struct Bacterium *commander, FLOAT x, FLOAT z );
 void yr_SwitchEscape( struct Bacterium *com, UBYTE wat_n_nu );
 
 
