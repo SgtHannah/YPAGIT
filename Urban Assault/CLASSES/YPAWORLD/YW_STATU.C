@@ -2186,6 +2186,7 @@ BOOL yw_SRHotKey(struct ypaworld_data *ywd, struct VFMInput *ip)
 **                            Order-Modus
 **      08-Dec-97   floh    + Beam Hotkey neu implementiert
 **      16-Mar-98   floh    + HOTKEY_HELP Support
+**      26-May-98   floh    + HOTKEY_ANALYZER Support
 */
 {
     struct ClickInfo *ci = &(ip->ClickInfo);
@@ -2427,6 +2428,13 @@ BOOL yw_SRHotKey(struct ypaworld_data *ywd, struct VFMInput *ip)
                 ywd->Url = ypa_GetStr(ywd->LocHandle,STR_HELP_INGAMEGENERAL,"help\\l17.html");
                 break;
 
+            case HOTKEY_ANALYZER:
+                if (ywd->UVBact->MainState != ACTION_DEAD) {
+                    ci->box    = &(SR.req.req_cbox);
+                    ci->btn    = STATBTN_HELP;
+                    ci->flags |= CIF_BUTTONUP;
+                };
+                break;
         };
     #endif // CutterMode
 
@@ -3063,7 +3071,7 @@ void yw_HandleInputSR(struct ypaworld_data *ywd, struct VFMInput *ip)
                     if (ci->flags & CIF_BUTTONUP) {
                         yw_AnalyzeGameState(ywd);
                     };
-                    yw_Tooltip(ywd,TOOLTIP_GUI_HELP);
+                    yw_TooltipHotkey(ywd,TOOLTIP_GUI_HELP,HOTKEY_ANALYZER);
                     break;
 
                 /*** Online-Hilfe Button ***/

@@ -187,9 +187,10 @@ struct input_info {
 #define GS_HELPTEXT         "HELP"
 #define GS_LASTOCCUPIEDTEXT  "GOTO LAST OCCUPIED VEHICLE"
 #define GS_MAKECOMMANDERTEXT "MAKE CURRENT VEHICLE COMMANDER"
+#define GS_ANALYZERTEXT     "SITUATION ANALYZER"
 
 #define USERNAMELEN         256     // so lang darf ein Username sein
-#define NUM_INPUTEVENTS     46      // soviele Einträge hat das Input-Menü
+#define NUM_INPUTEVENTS     47      // soviele Einträge hat das Input-Menü
 #define MESSAGE_TIME        1500    // solange bleibt eine Meldung da
 #define MAX_LANGUAGELEN     32      // soviele Zeichen darf die Sprache enthalten
 #define SESSIONNAMELEN      1024    // Länge bezogen auf größe des Gadgets!
@@ -970,6 +971,7 @@ struct GameShellReq {
 #define I_HELP              44L
 #define I_LASTOCCUPIED      45L
 #define I_MAKECOMMANDER     46L
+#define I_ANALYZER          47L
 
 /*** Die Shellsounds 1. SoundSource ***/
 #define SHELLSOUND_VOLUME           0   // für'n Lautstärkeregler

@@ -2116,6 +2116,7 @@ LONG yw_GetInternalNumber( ULONG type, ULONG number )
                 case HOTKEY_HELP - 128:         value = I_HELP;       break;
                 case HOTKEY_LASTOCCUPIED - 128:  value = I_LASTOCCUPIED;  break;
                 case HOTKEY_MAKECOMMANDER - 128: value = I_MAKECOMMANDER; break;
+                case HOTKEY_ANALYZER - 128:     value = I_ANALYZER; break;
                 }
 
             break;

@@ -402,6 +402,11 @@ _dispatcher( BOOL, yw_YWM_INITGAMESHELL, struct GameShellReq *GSR )
     ii->kind     = GSI_HOTKEY;
     ii->number   = HOTKEY_MAKECOMMANDER - 128;
     ii->pos      = 0;
+    
+    ii = &( GSR->inp[ I_ANALYZER ]);
+    ii->kind     = GSI_HOTKEY;
+    ii->number   = HOTKEY_ANALYZER - 128;
+    ii->pos      = 0;    
 ///
 
 /// "Tasten mit Defaultwerten setzen"
@@ -876,6 +881,9 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
 
     ii = &( GSR->inp[ I_MAKECOMMANDER ]);
     ii->menuname = ypa_GetStr( GlobalLocaleHandle, STR_IMENU_MAKECOMMANDER, GS_MAKECOMMANDERTEXT);
+
+    ii = &( GSR->inp[ I_ANALYZER ]);
+    ii->menuname = ypa_GetStr( GlobalLocaleHandle, STR_IMENU_ANALYZER, GS_ANALYZERTEXT);
 ///
 
 /// "Voreinstellungen fnr Ausdehnung und Startposition der Requester"

@@ -112,7 +112,8 @@ struct YPAReq {
 #define HOTKEY_AGGR5        (0xaa)  // Schaltet auf fünfte Aggressionsstufe
 #define HOTKEY_HELP         (0xab)  // ruft Online-Hilfe auf
 #define HOTKEY_LASTOCCUPIED  (0xac)  // gehe zurueck in zuletzt besetztes Vehicle
-#define HOTKEY_MAKECOMMANDER (0xad) // mache aktuelles Vehicle zum Commander
+#define HOTKEY_MAKECOMMANDER (0xad)  // mache aktuelles Vehicle zum Commander
+#define HOTKEY_ANALYZER     (0xae)  // Situation Analyzer Hotkey
 
 /*-------------------------------------------------------------------
 **      Sachen, die im Create-Menue stehen
