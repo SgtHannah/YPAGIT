@@ -2807,12 +2807,11 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
                     struct logmsg_msg log;
 
                     /*** Der Spieler ist der letzte Lebendige ***/
-                    //log.pri  = 10;
-                    //log.msg  = ypa_GetStr( GlobalLocaleHandle,
-                    //           STR_LMSG_YOUWIN, "YOU WIN THE GAME");
-                    //log.bact = NULL;
-                    //log.code = 0;
-                    //_methoda( ywd->world, YWM_LOGMSG, &log );
+                    log.pri  = 10;
+                    log.msg  = NULL; //ypa_GetStr( GlobalLocaleHandle, STR_LMSG_YOUWIN, "YOU WIN THE GAME");
+                    log.bact = NULL;
+                    log.code = LOGMSG_NETWORK_YOUWIN;
+                    _methoda( ywd->world, YWM_LOGMSG, &log );
                     
                     ywd->netplayerstatus.kind = NPS_YOUWIN;
                     ywd->netplayerstatus.time = ywd->TimeStamp;
@@ -2863,9 +2862,22 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
                         }
                         
                     log.pri  = 50;  // wie die normale ROBODEAD-message
-                    log.msg  = t;
+                    log.msg  = NULL;
                     log.bact = NULL;
-                    log.code = 0;
+                    switch( rd->generic.owner ) {
+                        case 3:
+                            log.code = LOGMSG_NETWORK_MYK_KILLED;
+                            break;
+                        case 4:
+                            log.code = LOGMSG_NETWORK_TAER_KILLED;
+                            break;
+                        case 6:
+                            log.code = LOGMSG_NETWORK_KYT_KILLED;
+                            break;
+                        case 1:
+                            log.code = LOGMSG_NETWORK_USER_KILLED;
+                            break;
+                        }
                     _methoda( ywd->world, YWM_LOGMSG, &log );
                     }    
                 }
@@ -3989,6 +4001,25 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
             strcpy( ywd->netplayerstatus.name, rm->sender_id );
 
             ywd->gsr->player[ owner ].status = NWS_LEFTGAME;
+            
+            log.pri  = 50;  // wie die normale ROBODEAD-message
+            log.msg  = NULL;
+            log.bact = NULL;
+            switch( aq->generic.owner ) {
+                case 3:
+                    log.code = LOGMSG_NETWORK_MYK_LEFT;
+                    break;
+                case 4:
+                    log.code = LOGMSG_NETWORK_TAER_LEFT;
+                    break;
+                case 6:
+                    log.code = LOGMSG_NETWORK_KYT_LEFT;
+                    break;
+                case 1:
+                    log.code = LOGMSG_NETWORK_USER_LEFT;
+                    break;
+                }
+            _methoda( ywd->world, YWM_LOGMSG, &log );
             break;
             
         case YPAM_CHECKSUM:
