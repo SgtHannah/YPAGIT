@@ -716,7 +716,7 @@ void yw_PutDebugInfo(struct ypaworld_data *ywd, struct VFMInput *ip)
 
                     rc++;
 
-                    if( rc < (ywd->DebugInfo-2) )
+                    if( rc < (ywd->DebugInfo-3) )
                         continue;
 
                     found = 1;

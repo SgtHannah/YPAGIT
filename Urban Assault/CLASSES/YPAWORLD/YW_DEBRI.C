@@ -84,6 +84,15 @@ struct __dbscore_qsort_struct {
     LONG score;
 };
 
+/*** Scoring Punkte ***/
+#define SCORE_AIAIKILL      (10)
+#define SCORE_USERAIKILL    (20)
+#define SCORE_USERUSERKILL  (200)
+#define SCORE_SECTOR        (1)
+#define SCORE_POWERSTATION  (100)
+#define SCORE_TECHUPGRADE   (500)
+#define SCORE_HOSTKILL      (1000)
+
 /*-----------------------------------------------------------------*/
 ULONG yw_DebriefingMapParser(struct ScriptParser *p)
 /*
@@ -203,6 +212,8 @@ void yw_KillDebriefing(struct ypaworld_data *ywd)
     /*** Struktur ungültig markieren ***/
     mb->Status = MBSTATUS_INVALID;
     ywd->Level->Status = LEVELSTAT_SHELL;
+    
+    _LogMsg("-> Debriefing left...\n");    
 }
 
 /*-----------------------------------------------------------------*/
@@ -234,6 +245,9 @@ BOOL yw_InitDebriefing(struct ypaworld_data *ywd)
     struct rast_rect cr;
     struct MissionBriefing *mb = &(ywd->Mission);
     memset(mb,0,sizeof(struct MissionBriefing));
+    
+    _LogMsg("-> Debriefing entered...\n");
+        
     if (ywd->OwnerMapBU && ywd->TypeMapBU) {
 
         if (LEVELSTAT_FINISHED==ywd->Level->Status) mb->ZoomFromBeamGate=TRUE;
@@ -486,6 +500,8 @@ void yw_DBScore(struct ypaworld_data *ywd, UBYTE *inst,
 **
 **  CHANGED
 **      08-Sep-97   floh    created
+**      19-May-98   floh    + YPAHIST_TECHUPGRADE ist neu
+**                          + Scoring jetzt "richtig"
 */
 {
     UBYTE cmd = *inst;
@@ -496,16 +512,36 @@ void yw_DBScore(struct ypaworld_data *ywd, UBYTE *inst,
                 struct ypa_HistConSec *hcs_inst = (struct ypa_HistConSec *) inst;
                 ULONG owner = hcs_inst->new_owner;
                 stat[owner].SecCons++;
+                stat[owner].Score += SCORE_SECTOR;
             };
             break;
-
+            
         case YPAHIST_VHCLKILL:
             {
                 struct ypa_HistVhclKill *hvk_inst = (struct ypa_HistVhclKill *) inst;
                 ULONG killer_owner = (hvk_inst->owners>>3) & 0x7;
                 ULONG victim_owner = (hvk_inst->owners) & 0x7;
+                ULONG code = hvk_inst->owners & 0xC0;                
                 stat[killer_owner].Kills++;
-                stat[victim_owner].Losses++;
+                if (code == 0x80) {
+                    /*** ein User hat eine AI gekillt ***/
+                    stat[killer_owner].Score += SCORE_USERAIKILL;
+                    stat[killer_owner].UserKills++;
+                    _LogMsg("-> User AI Kill scored for %d.\n",killer_owner);
+                } else if (code == 0xC0) {
+                    /*** User hat einen User gekillt ***/
+                    stat[killer_owner].Score += SCORE_USERUSERKILL;
+                    stat[killer_owner].UserKills++;
+                    _LogMsg("-> User User Kill scored for %d.\n",killer_owner);
+                } else {
+                    /*** AI/AI-, oder AI hat einen User gekillt ***/
+                    stat[killer_owner].Score += SCORE_AIAIKILL;
+                };                
+                if (hvk_inst->vp & (1<<15)) {
+                    /*** Opfer war ein Robo ***/
+                    stat[killer_owner].Score += SCORE_HOSTKILL;
+                    _LogMsg("-> Host Station Kill scored for %d.\n",killer_owner);
+                };
             };
             break;
 
@@ -517,14 +553,23 @@ void yw_DBScore(struct ypaworld_data *ywd, UBYTE *inst,
                 struct ypa_HistConSec *hcs_inst = (struct ypa_HistConSec *) inst;
                 ULONG owner = hcs_inst->new_owner;
                 stat[owner].Power++;
+                stat[owner].Score += SCORE_POWERSTATION;
+                _LogMsg("-> Power station scored for %d.\n",owner);
             };
             break;
 
         case YPAHIST_TECHUPGRADE:
             {
-                struct ypa_HistConSec *hcs_inst = (struct ypa_HistConSec *) inst;
-                ULONG owner = hcs_inst->new_owner;
-                stat[owner].Techs++;
+                struct ypa_HistTechUpgrade *hcs_inst = (struct ypa_HistTechUpgrade *) inst;
+                ULONG new_owner = hcs_inst->new_owner;
+                ULONG old_owner = hcs_inst->old_owner;
+                stat[new_owner].Techs++;
+                stat[new_owner].Score += SCORE_TECHUPGRADE;
+                if (ywd->WasNetworkSession) {
+                    stat[old_owner].Techs--;
+                    stat[old_owner].Score -= SCORE_TECHUPGRADE;
+                };
+                _LogMsg("-> Tech upgrade scored for %d.\n",new_owner);
             };
             break;
     };
@@ -817,9 +862,52 @@ void yw_DBHandlePowerStation(struct ypaworld_data *ywd,
 }
 
 /*-----------------------------------------------------------------*/
+void yw_DBRegisterTechupgrade(struct ypaworld_data *ywd,
+                              struct MissionBriefing *mb,
+                              struct ypa_HistTechUpgrade *act_inst) 
+/*
+**  CHANGED
+**      19-May-98   floh    created
+*/
+{
+    ULONG type   = act_inst->type;
+    ULONG vp_num = act_inst->vp_num;
+    ULONG bp_num = act_inst->bp_num;
+    ULONG wp_num = act_inst->wp_num;
+    ULONG exists = FALSE;
+    ULONG i;    
+    
+    /*** existiert dieses Techupgrade schon? ***/
+    for (i=0; i<mb->ActTechUpgrade; i++) {
+        struct DBTechUpgrade *dbtu = &(mb->TechUpgrades[i]);
+        if ((dbtu->type == type) &&
+            (dbtu->vp_num == vp_num) &&
+            (dbtu->bp_num == bp_num) &&
+            (dbtu->wp_num == wp_num))
+        { 
+            exists = TRUE;
+            break;
+        };
+    };
+    if (!exists) {
+        /*** existiert noch nicht, hinten ran damit ***/
+        struct DBTechUpgrade *dbtu;
+        if (mb->ActTechUpgrade >= DB_MAXNUM_TECHUPGRADES) {
+            mb->ActTechUpgrade = DB_MAXNUM_TECHUPGRADES-1;
+        };
+        dbtu = &(mb->TechUpgrades[mb->ActTechUpgrade]);
+        dbtu->type   = type;
+        dbtu->vp_num = vp_num;
+        dbtu->bp_num = bp_num;
+        dbtu->wp_num = wp_num;
+        mb->ActTechUpgrade++;
+    };
+}        
+
+/*-----------------------------------------------------------------*/
 void yw_DBHandleTechUpgrade(struct ypaworld_data *ywd,
                             struct MissionBriefing *mb,
-                            struct ypa_HistConSec *act_inst,
+                            struct ypa_HistTechUpgrade *act_inst,
                             LONG real_time, LONG scan_time)
 /*
 **  CHANGED
@@ -830,78 +918,11 @@ void yw_DBHandleTechUpgrade(struct ypaworld_data *ywd,
     /*** Score updaten ***/
     if (scan_time == mb->ActFrameTimeStamp) {
         yw_DBScore(ywd, (UBYTE *) act_inst, mb->LocalStats);
+        yw_DBRegisterTechupgrade(ywd,mb,act_inst);
         if (ywd->gsr) {
             _StartSoundSource(&(ywd->gsr->ShellSound1),SHELLSOUND_BLDGCONQUERED);
         };
     };
-}
-
-/*-----------------------------------------------------------------*/
-UBYTE *yw_DBScoreTime(struct ypaworld_data *ywd,
-                      UBYTE *str, ULONG width,
-                      UBYTE *title,
-                      ULONG loc_time,
-                      ULONG glob_time)
-/*
-**  FUNCTION
-**      Rendert ein Score-Item, bestehend aus einem Titel und
-**      2 Zahlen drunter.
-**
-**  CHANGED
-**      03-Sep-97   floh    created
-**      24-Nov-97   floh    DBCS enabled
-*/
-{
-    UBYTE buf[128];
-    LONG secs,mins,hours;
-
-    /*** wieviele Minuten und Stunden??? ***/
-    struct VFMFont *fnt = ywd->Fonts[FONTID_TRACY];
-    str = yw_TextBuildCenteredItem(fnt,str,title,width,' ');
-    new_line(str);
-    secs  = loc_time>>10;
-    mins  = secs / 60;
-    hours = mins / 60;
-    sprintf(buf,"%d:%02d:%02d",hours,mins%60,secs%60);
-    str = yw_TextBuildCenteredItem(fnt,str,buf,width>>1,' ');
-
-    secs  = glob_time>>10;
-    mins  = secs / 60;
-    hours = mins / 60;
-    sprintf(buf,"%d:%02d:%02d",hours,mins%60,secs%60);
-    str = yw_TextBuildCenteredItem(fnt,str,buf,width>>1,' ');
-    new_line(str);
-    new_line(str);
-    return(str);
-}
-
-/*-----------------------------------------------------------------*/
-UBYTE *yw_DBScoreItem(struct ypaworld_data *ywd,
-                      UBYTE *str, ULONG width,
-                      UBYTE *title,
-                      ULONG loc_stat,
-                      ULONG glob_stat)
-/*
-**  FUNCTION
-**      Rendert ein Score-Item, bestehend aus einem Titel und
-**      2 Zahlen drunter.
-**
-**  CHANGED
-**      03-Sep-97   floh    created
-**      24-Nov-97   floh    + DBCS enabled
-*/
-{
-    UBYTE buf[128];
-    struct VFMFont *fnt = ywd->Fonts[FONTID_TRACY];
-    str = yw_TextBuildCenteredItem(fnt,str,title,width,' ');
-    new_line(str);
-    sprintf(buf,"%d",loc_stat);
-    str = yw_TextBuildCenteredItem(fnt,str,buf,width>>1,' ');
-    sprintf(buf,"%d",glob_stat);
-    str = yw_TextBuildCenteredItem(fnt,str,buf,width>>1,' ');
-    new_line(str);
-    new_line(str);
-    return(str);
 }
 
 /*-----------------------------------------------------------------*/
@@ -1026,7 +1047,7 @@ UBYTE *yw_DBLayoutKills(struct ypaworld_data *ywd,
         col[0].postfix_chr  = 0;
         col[0].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
          
-        if (ywd->WasNetworkSession || (kills_array[i].owner==1)) sprintf(buf_0,"%d",mb->LocalStats[kills_array[i].owner].Kills);
+        if (ywd->WasNetworkSession || (kills_array[i].owner==1)) sprintf(buf_0,"%d",mb->LocalStats[kills_array[i].owner].UserKills);
         else                                                     sprintf(buf_0,"-");
         col[1].string       = buf_0;
         col[1].width        = w * 0.3;
@@ -1091,80 +1112,137 @@ UBYTE *yw_DBLayoutScore(struct ypaworld_data *ywd,
 **
 **  CHANGED
 **      08-May-98   floh    created
+**      19-May-98   floh    + scored jetzt richtig
 */
 {
-    struct __dbscore_qsort_struct score_array[MAXNUM_OWNERS];
-    ULONG i,num_owners;    
+    if (ywd->WasNetworkSession) {
     
-    /*** initialisiere und sortiere Owner-Array ***/    
-    num_owners=0;
-    for (i=0; i<MAXNUM_OWNERS; i++) {
-        if (ywd->Level->OwnerMask & (1<<i)) {
-            score_array[num_owners].owner=i;
-            score_array[num_owners].score=mb->LocalStats[i].Kills; // FIXME!!!
-            num_owners++;
+        struct __dbscore_qsort_struct score_array[MAXNUM_OWNERS];
+        ULONG i,num_owners;    
+
+        /*** Score-Title layouten ***/
+        str = yw_DBLayoutScoreTitle(ywd,mb,str,w);
+        new_line(str);
+        
+        /*** initialisiere und sortiere Owner-Array ***/    
+        num_owners=0;
+        for (i=0; i<MAXNUM_OWNERS; i++) {
+            if (ywd->Level->OwnerMask & (1<<i)) {
+                score_array[num_owners].owner=i;
+                score_array[num_owners].score=mb->LocalStats[i].Score;
+                num_owners++;
+            };
         };
-    };
-    qsort(score_array,num_owners,sizeof(struct __dbscore_qsort_struct),__dbscore_qsort_hook);
-    
-    /*** layoute jede Zeile ***/
-    for (i=0; i<num_owners; i++) {
-        UBYTE *name;
-        ULONG c_index;
+        qsort(score_array,num_owners,sizeof(struct __dbscore_qsort_struct),__dbscore_qsort_hook);
+        
+        /*** layoute jede Zeile ***/
+        for (i=0; i<num_owners; i++) {
+            UBYTE *name;
+            ULONG c_index;
+            struct ypa_ColumnItem col[2];
+            UBYTE buf_0[32];
+            switch(score_array[i].owner) {
+                case 1:
+                    c_index = YPACOLOR_OWNER_1;
+                    name = ypa_GetStr(ywd->LocHandle,STR_RACE_RESISTANCE,"RESISTANCE");
+                    break;
+                case 2:
+                    c_index = YPACOLOR_OWNER_2;
+                    name = ypa_GetStr(ywd->LocHandle,STR_RACE_SULG,"SULGOGARS");
+                    break;
+                case 3:
+                    c_index = YPACOLOR_OWNER_3;
+                    name = ypa_GetStr(ywd->LocHandle,STR_RACE_MYKO,"MYKONIANS");
+                    break;
+                case 4:
+                    c_index = YPACOLOR_OWNER_4;
+                    name = ypa_GetStr(ywd->LocHandle,STR_RACE_TAER,"TAERKASTEN");
+                    break;
+                case 5:
+                    c_index = YPACOLOR_OWNER_5;
+                    name = ypa_GetStr(ywd->LocHandle,STR_RACE_BLACK,"BLACK SECT");
+                    break;
+                case 6:
+                    c_index = YPACOLOR_OWNER_6;
+                    name = ypa_GetStr(ywd->LocHandle,STR_RACE_KYT,"GHORKOV");
+                    break;
+                default:  
+                    c_index = YPACOLOR_OWNER_7;
+                    name = ypa_GetStr(ywd->LocHandle,STR_RACE_NEUTRAL,"NEUTRAL");
+                    break;
+            };
+            dbcs_color(str,yw_Red(ywd,c_index),yw_Green(ywd,c_index),yw_Blue(ywd,c_index));    
+            
+            /*** Column-Layout initialisieren ***/        
+            col[0].string       = name;
+            col[0].width        = w * 0.5;
+            col[0].font_id      = FONTID_TRACY;
+            col[0].space_chr    = ' ';
+            col[0].prefix_chr   = 0;
+            col[0].postfix_chr  = 0;
+            col[0].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
+             
+            sprintf(buf_0,"%d",mb->LocalStats[score_array[i].owner].Score);         
+            col[1].string       = buf_0;
+            col[1].width        = w * 0.5;
+            col[1].font_id      = FONTID_TRACY;
+            col[1].space_chr    = ' ';
+            col[1].prefix_chr   = 0;
+            col[1].postfix_chr  = 0;
+            col[1].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
+            str = yw_BuildColumnItem(ywd,str,2,col);
+            new_line(str);
+        };
+    } else {
+
         struct ypa_ColumnItem col[2];
         UBYTE buf_0[32];
-        switch(score_array[i].owner) {
-            case 1:
-                c_index = YPACOLOR_OWNER_1;
-                name = ypa_GetStr(ywd->LocHandle,STR_RACE_RESISTANCE,"RESISTANCE");
-                break;
-            case 2:
-                c_index = YPACOLOR_OWNER_2;
-                name = ypa_GetStr(ywd->LocHandle,STR_RACE_SULG,"SULGOGARS");
-                break;
-            case 3:
-                c_index = YPACOLOR_OWNER_3;
-                name = ypa_GetStr(ywd->LocHandle,STR_RACE_MYKO,"MYKONIANS");
-                break;
-            case 4:
-                c_index = YPACOLOR_OWNER_4;
-                name = ypa_GetStr(ywd->LocHandle,STR_RACE_TAER,"TAERKASTEN");
-                break;
-            case 5:
-                c_index = YPACOLOR_OWNER_5;
-                name = ypa_GetStr(ywd->LocHandle,STR_RACE_BLACK,"BLACK SECT");
-                break;
-            case 6:
-                c_index = YPACOLOR_OWNER_6;
-                name = ypa_GetStr(ywd->LocHandle,STR_RACE_KYT,"GHORKOV");
-                break;
-            default:  
-                c_index = YPACOLOR_OWNER_7;
-                name = ypa_GetStr(ywd->LocHandle,STR_RACE_NEUTRAL,"NEUTRAL");
-                break;
-        };
-        dbcs_color(str,yw_Red(ywd,c_index),yw_Green(ywd,c_index),yw_Blue(ywd,c_index));    
-        
-        /*** Column-Layout initialisieren ***/        
-        col[0].string       = name;
-        col[0].width        = w * 0.5;
+
+        dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_DEBRIEFING),yw_Green(ywd,YPACOLOR_TEXT_DEBRIEFING),yw_Blue(ywd,YPACOLOR_TEXT_DEBRIEFING));    
+
+        /*** Score Overall ***/
+        col[0].string       = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_SCORETHISMISSION,"SCORE THIS MISSION:");
+        col[0].width        = w * 0.7;
         col[0].font_id      = FONTID_TRACY;
         col[0].space_chr    = ' ';
         col[0].prefix_chr   = 0;
         col[0].postfix_chr  = 0;
         col[0].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
-         
-        sprintf(buf_0,"%d",mb->LocalStats[score_array[i].owner].Kills);         
+        
+        sprintf(buf_0,"%d",mb->LocalStats[1].Score);
         col[1].string       = buf_0;
-        col[1].width        = w * 0.5;
+        col[1].width        = w * 0.3;
         col[1].font_id      = FONTID_TRACY;
         col[1].space_chr    = ' ';
         col[1].prefix_chr   = 0;
         col[1].postfix_chr  = 0;
         col[1].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
+        
         str = yw_BuildColumnItem(ywd,str,2,col);
         new_line(str);
-    };
+
+        /*** Score Overall ***/
+        col[0].string       = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_SCOREOVERALL,"SCORE OVERALL:");
+        col[0].width        = w * 0.7;
+        col[0].font_id      = FONTID_TRACY;
+        col[0].space_chr    = ' ';
+        col[0].prefix_chr   = 0;
+        col[0].postfix_chr  = 0;
+        col[0].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
+        
+        sprintf(buf_0,"%d",mb->GlobalStats[1].Score + mb->LocalStats[1].Score);
+        col[1].string       = buf_0;
+        col[1].width        = w * 0.3;
+        col[1].font_id      = FONTID_TRACY;
+        col[1].space_chr    = ' ';
+        col[1].prefix_chr   = 0;
+        col[1].postfix_chr  = 0;
+        col[1].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
+        
+        str = yw_BuildColumnItem(ywd,str,2,col);
+        new_line(str);
+    };                
+        
     return(str);
 }
 
@@ -1175,6 +1253,7 @@ UBYTE *yw_DBLayoutTime(struct ypaworld_data *ywd,
 /*
 **  CHANGED
 **      08-May-98   floh    created
+**      19-May-98   floh    + muesste jetzt GlobalTime korrekt anzeigen
 */
 {
     if (ywd->WasNetworkSession) {
@@ -1196,7 +1275,7 @@ UBYTE *yw_DBLayoutTime(struct ypaworld_data *ywd,
         secs  = mb->ActFrameTimeStamp>>10;
         mins  = secs / 60;
         hours = mins / 60;
-        sprintf(buf_0,"%d:%02d:%02d",hours,mins%60,secs%60);
+        sprintf(buf_0,"%02d:%02d:%02d",hours,mins%60,secs%60);
         col[1].string       = buf_0;
         col[1].width        = w * 0.3;
         col[1].font_id      = FONTID_TRACY;
@@ -1216,6 +1295,7 @@ UBYTE *yw_DBLayoutTime(struct ypaworld_data *ywd,
 
         dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_DEBRIEFING),yw_Green(ywd,YPACOLOR_TEXT_DEBRIEFING),yw_Blue(ywd,YPACOLOR_TEXT_DEBRIEFING));    
 
+        /*** Playing Time This Level ***/
         col[0].string       = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_TIMETHISMISSION,"PLAYING TIME THIS MISSION:");
         col[0].width        = w * 0.7;
         col[0].font_id      = FONTID_TRACY;
@@ -1227,7 +1307,7 @@ UBYTE *yw_DBLayoutTime(struct ypaworld_data *ywd,
         secs  = mb->ActFrameTimeStamp>>10;
         mins  = secs / 60;
         hours = mins / 60;
-        sprintf(buf_0,"%d:%02d:%02d",hours,mins%60,secs%60);
+        sprintf(buf_0,"%02d:%02d:%02d",hours,mins%60,secs%60);
         col[1].string       = buf_0;
         col[1].width        = w * 0.3;
         col[1].font_id      = FONTID_TRACY;
@@ -1239,6 +1319,7 @@ UBYTE *yw_DBLayoutTime(struct ypaworld_data *ywd,
         str = yw_BuildColumnItem(ywd,str,2,col);
         new_line(str);
 
+        /*** Playing Time Overall ***/
         col[0].string       = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_TIMEOVERALL,"PLAYING TIME OVERALL:");
         col[0].width        = w * 0.7;
         col[0].font_id      = FONTID_TRACY;
@@ -1247,10 +1328,10 @@ UBYTE *yw_DBLayoutTime(struct ypaworld_data *ywd,
         col[0].postfix_chr  = 0;
         col[0].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
         
-        secs  = mb->GlobalStats[1].Time>>10;
+        secs  = (mb->GlobalStats[1].Time + mb->ActFrameTimeStamp)>>10;
         mins  = secs / 60;
         hours = mins / 60;
-        sprintf(buf_0,"%d:%02d:%02d",hours,mins%60,secs%60);
+        sprintf(buf_0,"%02d:%02d:%02d",hours,mins%60,secs%60);
         col[1].string       = buf_0;
         col[1].width        = w * 0.3;
         col[1].font_id      = FONTID_TRACY;
@@ -1262,6 +1343,7 @@ UBYTE *yw_DBLayoutTime(struct ypaworld_data *ywd,
         str = yw_BuildColumnItem(ywd,str,2,col);
         new_line(str);
     };
+    return(str);
 }
 
 /*-----------------------------------------------------------------*/
@@ -1282,8 +1364,6 @@ UBYTE *yw_DBLayoutScoreTable(struct ypaworld_data *ywd,
 */
 {
     WORD x,y,w,h;
-    UBYTE *title;    
-    
     x = BOUNDRECT_TEXT_X0 * (ywd->DspXRes>>1);
     y = BOUNDRECT_TEXT_Y0 * (ywd->DspYRes>>1);
     w = (BOUNDRECT_TEXT_X1-BOUNDRECT_TEXT_X0) * (ywd->DspXRes>>1);
@@ -1300,8 +1380,6 @@ UBYTE *yw_DBLayoutScoreTable(struct ypaworld_data *ywd,
     new_line(str);
     
     /*** Multiplayer Score Block ***/
-    str = yw_DBLayoutScoreTitle(ywd,mb,str,w);
-    new_line(str);
     str = yw_DBLayoutScore(ywd,mb,str,w);
     new_line(str);
     
@@ -1309,6 +1387,174 @@ UBYTE *yw_DBLayoutScoreTable(struct ypaworld_data *ywd,
     str = yw_DBLayoutTime(ywd,mb,str,w);    
     
     /*** dat war's ***/
+    return(str);
+}
+
+/*-----------------------------------------------------------------*/
+UBYTE *yw_DBLayoutSingleTechupgrade(struct ypaworld_data *ywd,
+                                    struct MissionBriefing *mb,
+                                    struct DBTechUpgrade *dbtu,
+                                    UBYTE *str, LONG w)
+/*
+**  CHANGED
+**      19-May-98   floh    created
+*/
+{
+    UBYTE buf_0[256];
+    UBYTE *type_str, *name_str, *value_str;
+    LONG type   = dbtu->type;
+    LONG vp_num = dbtu->vp_num;
+    LONG bp_num = dbtu->bp_num;
+    LONG wp_num = dbtu->wp_num;
+    ULONG i;
+    struct VehicleProto *vp = NULL;
+    struct WeaponProto  *wp = NULL;
+    struct BuildProto   *bp = NULL;    
+    
+    /*** zu einem Weapon-Upgrade das Vehikel suchen? ***/
+    if ((!vp_num) && wp_num) {
+        for (i=0; i<NUM_VEHICLEPROTOS; i++) {
+            if (ywd->VP_Array[i].Weapons[0] == wp_num) {
+                vp_num = i;
+                break;
+            };
+        };
+        if (!vp_num) {
+            /*** diese Waffe verwendet niemand ***/
+            return(str);
+        };
+    };
+
+    /*** zugehoerige Prototype-Pointer ***/    
+    if (vp_num) vp = &(ywd->VP_Array[vp_num]);
+    if (bp_num) bp = &(ywd->BP_Array[bp_num]);
+    if (wp_num) wp = &(ywd->WP_Array[wp_num]);
+
+    /*** WICHTIG: alle Strings als Leerstring initialisieren ***/
+    type_str  = " ";
+    value_str = " ";
+    name_str  = " ";
+        
+    /*** name_str ***/
+    if (vp)      name_str = ypa_GetStr(ywd->LocHandle,STR_NAME_VEHICLES+vp_num,vp->Name);
+    else if (bp) name_str = ypa_GetStr(ywd->LocHandle,STR_NAME_BUILDINGS+bp_num,bp->Name);
+    
+    /*** type_str und value_str ***/
+    switch(dbtu->type) {
+        case YPAHIST_TECHTYPE_WEAPON:
+            if (wp && vp) {
+                type_str  = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_TU_WEAPON,"WEAPON UPGRADE:");
+                if (vp->NumWeapons > 1) {
+                    sprintf(buf_0,"(%d x%d)", wp->Energy/100, vp->NumWeapons);
+                } else {
+                    sprintf(buf_0,"(%d)", wp->Energy/100);
+                };
+                value_str = buf_0;
+            };
+            break;
+            
+        case YPAHIST_TECHTYPE_ARMOR:
+            if (vp) {
+                type_str = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_TU_ARMOR,"ARMOR UPGRADE:");
+                sprintf(buf_0,"%d%%", vp->Shield);
+                value_str = buf_0;
+            };
+            break;
+            
+        case YPAHIST_TECHTYPE_VEHICLE:
+            if (vp) {
+                type_str  = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_TU_VEHICLE,"NEW VEHICLE TECH:");
+            };
+            break;
+            
+        case YPAHIST_TECHTYPE_BUILDING:
+            if (bp) {
+                type_str = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_TU_BUILDING,"NEW BUILDING TECH:");
+            };
+            break;
+            
+        case YPAHIST_TECHTYPE_RADAR:
+            if (vp) {
+                type_str = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_TU_RADAR,"RADAR UPGRADE:");
+            };
+            break;
+            
+        case YPAHIST_TECHTYPE_BUILDANDVEHICLE:
+            if (vp && bp) {
+                type_str = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_TU_BUILDANDVEHICLE,"COMBINED UPGRADE:");
+                sprintf(buf_0,"%s",ypa_GetStr(ywd->LocHandle,STR_NAME_BUILDINGS+bp_num,bp->Name));
+                value_str = buf_0;
+            };
+            break;
+            
+        case YPAHIST_TECHTYPE_GENERIC:
+            type_str = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_TU_GENERIC,"GENERIC TECH UPGRADE");
+            break;
+    };                        
+        
+    /*** type_str Spalte ***/
+    if (type_str && name_str && value_str) {        
+
+        struct ypa_ColumnItem col[3];
+
+        col[0].string       = type_str;
+        col[0].width        = w * 0.5;
+        col[0].font_id      = FONTID_TRACY;
+        col[0].space_chr    = ' ';
+        col[0].prefix_chr   = 0;
+        col[0].postfix_chr  = 0;
+        col[0].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
+        
+        col[1].string       = name_str;
+        col[1].width        = w * 0.3;
+        col[1].font_id      = FONTID_TRACY;
+        col[1].space_chr    = ' ';
+        col[1].prefix_chr   = 0;
+        col[1].postfix_chr  = 0;
+        col[1].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
+        
+        col[2].string       = value_str;
+        col[2].width        = w * 0.2;
+        col[2].font_id      = FONTID_TRACY;
+        col[2].space_chr    = ' ';
+        col[2].prefix_chr   = 0;
+        col[2].postfix_chr  = 0;
+        col[2].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
+
+        str = yw_BuildColumnItem(ywd,str,3,col);
+        new_line(str);
+    };
+    return(str);
+}
+
+/*-----------------------------------------------------------------*/
+UBYTE *yw_DBLayoutTechUpgrades(struct ypaworld_data *ywd,
+                               struct MissionBriefing *mb,
+                               UBYTE *str)
+/*
+**  FUNCTION
+**      Layoutet die eroberten Techupgrades im unteren
+**      linken Text-Block.
+**
+**  CHANGED
+**      19-May-98   floh    created
+*/
+{
+    WORD x,y,w,h;
+    ULONG i;
+    x = BOUNDRECT_SLOT_X0 * (ywd->DspXRes>>1);
+    y = BOUNDRECT_SLOT_Y0 * (ywd->DspYRes>>1);
+    w = (BOUNDRECT_SLOT_X1-BOUNDRECT_SLOT_X0) * (ywd->DspXRes>>1);
+    h = (BOUNDRECT_SLOT_Y1-BOUNDRECT_SLOT_Y0) * (ywd->DspYRes>>1);
+    
+    new_font(str,FONTID_TRACY);
+    pos_abs(str,x,y);
+    dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_DEBRIEFING),yw_Green(ywd,YPACOLOR_TEXT_DEBRIEFING),yw_Blue(ywd,YPACOLOR_TEXT_DEBRIEFING));    
+    
+    for (i=0; i<mb->ActTechUpgrade; i++) {
+        struct DBTechUpgrade *dbtu = &(mb->TechUpgrades[i]);
+        str = yw_DBLayoutSingleTechupgrade(ywd,mb,dbtu,str,w);
+    };
     return(str);
 }
 
@@ -1340,6 +1586,10 @@ void yw_DBL1Start(struct ypaworld_data *ywd,
     /*** PlayerStats initialisieren ***/
     memcpy(&(mb->GlobalStats),&(ywd->GlobalStats),sizeof(mb->GlobalStats));
     memset(&(mb->LocalStats),0,sizeof(mb->LocalStats));
+
+    /*** Techupgrade-Stack zuruecksetzen ***/
+    mb->ActTechUpgrade = 0;
+    memset(&(mb->TechUpgrades),0,sizeof(mb->TechUpgrades));
 }
 
 /*-----------------------------------------------------------------*/
@@ -1355,11 +1605,12 @@ void yw_DBL1RunningDone(struct ypaworld_data *ywd,
 **      03-Sep-97   floh    + rendert Score
 **      09-Sep-97   floh    + handelt jetzt auch Power-Station-
 **                            Conquers und Tech Upgrades ab
+**      19-May-98   floh    + YPAHIST_TECHUPGRADE neu
 */
 {
     LONG real_time = mb->TimeStamp - mb->StartTime;
     LONG scan_time = 0;
-    UBYTE str_buf[1024];
+    UBYTE str_buf[2048];
     struct rast_text rt;
     UBYTE *str = str_buf;
 
@@ -1370,8 +1621,9 @@ void yw_DBL1RunningDone(struct ypaworld_data *ywd,
     /*** aktuellen Status der OwnerMap ***/
     yw_DBRenderOwners(ywd,mb);
 
-    /*** Score rendern ***/
+    /*** Score + Techupgrades rendern ***/
     str = yw_DBLayoutScoreTable(ywd,mb,str);
+    str = yw_DBLayoutTechUpgrades(ywd,mb,str);
     eos(str);
     rt.string = str_buf;
     rt.clips  = NULL;
@@ -1442,9 +1694,9 @@ void yw_DBL1RunningDone(struct ypaworld_data *ywd,
                         break;
 
                     case YPAHIST_TECHUPGRADE:
-                        size = sizeof(struct ypa_HistConSec);
+                        size = sizeof(struct ypa_HistTechUpgrade);
                         yw_DBHandleTechUpgrade(ywd, mb,
-                                               (struct ypa_HistConSec *)act_inst,
+                                               (struct ypa_HistTechUpgrade *)act_inst,
                                                real_time, scan_time);
                         break;
                 };
@@ -1470,6 +1722,7 @@ void yw_DBDoGlobalScore(struct ypaworld_data *ywd)
 **      09-May-98   floh    + GlobalStats werden nur noch beeinflusst
 **                            wenn es sich um eine Singleplayer-
 **                            Session handelte
+**      19-May-98   floh    + neues YPAHIST_TECHUPGRADE Handling
 */
 {
     if (!ywd->WasNetworkSession) {
@@ -1479,6 +1732,7 @@ void yw_DBDoGlobalScore(struct ypaworld_data *ywd)
         struct MinNode *nd;
 
         /*** alle HistoryBuffer parsen ***/
+        _LogMsg("-> DoGlobalScore() entered\n");
         ls = &(ywd->History->ls);
         for (nd=ls->mlh_Head; nd->mln_Succ; nd=nd->mln_Succ) {
 
@@ -1523,7 +1777,7 @@ void yw_DBDoGlobalScore(struct ypaworld_data *ywd)
                         break;
 
                     case YPAHIST_TECHUPGRADE:
-                        size = sizeof(struct ypa_HistConSec);
+                        size = sizeof(struct ypa_HistTechUpgrade);
                         yw_DBScore(ywd,act_inst,ywd->GlobalStats);
                         break;
                 };
@@ -1531,6 +1785,7 @@ void yw_DBDoGlobalScore(struct ypaworld_data *ywd)
             };
         };
         for (i=0; i<MAXNUM_ROBOS; i++) ywd->GlobalStats[i].Time += timer;
+        _LogMsg("-> DoGlobalScore() left\n");
     };
 }
 

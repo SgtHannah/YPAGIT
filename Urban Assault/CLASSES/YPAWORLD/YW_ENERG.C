@@ -1250,12 +1250,37 @@ _dispatcher(void, yw_YWM_NOTIFYDEADROBO, struct notifydeadrobo_msg *msg)
     if (ywd->URBact && (ywd->URBact->Owner==msg->killer_id)) {
         num_sec = ywd->MapSizeX * ywd->MapSizeY;
         sec = ywd->CellArea;
-        for (i=0; i<num_sec; i++,sec++) {
-            if ((WTYPE_Wunderstein == sec->WType) &&
-                (sec->Owner == ywd->URBact->Owner))
-            {
-                /*** YAY! ***/
-                yw_ActivateWunderstein(ywd,sec,sec->WIndex);
+        for (sec_y=0; sec_y<ywd->MapSizeY; sec_y++) {
+            for (sec_x=0; sec_x<ywd->MapSizeX; sec_x++) {
+                if ((WTYPE_Wunderstein == sec->WType) &&
+                    (sec->Owner == ywd->URBact->Owner))
+                {
+                    struct ypa_HistTechUpgrade htu;
+
+                    /*** YAY! ***/
+                    yw_ActivateWunderstein(ywd,sec,sec->WIndex);
+
+                    /*** Techupgrade als HistoryEvent registrieren ***/
+                    htu.cmd       = YPAHIST_TECHUPGRADE;
+                    htu.sec_x     = sec_x;
+                    htu.sec_y     = sec_y;
+                    htu.old_owner = 0;
+                    htu.new_owner = sec->Owner;
+                    htu.vp_num    = ywd->touch_stone.vp_num;
+                    htu.wp_num    = ywd->touch_stone.wp_num;
+                    htu.bp_num    = ywd->touch_stone.bp_num;
+                    switch(ywd->gem[ywd->touch_stone.gem].type) {
+                        case LOGMSG_TECH_WEAPON:            htu.type = YPAHIST_TECHTYPE_WEAPON; break;
+                        case LOGMSG_TECH_ARMOR:             htu.type = YPAHIST_TECHTYPE_ARMOR;  break;
+                        case LOGMSG_TECH_VEHICLE:           htu.type = YPAHIST_TECHTYPE_VEHICLE; break;
+                        case LOGMSG_TECH_BUILDING:          htu.type = YPAHIST_TECHTYPE_BUILDING; break;
+                        case LOGMSG_TECH_RADAR:             htu.type = YPAHIST_TECHTYPE_RADAR; break;
+                        case LOGMSG_TECH_BUILDANDVEHICLE:   htu.type = YPAHIST_TECHTYPE_BUILDANDVEHICLE; break;
+                        default:                            htu.type = YPAHIST_TECHTYPE_GENERIC; break;
+                    };
+                    _methoda(o,YWM_NOTIFYHISTORYEVENT,&htu);
+                };
+                sec++;
             };
         };
     };

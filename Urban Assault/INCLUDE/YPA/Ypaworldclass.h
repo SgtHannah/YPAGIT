@@ -1736,7 +1736,7 @@ struct DBTechUpgrade {
 };    
 
 /*** Debriefing: maximale Anzahl Debriefing-Techupgrades ***/
-#define DB_MAXNUM_TECHUPGRADES (5)
+#define DB_MAXNUM_TECHUPGRADES (7)
 
 /*** Missionbriefing/Debriefing Struktur ***/
 struct MissionBriefing {
