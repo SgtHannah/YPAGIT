@@ -14,9 +14,9 @@
 #include <string.h>
 
 #define DSHOW_PADDEDCELL (1)
-#ifdef _MSC_VER
-#define IErrorLog void
-#endif
+//#ifdef _MSC_VER
+//#define IErrorLog void
+//#endif
 #include "misc/dshow.h"
 
 /*-----------------------------------------------------------------**
@@ -177,13 +177,30 @@ unsigned long dshow_PlayMovie(char *fname, HWND hwnd)
     pimc->lpVtbl->Run(pimc);
     oldWinProc = SetWindowLong(hwnd,GWL_WNDPROC,dshow_WinProc);
 
-    while (!dshow_StopReceived) {
-        WaitMessage();
-        if (GetMessage(&msg,NULL,0,0)) {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        };
-    };
+    //while (!dshow_StopReceived) {
+    //    WaitMessage();
+    //    if (GetMessage(&msg,NULL,0,0)) {
+    //        TranslateMessage(&msg);
+    //        DispatchMessage(&msg);
+    //    };
+    //};
+
+	while (1)
+	{
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		else
+		{
+			WaitMessage();
+		}
+		if (dshow_StopReceived)
+			break;
+	}
+
+
 
     /*** originale WinProc wieder installieren ***/
     SetWindowLong(hwnd,GWL_WNDPROC,oldWinProc);
