@@ -409,6 +409,59 @@ BOOL ypa_HandlePlayer(struct trigger_msg *trigger)
     return(running);
 }
 
+#ifdef __TRIAL__
+/*=================================================================**
+**                                                                 **
+**  Exit-Splash-Screen                                             **
+**                                                                 **
+**=================================================================*/
+void ypa_ExitSplashScreen(void)
+{
+    Object *pic;
+    Object *gfxo;
+    _OVE_GetAttrs(OVET_Object, &gfxo, TAG_DONE);
+
+    /*** Screen loeschen ***/
+    _methoda(gfxo, DISPM_Begin, NULL);
+    _methoda(gfxo, DISPM_End, NULL);
+    _SetAssign("rsrc","data:mc2res");
+    pic = _new("ilbm.class", RSA_Name, "exit.ilb",
+                         BMA_Texture,      TRUE,
+                         BMA_TxtBlittable, TRUE,
+                         TAG_DONE);
+    if (pic) {
+        struct rast_blit blt;
+        struct disp_pointer_msg dpm;
+
+        dpm.pointer = NULL;
+        dpm.type    = DISP_PTRTYPE_NONE;
+        _methoda(gfxo, DISPM_SetPointer, &dpm);
+
+        _get(pic, BMA_Bitmap, &(blt.src));
+        blt.from.xmin = blt.to.xmin = -1.0;
+        blt.from.ymin = blt.to.ymin = -1.0;
+        blt.from.xmax = blt.to.xmax = +1.0;
+        blt.from.ymax = blt.to.ymax = +1.0;
+        if (gfxo) {
+            _methoda(gfxo, DISPM_Begin, NULL);
+            _methoda(gfxo, RASTM_Begin2D, NULL);
+            _methoda(gfxo, RASTM_Blit, &blt);
+            _methoda(gfxo, RASTM_End2D, NULL);
+            _methoda(gfxo, DISPM_End, NULL);
+
+            _methoda(gfxo, DISPM_Begin, NULL);
+            _methoda(gfxo, RASTM_Begin2D, NULL);
+            _methoda(gfxo, RASTM_Blit, &blt);
+            _methoda(gfxo, RASTM_End2D, NULL);
+            _methoda(gfxo, DISPM_End, NULL);
+        };
+        memset(&Ip,0,sizeof(Ip));
+        delay(12000);
+        _dispose(pic);
+    };
+}
+#endif
+
 /*=================================================================**
 **                                                                 **
 **  Welt-Objekt erzeugen                                           **
@@ -578,6 +631,9 @@ ULONG ypa_DoShellFrame(void)
 
     /*** Was war der Rückkehrwert für uns? ***/
     if( GSR.GSA.LastAction == A_QUIT ) {
+        #ifdef __TRIAL__
+        ypa_ExitSplashScreen();
+        #endif
         running = FALSE;
         }
 

@@ -1372,8 +1372,11 @@ void yw_ParseAssignRegistryKeys(void)
 **
 **  CHANGED
 **      28-Apr-98   floh    created
+**      23-Jul-98   floh    + Trial-Version ignoriert die
+**                            Registry-Keys
 */
 {
+    #ifndef __TRIAL__
     UBYTE buf[1024];
     ULONG i;
     for (i=0; i<6; i++) {
@@ -1392,6 +1395,7 @@ void yw_ParseAssignRegistryKeys(void)
             _LogMsg("parsing registry: set assign %s to %s\n",name,buf);
         };
     };
+    #endif
 }
 
 /*-----------------------------------------------------------------*/
@@ -1467,9 +1471,15 @@ ULONG yw_CheckCD(ULONG check_install_type,
 **
 **  CHANGED
 **      24-May-98   floh    created
+**      16-Jul-98   floh    + Trial Version: kein CD-Check
 */
 {
     ULONG res;
+    
+    #ifdef __TRIAL__    
+    /*** Trial Version ***/
+    return(TRUE);
+    #endif
     
     /*** allererster Check ***/
     res = yw_RawCDCheck(check_install_type);

@@ -1419,12 +1419,42 @@ BOOL yw_ScanLevelDir(struct ypaworld_data *ywd,
             {
                 continue;
             };
-            if (yw_ReadLevelNodeInfo(ywd,is_multiplayer_dir,entry.name)){
-                _LogMsg("Scanning [%s%s] .. ok.\n",dir_name,entry.name);
-            }else{
-                _LogMsg("Scanning [%s%s] .. FAILED.\n",dir_name,entry.name);
-                retval=FALSE;
-            };
+            
+            #ifdef __TRIAL__
+                /*** falls Trial-Version, nur die Level 1,2,3,4,5,25,26,132,135 akzeptieren ***/
+                {
+                    LONG lnum   = yw_GetLevelNumFromFilename(ywd,entry.name);
+                    LONG accept = FALSE;
+                    switch (lnum) {
+                        case 1:
+                        case 2:
+                        case 3:
+                        case 4:
+                        case 5:
+                        case 25:
+                        case 26:
+                        case 132:
+                        case 135:
+                            accept = TRUE;
+                            break;
+                    };
+                    if (accept) {
+                        if (yw_ReadLevelNodeInfo(ywd,is_multiplayer_dir,entry.name)){
+                            _LogMsg("Scanning [%s%s] .. ok.\n",dir_name,entry.name);
+                        }else{
+                            _LogMsg("Scanning [%s%s] .. FAILED.\n",dir_name,entry.name);
+                            retval=FALSE;
+                        };
+                    };
+                };
+            #else
+                if (yw_ReadLevelNodeInfo(ywd,is_multiplayer_dir,entry.name)){
+                    _LogMsg("Scanning [%s%s] .. ok.\n",dir_name,entry.name);
+                }else{
+                    _LogMsg("Scanning [%s%s] .. FAILED.\n",dir_name,entry.name);
+                    retval=FALSE;
+                };
+            #endif
         };
         _FCloseDir(dir);
     };
