@@ -54,13 +54,14 @@ _extern_use_tform_engine
 extern struct YPAStatusReq SR;
 extern struct YPAMapReq MR;
 extern struct YPAFinder FR;
+extern struct YPAConfirmReq CR;
+extern struct YPAListReq SubMenu;
+
 extern BOOL REDUCE_DATA_RATE;
 
 /*** VORSICHT HACK: ypa_DoFrame() ist der FrameHandler aus ypa.c ***/
 extern void ypa_DoFrame(void);
 extern UBYTE  **GlobalLocaleHandle;
-
-extern struct YPAListReq SubMenu;
 
 /*-----------------------------------------------------------------*/
 void yw_ClearFootPrints(struct ypaworld_data *ywd)
@@ -999,6 +1000,7 @@ _dispatcher(void, yw_BSM_TRIGGER, struct trigger_msg *msg)
 **      09-Feb-98   floh    + Frametime-Patch raus, wenn Abort-Req auf.
 **      11-Feb-98   floh    + yw_TriggerSuperItems()
 **      18-Apr-98   floh    + yw_TriggerEventCatcher()
+**      16-Jun-98   floh    + ywd->ClearEnterEscape Handling
 */
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
@@ -1020,6 +1022,26 @@ _dispatcher(void, yw_BSM_TRIGGER, struct trigger_msg *msg)
     ULONG prof_rendering;
     ULONG prof_network1;
     ULONG prof_network2;
+    
+    /***-----------------------***/
+    /*** EnterEscape loeschen? ***/
+    /***-----------------------***/
+    if ((!(SubMenu.Req.flags & REQF_Closed)) ||
+        (!(CR.l.Req.flags & REQF_Closed)))
+    {
+        switch (msg->input->NormKey) {
+            case KEYCODE_ESCAPE:
+            case KEYCODE_RETURN:
+                ywd->NormKeyBackup = msg->input->NormKey;
+                msg->input->NormKey = 0;
+                msg->input->ContKey = 0;
+                msg->input->HotKey  = 0;
+                break;
+            default:
+                ywd->NormKeyBackup = 0;
+                break;
+        };
+    } else ywd->NormKeyBackup = 0;
 
     /***-----------------------***/
     /*** Pausenmodus abhandeln ***/
@@ -1061,28 +1083,33 @@ _dispatcher(void, yw_BSM_TRIGGER, struct trigger_msg *msg)
     /*** Verwaltungs-Kram ***/
     yw_ComputeRatios(ywd);
     yw_CheckIfUserSitsInRoboFlak(ywd);
-    yw_InputControl(ywd, msg->input);
+    
+    if (!ywd->DontRender) {
 
-    /*** Mouse-Blanker ***/
-    if (ywd->MouseBlanked) {
-        struct ClickInfo *ci = &(msg->input->ClickInfo);
-        if ((ywd->BMouseX != ci->act.scrx) ||
-            (ywd->BMouseY != ci->act.scry))
-        {
-            ywd->MouseBlanked = FALSE;
-        };
-    }else{
-        /*** Waypoint-Button schaltet Blanker NICHT ein! ***/
-        if ((msg->input->NormKey != 0) &&
-            (msg->input->NormKey != WINP_CODE_LMB) &&
-            (msg->input->NormKey != WINP_CODE_MMB) &&
-            (msg->input->NormKey != WINP_CODE_RMB) &&
-            (!(msg->input->Buttons & (1<<4))))
-        {
+        /*** LowLevel Input Kram ***/
+        yw_InputControl(ywd, msg->input);
+
+        /*** Mouse-Blanker ***/
+        if (ywd->MouseBlanked) {
             struct ClickInfo *ci = &(msg->input->ClickInfo);
-            ywd->MouseBlanked = TRUE;
-            ywd->BMouseX = ci->act.scrx;
-            ywd->BMouseY = ci->act.scry;
+            if ((ywd->BMouseX != ci->act.scrx) ||
+                (ywd->BMouseY != ci->act.scry))
+            {
+                ywd->MouseBlanked = FALSE;
+            };
+        }else{
+            /*** Waypoint-Button schaltet Blanker NICHT ein! ***/
+            if ((msg->input->NormKey != 0) &&
+                (msg->input->NormKey != WINP_CODE_LMB) &&
+                (msg->input->NormKey != WINP_CODE_MMB) &&
+                (msg->input->NormKey != WINP_CODE_RMB) &&
+                (!(msg->input->Buttons & (1<<4))))
+            {
+                struct ClickInfo *ci = &(msg->input->ClickInfo);
+                ywd->MouseBlanked = TRUE;
+                ywd->BMouseX = ci->act.scrx;
+                ywd->BMouseY = ci->act.scry;
+            };
         };
     };
 
@@ -1181,13 +1208,15 @@ _dispatcher(void, yw_BSM_TRIGGER, struct trigger_msg *msg)
     /***-------------------------------------***/
     /***--- GUI Layout und Input Handling ---***/
     /***-------------------------------------***/
-    prof_guilayout = yw_StartProfile();
-    yw_LayoutGUI(o, ywd);
-    yw_HandleGUIInput(ywd, msg->input);
-    yw_GetRealViewerPos(ywd);
-    yw_RenderMap(ywd);
-    yw_BuildTrLogicMsg(o,ywd,msg->input);
-    ywd->Profile[PROF_GUILAYOUT] = yw_EndProfile(prof_guilayout);
+    if (!ywd->DontRender) {
+        prof_guilayout = yw_StartProfile();
+        yw_LayoutGUI(o, ywd);
+        yw_HandleGUIInput(ywd, msg->input);
+        yw_GetRealViewerPos(ywd);
+        yw_RenderMap(ywd);
+        yw_BuildTrLogicMsg(o,ywd,msg->input);
+        ywd->Profile[PROF_GUILAYOUT] = yw_EndProfile(prof_guilayout);
+    };
 
     /*** Energy-Handling ***/
     if (ywd->DoEnergyCycle) yw_Energize(ywd, msg->frame_time);

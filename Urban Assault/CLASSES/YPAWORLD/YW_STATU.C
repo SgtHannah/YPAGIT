@@ -2996,8 +2996,8 @@ void yw_HandleInputSR(struct ypaworld_data *ywd, struct VFMInput *ip)
 
         /*** Submenues zumachen? ***/
         if (!(SubMenu.Req.flags & REQF_Closed)) {
-            if ((ip->NormKey == KEYCODE_ESCAPE) ||
-                (ip->NormKey == KEYCODE_RETURN))
+            if ((ywd->NormKeyBackup == KEYCODE_ESCAPE) ||
+                (ywd->NormKeyBackup == KEYCODE_RETURN))
             {
                 yw_CloseReq(ywd,&(SubMenu.Req));
                 ip->NormKey = 0;

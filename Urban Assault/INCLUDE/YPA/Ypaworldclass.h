@@ -2261,12 +2261,13 @@ struct ypaworld_data {
     FLOAT max_impulse;
     struct netplayerstatus netplayerstatus;
     FLOAT VehicleSectorRatio;
-    ULONG GlobalUnitLimit;         // global vorgegebenes Unit-Limit falls kein Per-Level-Limit definiert
-    ULONG GlobalUnitLimitArg;      // Prozent-Wert fuer Soft-Unit-Limits
-    ULONG GlobalUnitLimitType;     // YPA_UNITLIMITTYPE_#?
-    ULONG LevelUnitLimit;          // global vorgegebenes Unit-Limit falls kein Per-Level-Limit definiert
-    ULONG LevelUnitLimitArg;       // Prozent-Wert fuer Soft-Unit-Limits
-    ULONG LevelUnitLimitType;      // YPA_UNITLIMITTYPE_#?
+    ULONG GlobalUnitLimit;          // global vorgegebenes Unit-Limit falls kein Per-Level-Limit definiert
+    ULONG GlobalUnitLimitArg;       // Prozent-Wert fuer Soft-Unit-Limits
+    ULONG GlobalUnitLimitType;      // YPA_UNITLIMITTYPE_#?
+    ULONG LevelUnitLimit;           // global vorgegebenes Unit-Limit falls kein Per-Level-Limit definiert
+    ULONG LevelUnitLimitArg;        // Prozent-Wert fuer Soft-Unit-Limits
+    ULONG LevelUnitLimitType;       // YPA_UNITLIMITTYPE_#?
+    ULONG NormKeyBackup;            // falls CreateMenu oder ConfirmReq offen, steht hier die NormKey 
 };
 
 #define YPA_UNITLIMITTYPE_HARD          (0) // einfaches Hardlimit

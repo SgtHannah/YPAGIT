@@ -302,12 +302,12 @@ void yw_HandleInputCR(struct ypaworld_data *ywd, struct VFMInput *ip)
         ULONG down_flags = 0;
         
         /*** Tastatur? ***/
-        if (ip->NormKey == KEYCODE_RETURN) {
+        if (ywd->NormKeyBackup == KEYCODE_RETURN) {
             yw_CloseCR(ywd,TRUE);
             ip->NormKey = 0;
             ip->ContKey = 0;
             ip->HotKey  = 0;
-        } else if (ip->NormKey == KEYCODE_ESCAPE) {
+        } else if (ywd->NormKeyBackup == KEYCODE_ESCAPE) {
             yw_CloseCR(ywd,FALSE);
             ip->NormKey = 0;
             ip->ContKey = 0;

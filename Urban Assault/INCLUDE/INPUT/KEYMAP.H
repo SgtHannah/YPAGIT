@@ -120,9 +120,9 @@
 
 #define KEYCODE_NUM_MUL         0x6a
 #define KEYCODE_NUM_PLUS        0x6b
-#define KEYCODE_NUM_DOT         0x6c
+#define KEYCODE_NUM_DOT         0x6e
 #define KEYCODE_NUM_MINUS       0x6d
-#define KEYCODE_ENTER           0x6e
+#define KEYCODE_ENTER           0x6c
 #define KEYCODE_NUM_DIV         0x6f
 
 #define KEYCODE_EXTRA_1         0xbc    // , auf deutschen Keyboards
