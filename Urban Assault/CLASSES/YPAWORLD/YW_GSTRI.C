@@ -491,6 +491,15 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 break;
                 
             case GS_CONFIRMCANCEL:
+               
+                /*** noch spezielles ***/
+                switch( GSR->confirm_modus ) {
+                
+                    case CONFIRM_SAVEANDOVERWRITE:
+                        
+                        GSR->D_InputMode = DIM_NONE;
+                        break;
+                    }
             
                 yw_CloseConfirmRequester( GSR );
                 break;    
@@ -503,6 +512,15 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
         switch( GSR->input->HotKey ) {
         
             case HOTKEY_QUIT:   
+               
+                /*** noch spezielles ***/
+                switch( GSR->confirm_modus ) {
+                
+                    case CONFIRM_SAVEANDOVERWRITE:
+                        
+                        GSR->D_InputMode = DIM_NONE;
+                        break;
+                    }
             
                 yw_CloseConfirmRequester( GSR );
                 break;
@@ -5355,6 +5373,9 @@ void yw_EAR_Save( struct GameShellReq *GSR )
             }
         }
     GSR->D_InputMode = DIM_NONE;
+    
+    /*** Dieser wird nun aktiv ***/
+    strncpy( GSR->UserName, GSR->D_Name, USERNAMELEN );
 
     sp.modus = SP_NOPUBLISH;
     _methoda( GSR->bdisk, BTM_SWITCHPUBLISH, &sp );
