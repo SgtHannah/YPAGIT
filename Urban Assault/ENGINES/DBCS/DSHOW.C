@@ -124,7 +124,11 @@ long FAR PASCAL dshow_WinProc(HWND hWnd, UINT message,
             if (wParam == SC_SCREENSAVE)
 				return(0);
             break;
-
+            
+        case WM_CLOSE:
+            dshow_StopMovie();
+            return(0);
+            break;
     };
 
     /*** den Default-Handler aufrufen ***/
@@ -140,6 +144,9 @@ unsigned long dshow_PlayMovie(char *fname, HWND hwnd)
 **  CHANGED
 **      22-Jan-98   floh    created
 **      29-May-98   floh    + etwas umgruppiert...
+**      09-Jun-98   floh    + Playback-Window hat jetzt einen
+**                            Titel, damit ich beim Startup gucken
+**                            kann, ob dieses existiert.
 */
 {
     HRESULT hr;
@@ -149,7 +156,8 @@ unsigned long dshow_PlayMovie(char *fname, HWND hwnd)
     WNDPROC oldWinProc = NULL;
     MSG msg;
 	LPDIRECTDRAW lpDD=NULL;
-
+    
+    /*** DirectShow initialisieren ***/
 	hr = CoCreateInstance(&CLSID_FilterGraph,
 						  NULL,
 						  CLSCTX_INPROC_SERVER,
@@ -186,7 +194,7 @@ unsigned long dshow_PlayMovie(char *fname, HWND hwnd)
 				{
 			
 					hr = pigb->lpVtbl->QueryInterface(pigb, &IID_IVideoWindow, (void **)&pivw);
-					pivw->lpVtbl->put_Owner(pivw, (OAHWND)hwnd);
+                    pivw->lpVtbl->put_Owner(pivw, (OAHWND)hwnd);
 					pivw->lpVtbl->put_WindowStyle(pivw, WS_CHILD|WS_CLIPCHILDREN|WS_CLIPSIBLINGS);
 					pivw->lpVtbl->put_WindowStyleEx(pivw, WS_EX_TOPMOST);
 					pivw->lpVtbl->put_AutoShow(pivw,-1);
@@ -194,7 +202,6 @@ unsigned long dshow_PlayMovie(char *fname, HWND hwnd)
 					pivw->lpVtbl->HideCursor(pivw,OATRUE);
 					pivw->lpVtbl->put_MessageDrain(pivw,(OAHWND)hwnd);
 					pivw->lpVtbl->SetWindowForeground(pivw,-1);
-			
 					hr = pigb->lpVtbl->QueryInterface(pigb, &IID_IMediaControl, (void **)&pimc);
 					hr = pigb->lpVtbl->QueryInterface(pigb, &IID_IMediaEventEx, (void **)&pime);
 					hr = pime->lpVtbl->SetNotifyWindow(pime, (OAHWND)hwnd, WM_MEDIAEVENT, 0);
@@ -211,15 +218,13 @@ unsigned long dshow_PlayMovie(char *fname, HWND hwnd)
 						{
 							WaitMessage();
 						}
-						if (dshow_StopReceived)
-							break;
+						if (dshow_StopReceived) break;
 					}
 			
 			
 					if (lpDD)
 					{
-						if (!b640x480)
-							lpDD->lpVtbl->RestoreDisplayMode(lpDD);
+						if (!b640x480) lpDD->lpVtbl->RestoreDisplayMode(lpDD);
 						lpDD->lpVtbl->Release(lpDD);
 						lpDD=NULL;
 					}
