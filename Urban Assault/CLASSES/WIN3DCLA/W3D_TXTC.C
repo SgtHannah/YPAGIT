@@ -783,51 +783,53 @@ void *w3d_ValidateTexture(struct windd_data *wdd,
 **      21-Apr-98   floh    + ruft w3d_GetTxtHandle() auf
 */
 {
-    unsigned long i;
-    long free = -1;
+    if (w3d->p->exec.begin_scene_ok) {
+        unsigned long i;
+        long free = -1;
 
-    for (i=0; i<w3d->p->num_slots; i++) {
-        struct w3d_TxtSlot *s = &(w3d->p->slot[i]);
-        if (s->lpSource == p->lpTexture) {
-            /*** CacheHit: Textur ist bereits im Cache ***/
-            s->flags &= ~W3DF_TSLOT_FLUSHME;    // FlushMe löschen
-            s->flags |= W3DF_TSLOT_USED;        // Used setzen
-            s->cache_hits++;
-            return(w3d_GetTxtHandle(wdd,w3d,s));
-        } else if (s->flags & W3DF_TSLOT_FLUSHME) {
-            /*** vornewech einen leeren Slot merken ***/
-            free = i;
+        for (i=0; i<w3d->p->num_slots; i++) {
+            struct w3d_TxtSlot *s = &(w3d->p->slot[i]);
+            if (s->lpSource == p->lpTexture) {
+                /*** CacheHit: Textur ist bereits im Cache ***/
+                s->flags &= ~W3DF_TSLOT_FLUSHME;    // FlushMe löschen
+                s->flags |= W3DF_TSLOT_USED;        // Used setzen
+                s->cache_hits++;
+                return(w3d_GetTxtHandle(wdd,w3d,s));
+            } else if (s->flags & W3DF_TSLOT_FLUSHME) {
+                /*** vornewech einen leeren Slot merken ***/
+                free = i;
+            };
         };
-    };
 
-    /*** ab hier CacheMiss, war ein Slot geflushet? ***/
-    if (free != -1) {
-        /*** ok, diesen überschreiben ***/
-        if (w3d_LoadTexture(wdd,w3d,p,free)) {
-            return(w3d_GetTxtHandle(wdd,w3d,&(w3d->p->slot[free])));
-        };
-    } else {
+        /*** ab hier CacheMiss, war ein Slot geflushet? ***/
+        if (free != -1) {
+            /*** ok, diesen überschreiben ***/
+            if (w3d_LoadTexture(wdd,w3d,p,free)) {
+                return(w3d_GetTxtHandle(wdd,w3d,&(w3d->p->slot[free])));
+            };
+        } else {
 
-        /*** CacheMiss bei vollem Cache ***/
-        if (force) {
+            /*** CacheMiss bei vollem Cache ***/
+            if (force) {
 
-            /*** überschreibe Slot mit niedrigstem UseCount ***/
-            unsigned long min_slot = 0;
-            for (i=0; i<w3d->p->num_slots; i++) {
-                if (w3d->p->slot[i].cache_hits<w3d->p->slot[min_slot].cache_hits)
-                {
-                    min_slot = i;
+                /*** überschreibe Slot mit niedrigstem UseCount ***/
+                unsigned long min_slot = 0;
+                for (i=0; i<w3d->p->num_slots; i++) {
+                    if (w3d->p->slot[i].cache_hits<w3d->p->slot[min_slot].cache_hits)
+                    {
+                        min_slot = i;
+                    };
+                };
+
+                /*** dieses Slot zwangsflushen ***/
+                w3d_FlushPrimitives(wdd,w3d);
+                if (w3d_LoadTexture(wdd,w3d,p,min_slot)) {
+                    return(w3d_GetTxtHandle(wdd,w3d,&(w3d->p->slot[min_slot])));
                 };
             };
-
-            /*** dieses Slot zwangsflushen ***/
-            w3d_FlushPrimitives(wdd,w3d);
-            if (w3d_LoadTexture(wdd,w3d,p,min_slot)) {
-                return(w3d_GetTxtHandle(wdd,w3d,&(w3d->p->slot[min_slot])));
-            };
         };
     };
-    /*** ab hier "Delay Me" ***/
+    /*** ab hier "Delay Me", oder begin_scene_ok nicht gesetzt... ***/
     return(NULL);
 }
 

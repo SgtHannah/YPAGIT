@@ -533,8 +533,12 @@ long FAR PASCAL wdd_WinProc(HWND hWnd, UINT message,
     struct windd_data *wdd = (struct windd_data *) GetClassLong(hWnd,0);
 
     switch(message) {
+        case WM_ACTIVATE:
+            if (wdd) wdd_SetMouseImage(wdd,1,TRUE);
+            break;    
+    
         case WM_ACTIVATEAPP:
-            if (wdd) wdd_SetMouseImage(wdd,wdd->cur_ptr_type,TRUE);
+            if (wdd) wdd_SetMouseImage(wdd,1,TRUE);
             break;
 
         case WM_ERASEBKGND:
@@ -2396,8 +2400,8 @@ void wdd_Begin(struct windd_data *wdd)
 **                          aufgerufen wird, wenn das Fenster
 **                          gar nicht mehr existiert. Dieser
 **                          Fall wird jetzt beachtet.
-**              19-Nov-97       floh    + benutzt jetzt testweise das DDLOCK_NOSYSLOCK
-**                                                        Flag beim Locken der Backsurface
+**      19-Nov-97   floh    + benutzt jetzt testweise das DDLOCK_NOSYSLOCK
+**                          Flag beim Locken der Backsurface
 */
 {
     HRESULT ddrval;
@@ -2430,6 +2434,7 @@ void wdd_Begin(struct windd_data *wdd)
             } else {
                 wdd->back_ptr   = NULL;
                 wdd->back_pitch = NULL;
+                wdd_Log("-> wdd_Begin(): Lock on primary surface failed.\n");
             };
         } else {
             wdd->back_ptr   = NULL;
@@ -2556,6 +2561,8 @@ void wdd_SetMouseImage(struct windd_data *wdd,
 **      22-Nov-96   floh    created
 **      15-Feb-97   floh    beachtet ungültiges Window-Handle
 **      13-Mar-98   floh    + checkt jetzt selbst auf DoSoftCursor
+**      31-May-98   floh    + oops, beim Flush-Modus wurde nicht der
+**                            type aus cur_ptr_type genommen...
 */
 {
     if (wdd->hWnd && (!wdd_DoSoftCursor(wdd))) {
@@ -2564,7 +2571,7 @@ void wdd_SetMouseImage(struct windd_data *wdd,
 
         if (flush) {
             /*** Flush: aktuellen Cursor sichtbar machen ***/
-            type = wdd->cur_ptr_type;
+            wdd->cur_ptr_type = type;
             while (ShowCursor(TRUE)<0);
             reload = TRUE;
         } else if (type != wdd->cur_ptr_type) {
@@ -2696,9 +2703,7 @@ void wdd_EnableGDI(struct windd_data *wdd, unsigned long mode)
             };
 
         };
-        while (ShowCursor(TRUE)<0);
-        hCursor=LoadCursor(wdd->hInstance,"Pointer");
-        if (hCursor) SetCursor(hCursor);
+        wdd_SetMouseImage(wdd,1,TRUE);
     };
 }
 
@@ -2832,6 +2837,7 @@ void wdd_SetCursorMode(struct windd_data *wdd, unsigned long mode)
         /*** nach System-Pointer umschalten ***/
         wdd->forcesoftcursor = FALSE;
         while (ShowCursor(TRUE)<0);
+        wdd_SetMouseImage(wdd,1,TRUE);
     } else if ((WINDD_CURSORMODE_SOFT==mode) && (!wdd->forcesoftcursor)) {
         /*** nach Soft-Pointer umschalten ***/
         wdd->forcesoftcursor = TRUE;

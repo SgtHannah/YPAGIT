@@ -101,6 +101,7 @@
         long rs_count;
         void *tri_start;            // Temp Pointer fuer Triangles
         long tri_count; 
+        long begin_scene_ok;        // TRUE, wenn BeginScene geklappt hat
     };
     #define W3D_EBF_ISLOCKED      (1<<0)  // Buffer ist gueltig und kann beschrieben werden
     #define W3D_EBF_NOSTATECHANGE (1<<1)  // Renderstate wurde seit letztem Primitive geandert

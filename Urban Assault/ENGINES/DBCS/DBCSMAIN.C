@@ -256,7 +256,7 @@ void dbcs_DrawText(char *text, long x, long y, long w, long h, long flags)
 
             /*** das Bounding Rectangle ***/
             r.left   = x;
-            r.right  = r.left + w + 1;
+            r.right  = r.left + w + 2;
             r.top    = y;
             r.bottom = r.top + h + 1;
 
@@ -265,7 +265,7 @@ void dbcs_DrawText(char *text, long x, long y, long w, long h, long flags)
                 if (flags & DBCSF_RELWIDTH) {
                     x -= sz.cx;
                     r.left  = x;
-                    r.right = r.left + w + 1;
+                    r.right = r.left + w + 2;
                 } else {
                     x += (w - sz.cx);
                 };
@@ -273,7 +273,7 @@ void dbcs_DrawText(char *text, long x, long y, long w, long h, long flags)
                 if (flags & DBCSF_RELWIDTH) {
                     x -= (sz.cx>>1);
                     r.left  = x;
-                    r.right = r.left + w + 1;
+                    r.right = r.left + w + 2;
                 } else {
                     x += ((w - sz.cx)>>1);
                 };
