@@ -534,6 +534,8 @@ long FAR PASCAL wdd_WinProc(HWND hWnd, UINT message,
 **      05-Feb-98   floh    + reworked.
 */
 {
+	RECT r;
+
     /*** hole LID des windd.class Objekts als "UserData" ***/
     struct windd_data *wdd = (struct windd_data *) GetClassLong(hWnd,0);
 
@@ -595,6 +597,11 @@ long FAR PASCAL wdd_WinProc(HWND hWnd, UINT message,
                 wdd->lpDDSPrim->lpVtbl->SetPalette(wdd->lpDDSPrim,wdd->lpDDPal);
             };
             break;
+
+		case WM_SIZE:
+			GetWindowRect(hWnd, &r);
+			ClipCursor(&r);
+			break;
 
         case WM_CREATE:
             /*** Window wurde erzeugt ***/
