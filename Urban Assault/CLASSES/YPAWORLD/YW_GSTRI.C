@@ -56,6 +56,7 @@ extern WORD LReqWidth;
 extern WORD DReqWidth;
 extern WORD NReqWidth;
 extern WORD NListWidth;
+extern WORD gadgetwidth;
 
 /*** Prototypen, nix als Prototypen... ***/
 #include "yw_protos.h"
@@ -311,10 +312,10 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
     sbp.h      = -1;
     _methoda( GSR->UBalken, BTM_SETBUTTONPOS, &sbp);
     sbp.number = GSID_PL_QUIT;
-    sbp.x      = (WORD)(ywd->DspXRes - ywd->DspXRes / 6);   
+    sbp.x      = (WORD)(ywd->DspXRes - gadgetwidth);   
     _methoda( GSR->UBalken, BTM_SETBUTTONPOS, &sbp);
     sbp.number = GSID_PL_SETBACK;
-    sbp.x      = (WORD)(ywd->DspXRes / 6 + ReqDeltaX);   
+    sbp.x      = (WORD)(gadgetwidth + ReqDeltaX);   
     _methoda( GSR->UBalken, BTM_SETBUTTONPOS, &sbp);
     ss.unpressed_text = ypa_GetStr( GlobalLocaleHandle, STR_SHELL_GOBACK, "GO BACK");
     ss.pressed_text   = NULL;
@@ -332,7 +333,7 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
             
             /*** Start auf Endeposition verschieben ***/
             sbp.number = GSID_PL_GAME;
-            sbp.x      = (WORD)(ywd->DspXRes - ywd->DspXRes / 6);   
+            sbp.x      = (WORD)(ywd->DspXRes - gadgetwidth);   
             _methoda( GSR->UBalken, BTM_SETBUTTONPOS, &sbp);
             
             /*** Quit auf Startposition verschieben ***/
@@ -4093,6 +4094,18 @@ void yw_OKSettings( struct GameShellReq *GSR )
 
     sgv.forcesetvideo = FALSE;
 
+    /*** Videomode uebernehmen ***/
+    if( (GSR->settings_changed & SCF_MODE) &&
+        (GSR->new_modus != GSR->ywd->GameRes) &&
+        (GSR->new_modus != 0L)) {
+
+        old_modus         = GSR->ywd->GameRes;
+        GSR->ywd->GameRes = GSR->new_modus;
+
+        /*** Realisierung ***/
+        setvideomode = TRUE;
+        }
+
     /*** 3D Device uebernehmen ***/
     if( (GSR->settings_changed & SCF_3DDEVICE) &&
         (GSR->new_d3dguid != NULL) &&
@@ -4108,39 +4121,56 @@ void yw_OKSettings( struct GameShellReq *GSR )
         wdm.guid  = GSR->d3dguid;
         wdm.flags = 0;
         _methoda( GSR->ywd->GfxObject, WINDDM_SetDevice, &wdm );
+        
+        /* ----------------------------------------------------
+        ** Die Aenderung des 3D Devices aendert die videoListe.
+        ** zur sicherheit immer auf 640x480 stellen.
+        ** --------------------------------------------------*/
+        old_modus         = GFX_GAME_DEFAULT_RES;
+        GSR->ywd->GameRes = GFX_GAME_DEFAULT_RES;
 
         /*** Zum Uebernehmen auch videomode setzen ***/
         set3dmode = TRUE;
         sgv.forcesetvideo = TRUE;
         }
 
-    /*** Videomode uebernehmen ***/
-    if( (GSR->settings_changed & SCF_MODE) &&
-        (GSR->new_modus != GSR->ywd->GameRes) &&
-        (GSR->new_modus != 0L)) {
-
-        old_modus         = GSR->ywd->GameRes;
-        GSR->ywd->GameRes = GSR->new_modus;
-
-        /*** Realisierung ***/
-        setvideomode = TRUE;
-        }
-
     if( (setvideomode && GSR->ywd->OneDisplayRes) ||
         (set3dmode) ) {
 
-        /* --------------------------------------------------------------
+        /* ----------------------------------------------------------------
         ** jetzt kommt ein Hack, denn ich darf die Auflösung
         ** trotz des setzens  nicht veraendern, wenn nicht explizit OneDM
         ** angegeben ist. Achtung nach dem Oeffnen der Shell ist die Video-
         ** liste neu!
-        ** ------------------------------------------------------------*/
+        ** --------------------------------------------------------------*/
+        int i = 0;
+        struct video_node *vn;
+        
         if( (!GSR->ywd->OneDisplayRes) && setvideomode )
             sgv.modus = old_modus;
         else
             sgv.modus = GSR->ywd->GameRes;
 
         _methoda( GSR->ywd->world, YWM_SETGAMEVIDEO, &sgv );
+        
+        /*** Was immer auch gesetzt wurde, Liste und Gadget neu setzen ***/
+        vn = (struct video_node *) GSR->videolist.mlh_Head;
+        while( vn->node.mln_Succ ) {
+        
+            if( vn->modus == GSR->ywd->GameRes ) {
+            
+                struct setstring_msg ss;
+                
+                GSR->v_actualitem = i;
+                ss.number          = GSID_VMENU_BUTTON;
+                ss.unpressed_text  = vn->name;
+                ss.pressed_text    = NULL;
+                _methoda( GSR->bvideo, BTM_SETSTRING, &ss );
+                break;
+                }
+            i++;
+            vn = (struct video_node *) vn->node.mln_Succ;
+            }
         }
 
     /*** CD Sound ***/
@@ -4959,6 +4989,7 @@ void yw_OpenSettings( struct GameShellReq *GSR )
 void yw_OpenDisk( struct GameShellReq *GSR )
 {
     struct switchpublish_msg sp;
+    struct fileinfonode *nd;
 
     sp.modus = SP_NOPUBLISH;
     _methoda( GSR->Titel, BTM_SWITCHPUBLISH, &sp );
@@ -4966,6 +4997,16 @@ void yw_OpenDisk( struct GameShellReq *GSR )
     _methoda( GSR->bdisk, BTM_SWITCHPUBLISH, &sp );
 
     GSR->shell_mode = SHELLMODE_DISK;
+
+    /*** Spielzeit fuer aktuellen User erneuern ***/
+    nd = (struct fileinfonode *) GSR->flist.mlh_Head;
+    while( nd->node.mln_Succ ) {
+        if( stricmp( nd->username, GSR->UserName ) == 0 ) {
+            nd->global_time = GSR->ywd->GlobalStats[ 1 ].Time;
+            break;
+            }
+        nd = (struct fileinfonode *) nd->node.mln_Succ;
+        }
 
     yw_CloseReq(GSR->ywd, &(GSR->dmenu.Req));
     yw_OpenReq(GSR->ywd, &(GSR->dmenu.Req));

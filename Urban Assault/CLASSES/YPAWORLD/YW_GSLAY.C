@@ -950,42 +950,42 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
 
                     fnt = _GetFont( FONTID_GADGET );
                     
-                    col[0].string      = block;
-                    col[0].width       = (WORD)(0.6 * width);
-                    col[0].font_id     = fnt_id;
-                    col[0].space_chr   = space_chr;
+                    col[0].string      = block_slow;
+                    col[0].width       = (WORD)(fnt->fchars['P'].width );
+                    col[0].font_id     = FONTID_GADGET;
+                    
+                    /*** Tricksen, weil leerzeichen in diesem Font nicht existieren ***/
+                    if( GSR->NSel == i )
+                        col[0].space_chr   = 'j';
+                    else
+                        col[0].space_chr   = 'k'; 
                     col[0].prefix_chr  = prefix_chr;
                     col[0].postfix_chr = postfix_chr;
-                    col[0].flags       = YPACOLF_ALIGNLEFT | YPACOLF_DOPREFIX | YPACOLF_TEXT;
-
-                    col[1].string      = block_size;
-                    col[1].width       = (WORD)(0.15 * width);
+                    col[0].flags       = YPACOLF_ALIGNLEFT;
+                    
+                    col[1].string      = block;
+                    col[1].width       = (WORD)(0.6 * width);
                     col[1].font_id     = fnt_id;
                     col[1].space_chr   = space_chr;
                     col[1].prefix_chr  = prefix_chr;
                     col[1].postfix_chr = postfix_chr;
-                    col[1].flags       = YPACOLF_ALIGNLEFT | YPACOLF_TEXT;
-                    
-                    col[2].string      = block_plys;
-                    col[2].width       = (WORD)(fnt->fchars['P'].width * 4 + 6);
-                    col[2].font_id     = FONTID_MENUDOWN;
-                    if( GSR->NSel == i)
-                        col[2].space_chr   = space_chr;
-                    else
-                        col[2].space_chr   = '9'; 
+                    col[1].flags       = YPACOLF_ALIGNLEFT | YPACOLF_DOPREFIX | YPACOLF_TEXT;
+
+                    col[2].string      = block_size;
+                    col[2].width       = (WORD)(0.15 * width);
+                    col[2].font_id     = fnt_id;
+                    col[2].space_chr   = space_chr;
                     col[2].prefix_chr  = prefix_chr;
                     col[2].postfix_chr = postfix_chr;
-                    col[2].flags       = YPACOLF_ALIGNLEFT;
+                    col[2].flags       = YPACOLF_ALIGNLEFT | YPACOLF_TEXT;
                     
-                    col[3].string      = block_slow;
-                    col[3].width       = (WORD)(fnt->fchars['P'].width );
-                    col[3].font_id     = FONTID_GADGET;
-                    
-                    /*** Tricksen, weil leerzeichen in diesem Font nicht existieren ***/
-                    if( GSR->NSel == i )
-                        col[3].space_chr   = 'j';
+                    col[3].string      = block_plys;
+                    col[3].width       = (WORD)(fnt->fchars['P'].width * 4 + 6);
+                    col[3].font_id     = FONTID_MENUDOWN;
+                    if( GSR->NSel == i)
+                        col[3].space_chr   = space_chr;
                     else
-                        col[3].space_chr   = 'k'; 
+                        col[3].space_chr   = '9'; 
                     col[3].prefix_chr  = prefix_chr;
                     col[3].postfix_chr = postfix_chr;
                     col[3].flags       = YPACOLF_ALIGNLEFT;

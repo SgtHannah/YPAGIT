@@ -63,6 +63,7 @@ WORD NReqWidth;
 WORD NListWidth;
 WORD IListWidth;
 WORD DListWidth;
+WORD gadgetwidth;
 
 #define GET_X_COORD(x) (FLOAT_TO_INT((((FLOAT)x)/640.0)*((FLOAT)ywd->DspXRes)))
 #define GET_Y_COORD(y) (FLOAT_TO_INT((((FLOAT)y)/480.0)*((FLOAT)ywd->DspYRes)))
@@ -618,7 +619,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
     struct windd_device wdm;
 
     /*** spezielle lokale Variable fnr das aufl÷sungsabhSngige Design ***/
-    WORD   gadgetwidth, checkmarkwidth;
+    WORD   checkmarkwidth;
 
     /*
     ** Die Fonts:
@@ -1092,7 +1093,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
     /* ---------------------------------------------------------------
     ** -------------------------------------------------------------*/
 
-    gadgetwidth = ywd->DspXRes / 6;
+    gadgetwidth = ywd->DspXRes / 4 - 20;
 
     GSR->UBalken = _new("button.class",BTA_BoxX, 0,
                                        BTA_BoxY, ywd->DspYRes - ywd->FontH,
@@ -1159,7 +1160,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
        
        if( _methoda( GSR->UBalken, BTM_NEWBUTTON, &nb ) ) {
 
-        nb.x             = (WORD)(ywd->DspXRes - 2 * gadgetwidth - 2 * ReqDeltaX);
+        nb.x             = (WORD)(ywd->DspXRes - 2 * gadgetwidth - ReqDeltaX);
         nb.shortcut      = 0;
         nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_SHELL_LOADGAME, "LOAD GAME");
         nb.pressed_text  = NULL;
@@ -1170,7 +1171,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
        
         if( _methoda( GSR->UBalken, BTM_NEWBUTTON, &nb ) ) {
 
-         nb.x             = (WORD)(ywd->DspXRes - 1 * gadgetwidth);
+         nb.x             = (WORD)(ywd->DspXRes - gadgetwidth);
          nb.shortcut      = 0;
          nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_SHELL_GOBACK, "GO BACK");
          nb.pressed_text  = NULL;
