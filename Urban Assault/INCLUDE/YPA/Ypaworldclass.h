@@ -1047,7 +1047,7 @@
 #define MAXNUM_LEVELS       (256)
 #define MAXNUM_BG           (4)     // max. Anzahl BG-Pic-Auflösungen
 #define MAXNUM_INFOSLOTS    (1)     // für's MissionBriefing
-#define MAXNUM_MBELEMENTS   (128)   // für's MissionBriefing
+#define MAXNUM_MBELEMENTS   (32)    // für's MissionBriefing
 #define MAXNUM_EXPLODEFX    (NUM_DESTFX) // max. Anzahl Explode-FX (siehe bacterium.h)
 #define MAXNUM_SUPERITEMS   (8)     // max. Anzahl Superitems pro Level
 #define MAXNUM_DEFINEDROBOS (16)    // max. Anzahl Robos definiert in Scripts
@@ -1699,8 +1699,8 @@ struct MBInfoSlot {
     ULONG StartTime;            // ... letzte Aktivierung des Slots
     struct rast_rect Rect;      // Position und Ausdehnung auf Screen
     struct flt_triple Pos;      // 3D-Position in Weltkoordinaten (nur x,z)
-    UBYTE Color;                // Farbe der Linie von Blob zu Info-Slot
-    UBYTE Text[31];             // Info-Slot "Unterschrift"
+    ULONG Color;                // Farbe der Linie von Blob zu Info-Slot
+    UBYTE Text[128];            // Info-Slot "Unterschrift"
 };
 
 #define MBTYPE_NONE     (0)
@@ -1717,7 +1717,7 @@ struct MBElm {
     UBYTE fnt_id;       // Font-ID
     UBYTE chr;          // Buchstabe
     UBYTE color;        // wie in MBInfoSlot
-    UBYTE text[31];     // wie in MBInfoSlot
+    UBYTE text[128];     // wie in MBInfoSlot
 };
 
 /*** Mission(de)briefing Wireframes ***/
