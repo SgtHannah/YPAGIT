@@ -282,7 +282,7 @@ void yw_FFTrigger(struct ypaworld_data *ywd)
 
                 ffm.type  = IDEV_FFTYPE_SHAKE;
                 ffm.mode  = IDEV_FFMODE_START;
-                ffm.power = shk->shk_actmag * 2.0;
+                ffm.power = shk->shk_actmag;
                 if (ffm.power > 1.0) ffm.power = 1.0;
                 ffm.pitch = shk->shk->time;      // LifeTime!
                 ffm.dir_x = m->m11 * (shk->sc->pos.x-vb->pos.x) +
