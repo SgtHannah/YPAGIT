@@ -976,7 +976,7 @@ void yt_TipTank( struct ypatank_data *ytd, float time, struct flt_triple *rot )
     */
     _get( ytd->bact->BactObject, YBA_Viewer, &VIEW );
     if( VIEW )
-        ta = -0.4;
+        ta = -0.2;  // -0.4;
     else
         ta = -0.2;
 
