@@ -2804,7 +2804,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
     /*** Die button zum Sound ***/
     button_ok = FALSE;
 
-    restbreite = AReqWidth - 4 * ReqDeltaX;
+    restbreite = ywd->DspXRes - 4 * ReqDeltaX;
 
     nb.pressed_font  = FONTID_MAPCUR_4;
     nb.unpressed_font= FONTID_MAPCUR_4;
@@ -2813,7 +2813,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
     nb.x             = 0;    
     nb.y             = (ywd->FontH + ReqDeltaY);
     nb.w             = restbreite;
-    nb.unpressed_text= "zusammengeschraubt von:";
+    nb.unpressed_text= "Fuer den Kauf dieses erzgebirgischen Qualitaetsspielzeuges bedanken sich";
     nb.pressed_text  = NULL;
     nb.shortcut      = 0;
     nb.user_pressed  = 0;
@@ -2825,41 +2825,89 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
     if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
 
      nb.y             = 2 * (ywd->FontH + ReqDeltaY);
-     nb.unpressed_text= "        Bernd Beyreuther, Andreas Flemming, Stefan Karau,";
+     nb.unpressed_text= "Bernd Beyreuther,";
      
      if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
 
       nb.y             = 3 * (ywd->FontH + ReqDeltaY);
-      nb.unpressed_text= "        Sylvius Lack, Steffen Priebus, Henrik Volkening,";
+      nb.unpressed_text= "Andre 'Floh' Weissflog, Andreas Flemming,";
       
       if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
 
        nb.y             = 4 * (ywd->FontH + ReqDeltaY);
-       nb.unpressed_text= "        Stefan Warias und Andre Weissflog";
+       nb.unpressed_text= "Stefan 'Metzel Hetzel' Karau, Silvius Lack,";
        
        if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
 
         nb.y             = 5 * (ywd->FontH + ReqDeltaY);
-        nb.unpressed_text= "unter Mithilfe von: ";
+        nb.unpressed_text= "Dietmar 'Didi' Koebelin, Nico Nitsch, Steffen Priebus, ";
         
         if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
 
          nb.y             = 6 * (ywd->FontH + ReqDeltaY);
-         nb.unpressed_text= "        D.Koebelin, N.Nitsch U.Kapp und A.Blechschmidt";
+         nb.unpressed_text= "Stefan Warias, Henrik Volkening und";
          
          if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
 
           nb.y             = 7 * (ywd->FontH + ReqDeltaY);
-          nb.unpressed_text= "und den Werkzeugen:";
+          nb.unpressed_text= "Uta Kapp";
           
           if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
 
            nb.y             = 8 * (ywd->FontH + ReqDeltaY);
-           nb.unpressed_text= "        GoldEd - dPaint - SAS/C";
+           nb.unpressed_text= " ";
            
            if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
 
-            button_ok = TRUE;
+            nb.y             = 9 * (ywd->FontH + ReqDeltaY);
+            nb.unpressed_text= "Unser Dank gilt:";
+           
+            if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
+
+             nb.y             = 10 * (ywd->FontH + ReqDeltaY);
+             nb.unpressed_text= "dem gesamten Microsoft Team, besonders";
+           
+             if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
+
+              nb.y             = 11 * (ywd->FontH + ReqDeltaY);
+              nb.unpressed_text= "Michael Lyons, Jonathan Sposato und Earnest Yuen";
+           
+              if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
+
+               nb.y             = 12 * (ywd->FontH + ReqDeltaY);
+               nb.unpressed_text= "weiterhin";
+               
+               if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
+    
+                nb.y             = 13 * (ywd->FontH + ReqDeltaY);
+                nb.unpressed_text= "Robert Birker, Andre 'Goetz' Blechschmidt, Jan Blechschmidt, Stefan Bludau,";
+               
+                if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
+    
+                 nb.y             = 14 * (ywd->FontH + ReqDeltaY);
+                 nb.unpressed_text= "Andre Kunth, Markus Lorenz, Dirk Mansbart";
+               
+                 if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
+    
+                  nb.y             = 15 * (ywd->FontH + ReqDeltaY);
+                  nb.unpressed_text= "und natuerlich";
+               
+                  if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
+    
+                   nb.y             = 16 * (ywd->FontH + ReqDeltaY);
+                   nb.unpressed_text= "        GoldEd - dPaint - SAS/C";
+               
+                   if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
+  
+                    button_ok = TRUE;
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
             }
            }
           }

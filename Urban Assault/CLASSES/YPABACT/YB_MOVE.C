@@ -145,9 +145,12 @@ _dispatcher(void, yb_YBM_MOVE, struct move_msg *move)
     res.v = nc_sqrt(res.x*res.x + res.y*res.y + res.z*res.z);
     
     /*** bei UserInput unabhaengig vom Vorzeichen y-Komponnete staerker ***/
-    if( ybd->flags & YBF_UserInput )
-        res.y *= 3.0;
-
+    if( ybd->flags & YBF_UserInput ) {
+        if( res.y < 0.0 )
+            res.y *= 5.0;
+        else
+            res.y *= 3.0;
+        }
     /*** neuer dof - zum alten aufaddieren ***/
     if( res.v > 0.0 ) {
 

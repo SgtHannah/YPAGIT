@@ -687,6 +687,7 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
     char block[ 300 ],block_size[ 300 ], block_plys[ 300 ];
     char block_msg[ 300 ], block_name[ 300 ], block_slow[10];
     struct VFMFont *fnt;
+    BOOL selected = FALSE;
 
     /*** Den Font für Menüs ermitteln ***/
     fnt = _GetFont( STAT_MENUUP_FONT );
@@ -809,7 +810,9 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
                     sprintf( block_size, "%d X %d\0", level->size_x, level->size_y );
                     
                     /*** Welche Rassen sind im Spiel? ***/
-                    if( i != GSR->NSel ) {
+                    if( count != GSR->NSel ) {
+                    
+                        selected = FALSE;
                         if( level->races & 2 )  strcat( block_plys, "5" );
                         if( level->races & 64 ) strcat( block_plys, "6" );
                         if( level->races & 8 )  strcat( block_plys, "7" );
@@ -820,7 +823,9 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
                         else 
                             strcpy( block_slow, "k" );
                         }
-                    else {   
+                    else { 
+                    
+                        selected = TRUE;  
                         if( level->races & 2 )  strcat( block_plys, "1" );
                         if( level->races & 64 ) strcat( block_plys, "2" );
                         if( level->races & 8 )  strcat( block_plys, "3" );
@@ -955,7 +960,7 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
                     col[0].font_id     = FONTID_GADGET;
                     
                     /*** Tricksen, weil leerzeichen in diesem Font nicht existieren ***/
-                    if( GSR->NSel == i )
+                    if( selected )
                         col[0].space_chr   = 'j';
                     else
                         col[0].space_chr   = 'k'; 
@@ -982,7 +987,7 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
                     col[3].string      = block_plys;
                     col[3].width       = (WORD)(fnt->fchars['P'].width * 4 + 6);
                     col[3].font_id     = FONTID_MENUDOWN;
-                    if( GSR->NSel == i)
+                    if( selected)
                         col[3].space_chr   = space_chr;
                     else
                         col[3].space_chr   = '9'; 

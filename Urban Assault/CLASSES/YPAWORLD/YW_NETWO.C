@@ -1006,6 +1006,7 @@ void yw_HandleNetMessages( struct ypaworld_data *ywd )
         BOOL   player_found, own_player;
         char  *e = NULL;
         struct locksession_msg ls;
+        struct getplayerdata_msg gpd;
 
         ywd->gsr->transfer_rcvcount += rm.size;
         msg_count++;
@@ -1197,6 +1198,22 @@ void yw_HandleNetMessages( struct ypaworld_data *ywd )
                 ls.block = 0;
                 _methoda( GSR->ywd->nwo, NWM_LOCKSESSION, &ls );
                 GSR->blocked = FALSE;
+                
+                /* ------------------------------------------------------
+                ** Host ist immer ready to start. Das Versenden geschieht
+                ** mit der CD Message 
+                ** ----------------------------------------------------*/
+                GSR->ReadyToStart = TRUE;
+                gpd.number  = 0;
+                gpd.askmode = GPD_ASKNUMBER;
+                while( _methoda( ywd->nwo, NWM_GETPLAYERDATA, &gpd ) ) {
+    
+                    if( stricmp( ywd->gsr->NPlayerName, gpd.name ) == 0 ) {
+                        ywd->gsr->player2[ gpd.number ].ready_to_start = 1;   
+                        break;
+                        }
+                    gpd.number++;
+                    }   
                 break;
 
             case MK_NORMAL:
@@ -1450,6 +1467,7 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
     struct getsectorinfo_msg gsi;
     struct yparobo_data *yrd;
     struct playerdata2 *player_data2 = NULL;
+    int    i;
 
     /*** Handelt eine spezielle Message ab und gibt deren Größe zurück ***/
     kind      = ((struct ypamessage_generic *)(rm->data))->message_id;
@@ -3719,6 +3737,10 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
             ywd->gsr->NLevelName = ypa_GetStr( GlobalLocaleHandle,
                                    STR_NAME_LEVELS + ywd->gsr->NLevelOffset,
                                    ywd->LevelNet->Levels[ ywd->gsr->NLevelOffset ].title);
+                                   
+            /*** erstmal alle checksummen loeschen, denn die stimmen niucht mehr ***/
+            for( i = 0; i < MAXNUM_PLAYERS; i++ )
+                ywd->gsr->player2[ i ].checksum = 0; 
            
             /* -------------------------------------------------------
             ** Rasseneinstellung wie im LobbyMode starr, weil alle
@@ -4219,6 +4241,9 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
                 if( stricmp( rm->sender_id, gpd.name ) == 0 ) {
                     ywd->gsr->player2[ gpd.number ].cd = cdm->cd;
                     
+                    /*** Ready gueltig? ***/
+                    if( -1 != cdm->ready )
+                        ywd->gsr->player2[ gpd.number ].ready_to_start = cdm->ready;   
                     break;
                     }
                 gpd.number++;

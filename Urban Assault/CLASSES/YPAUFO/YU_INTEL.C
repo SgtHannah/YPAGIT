@@ -212,7 +212,7 @@ _dispatcher(void, yu_YBM_AI_LEVEL3, struct trigger_logic_msg *msg)
                             ** Auftriebskraft hoch. Ob wr den Vorgang beenden
                             ** müssen, entscheiden wir bei den Höhentests
                             ** ---------------------------------------------*/
-                            yud->buoyancy = 2 * yud->bact->mass * GRAVITY;
+                            yud->buoyancy = 4 * yud->bact->mass * GRAVITY;
                             }
 
                         if( yud->flags & YUF_GODOWN ) {
@@ -220,7 +220,7 @@ _dispatcher(void, yu_YBM_AI_LEVEL3, struct trigger_logic_msg *msg)
                             /* ---------------------
                             ** Wir müssen nach unten
                             ** -------------------*/
-                            yud->buoyancy = 0.5 * yud->bact->mass * GRAVITY;
+                            yud->buoyancy = 0.3 * yud->bact->mass * GRAVITY;
                             }
                         }
                     }

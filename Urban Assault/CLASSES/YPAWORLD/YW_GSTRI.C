@@ -4451,6 +4451,7 @@ void yw_OKProvider( struct GameShellReq  *GSR )
                 GSR->n_selmode        = NM_PLAYER;
                 GSR->NSel             = -1; // nix ausg.
                 GSR->nmenu.FirstShown = 0;
+                GSR->nmenu.Selected   = 0;
                 
                 /*** fuer Player Listview ausschalten ***/
                 yw_CloseReq(GSR->ywd, &(GSR->nmenu.Req));
@@ -4513,6 +4514,7 @@ void yw_OKLevel( struct GameShellReq *GSR )
         struct flushbuffer_msg fb;
         char   sname[300];
         struct setsessionname_msg ssn;
+        int    i;
            
         /*** Rassen analog Lobby fest verteilen ***/
         l = &(GSR->ywd->LevelNet->Levels[ GSR->NLevelOffset ]);
@@ -4523,6 +4525,7 @@ void yw_OKLevel( struct GameShellReq *GSR )
         GSR->N_Name[ 0 ]      = 0;
         GSR->NCursorPos       = 0;
         GSR->nmenu.FirstShown = 0;
+        GSR->nmenu.Selected   = 0;
         GSR->NSel             = -1;
         
         /* ---------------------------------------------
@@ -4577,7 +4580,11 @@ void yw_OKLevel( struct GameShellReq *GSR )
                     }
                 }
             }
-        else  GSR->FreeRaces  &= ~FREERACE_TAERKASTEN;                
+        else  GSR->FreeRaces  &= ~FREERACE_TAERKASTEN;
+                        
+        /*** erstmal alle checksummen loeschen, denn die stimmen niucht mehr ***/
+        for( i = 0; i < MAXNUM_PLAYERS; i++ )
+            GSR->player2[ i ].checksum = 0; 
         
         /*** Message dazu verschicken ***/
         strncpy( cl.hostname, GSR->NPlayerName, STANDARD_NAMELEN );
@@ -4633,6 +4640,7 @@ void yw_OKLevel( struct GameShellReq *GSR )
             GSR->N_Name[ 0 ]      = 0;
             GSR->NCursorPos       = 0;
             GSR->nmenu.FirstShown = 0;
+            GSR->nmenu.Selected   = 0;
             
             /* ---------------------------------------------
             ** Rassen festklopfen. Alle nich vorhandenen und
@@ -4765,6 +4773,7 @@ void yw_OKLevel( struct GameShellReq *GSR )
             GSR->N_Name[ 0 ]      = 0;
             GSR->NCursorPos       = 0;
             GSR->nmenu.FirstShown = 0;
+            GSR->nmenu.Selected   = 0;
 
             /*** Name in player2 merken ***/
             _get( GSR->ywd->nwo, NWA_NumPlayers, &np );
@@ -4904,6 +4913,7 @@ void yw_OKSessions( struct GameShellReq *GSR )
                     GSR->N_Name[ 0 ]      = 0;
                     GSR->NCursorPos       = 0;
                     GSR->nmenu.FirstShown = 0;
+                    GSR->nmenu.Selected   = 0;
 
                     /*** Name in player2 merken ***/
                     _get( ywd->nwo, NWA_NumPlayers, &np );
@@ -4923,6 +4933,7 @@ void yw_OKSessions( struct GameShellReq *GSR )
                     GSR->last_cdcheck = GSR->global_time;
 
                     cdm.cd                 = GSR->cd;
+                    cdm.ready              = -1; 
                     cdm.generic.message_id = YPAM_CD;
                     cdm.generic.owner      = 0; // weil nicht feststehend
         
@@ -6226,6 +6237,7 @@ void yw_CheckCDStatus( struct GameShellReq *GSR )
     
     /*** ... und merken ***/
     cdm.cd                 = GSR->cd;
+    cdm.ready              = GSR->ReadyToStart; 
     cdm.generic.message_id = YPAM_CD;
     cdm.generic.owner      = 0; // weil nicht feststehend
         

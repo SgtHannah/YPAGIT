@@ -707,6 +707,8 @@ struct ypamessage_cd {                         // hat sich geaendert
     //+++++++++++++++++++++++++++++++++++++
     
     UBYTE   cd;                                 // 0 oder nicht 0, je nachdem
+    BYTE    ready;                              // Vorzeichenbehaftet. -1 sagt ungueltig
+    BYTE    p[2];
 };
     
 #endif
