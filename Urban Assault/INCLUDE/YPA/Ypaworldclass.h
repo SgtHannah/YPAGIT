@@ -2248,6 +2248,7 @@ struct ypaworld_data {
 
     /*** Help URL ***/
     UBYTE *Url;
+    UBYTE *StoredUrl;
 
     /*** Display Resolution Stuff ***/
     ULONG OneDisplayRes;        // TRUE, wenn 1 Display-Res fürs ganze Spiel

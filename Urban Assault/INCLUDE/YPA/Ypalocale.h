@@ -837,6 +837,7 @@ static UBYTE *ypa_GetStr(UBYTE **loc, ULONG id, UBYTE *def)
 #define STR_CONFIRM_RESTART             (2483)
 #define STR_CONFIRM_NEEDCD              (2484)
 #define STR_CONFIRM_NEED2CD             (2485)
+#define STR_CONFIRM_HELP                (2486)
 
 /*** Anpassen! ***/
 #define STR_LAST_ITEM           (2600) 

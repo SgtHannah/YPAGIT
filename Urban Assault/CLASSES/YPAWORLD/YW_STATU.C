@@ -2528,7 +2528,7 @@ BOOL yw_SRHotKey(struct ypaworld_data *ywd, struct VFMInput *ip)
                 break;
 
             case HOTKEY_HELP:
-                ywd->Url = ypa_GetStr(ywd->LocHandle,STR_HELP_INGAMEGENERAL,"help\\l17.html");
+                yw_ConfirmedOnlineHelp(ywd,ypa_GetStr(ywd->LocHandle,STR_HELP_INGAMEGENERAL,"help\\l17.html"));
                 break;
 
             case HOTKEY_ANALYZER:
@@ -3179,7 +3179,7 @@ void yw_HandleInputSR(struct ypaworld_data *ywd, struct VFMInput *ip)
                         SR.DownFlags |= (1<<STATBTN_ONLINEHELP);
                     };
                     if (ci->flags & CIF_BUTTONUP) {
-                        ywd->Url = ypa_GetStr(ywd->LocHandle,STR_HELP_INGAMEGENERAL,"help\\l17.html");
+                        yw_ConfirmedOnlineHelp(ywd,ypa_GetStr(ywd->LocHandle,STR_HELP_INGAMEGENERAL,"help\\l17.html"));
                     };
                     yw_TooltipHotkey(ywd,TOOLTIP_GUI_ONLINEHELP,HOTKEY_HELP);
                     break;

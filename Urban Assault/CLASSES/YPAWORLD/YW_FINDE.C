@@ -1119,7 +1119,7 @@ void yw_HandleInputFR(struct ypaworld_data *ywd, struct VFMInput *ip)
 
             /*** Online-Hilfe? ***/
             if ((ci->btn == LV_BTN_HELP) && (ci->flags & CIF_BUTTONUP)) {
-                ywd->Url = ypa_GetStr(ywd->LocHandle,STR_HELP_INGAMEFINDER,"help\\l15.html");
+                yw_ConfirmedOnlineHelp(ywd,ypa_GetStr(ywd->LocHandle,STR_HELP_INGAMEFINDER,"help\\l15.html"));
             };
 
             /*** Click in Lower Border Button? ***/

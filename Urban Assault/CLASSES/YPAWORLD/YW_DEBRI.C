@@ -1560,6 +1560,39 @@ UBYTE *yw_DBLayoutTechUpgrades(struct ypaworld_data *ywd,
 }
 
 /*-----------------------------------------------------------------*/
+void yw_DBPutTitles(struct ypaworld_data *ywd,struct MissionBriefing *mb)
+/*
+**  CHANGED
+**      19-Jun-98   floh    created
+*/
+{
+    UBYTE str_buf[256];
+    UBYTE *str = str_buf;
+    struct rast_text rt;
+    UBYTE *name;
+    LONG x0,x1,y0,y1,w;     
+    
+    x0 = BOUNDRECT_MAP_X0 * (ywd->DspXRes>>1);
+    x1 = BOUNDRECT_MAP_X1 * (ywd->DspXRes>>1);
+    y0 = BOUNDRECT_MAP_Y0 * (ywd->DspYRes>>1);
+    y1 = BOUNDRECT_MAP_Y1 * (ywd->DspYRes>>1);
+    w  = (x1-x0);
+
+    /*** Level-Titel immer und sofort anzeigen ***/
+    name = ypa_GetStr(ywd->LocHandle,STR_NAME_LEVELS+ywd->Level->Num,ywd->Level->Title);
+    new_font(str,FONTID_MAPCUR_4);
+    pos_abs(str,x0,y0+4);
+    dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_BRIEFING),yw_Green(ywd,YPACOLOR_TEXT_BRIEFING),yw_Blue(ywd,YPACOLOR_TEXT_BRIEFING));
+    str = yw_TextCenteredSkippedItem(ywd->Fonts[FONTID_MAPCUR_4],str,name,w);
+
+    /*** String(s) rendern und fertig***/
+    eos(str);
+    rt.string = str_buf;
+    rt.clips  = NULL;
+    _methoda(ywd->GfxObject,RASTM_Text,&rt);
+}
+
+/*-----------------------------------------------------------------*/
 void yw_DBL1Start(struct ypaworld_data *ywd,
                   struct VFMInput *ip,
                   struct MissionBriefing *mb)
@@ -1716,6 +1749,11 @@ void yw_DBL1RunningDone(struct ypaworld_data *ywd,
             };
         };
     };
+    
+    /*** Level Titel ueber alles drueber rendern ***/
+    _methoda(ywd->GfxObject,RASTM_Begin2D,NULL);
+    yw_DBPutTitles(ywd,mb);
+    _methoda(ywd->GfxObject,RASTM_End2D,NULL);
 }
 
 /*-----------------------------------------------------------------*/

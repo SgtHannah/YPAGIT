@@ -30,6 +30,7 @@
 #include "ypa/ypabactclass.h"   /* wegen <struct newmaster_msg> */
 #include "bitmap/winddclass.h"
 #include "ypa/guilogwin.h"
+#include "ypa/guiabort.h"
 
 #include "yw_protos.h"
 
@@ -48,6 +49,7 @@ extern struct VFMInput Ip;
 extern struct YPALogWin LW;
 extern struct YPAStatusReq SR;
 extern struct YPAListReq SubMenu;
+extern struct YPAAbortReq AMR;
 
 /*-----------------------------------------------------------------*/
 _dispatcher(ULONG, yw_YWM_GETSECTORINFO, struct getsectorinfo_msg *msg)
@@ -1644,3 +1646,25 @@ UBYTE *yw_LayoutVsValues(struct ypaworld_data *ywd, UBYTE *str)
     };
     return(str);
 }
+
+/*-----------------------------------------------------------------*/
+void yw_ConfirmedOnlineHelp(struct ypaworld_data *ywd, UBYTE *url)
+/*
+**  FUNCTION
+**      Oeffnet den Confirm-Requester, und hebt den URL-String
+**      auf.
+**
+**  CHANGED
+**      19-Jun-98   floh    created
+*/
+{
+    if (!ywd->playing_network) {
+        yw_OpenCR(ywd,ypa_GetStr(ywd->LocHandle,STR_CONFIRM_HELP,"REALLY LAUNCH ONLINE HELP ?"),&AMR);
+        AMR.action = AMR_BTN_HELP;
+        ywd->StoredUrl = url;
+        ywd->Url       = NULL;
+    };
+}
+    
+    
+

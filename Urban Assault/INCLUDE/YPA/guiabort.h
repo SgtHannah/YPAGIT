@@ -42,6 +42,7 @@ struct YPAAbortReq {
 #define AMR_BTN_LOAD    (LV_NUM_STD_BTN+2)
 #define AMR_BTN_RESTART (LV_NUM_STD_BTN+3)
 #define AMR_BTN_RESUME  (LV_NUM_STD_BTN+4)
+#define AMR_BTN_HELP    (LV_NUM_STD_BTN+5)
 
 /*-----------------------------------------------------------------*/
 #endif

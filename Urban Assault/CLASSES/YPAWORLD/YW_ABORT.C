@@ -340,6 +340,10 @@ void yw_HandleInputAMR(struct ypaworld_data *ywd, struct VFMInput *ip)
                 case AMR_BTN_RESTART:
                     ywd->Level->Status = LEVELSTAT_RESTART;
                     break;
+                case AMR_BTN_HELP:
+                    ywd->Url = ywd->StoredUrl;
+                    ywd->StoredUrl = NULL;
+                    break;
             };
             yw_CRSetStatus(ywd,YPACR_STATUS_CLOSED);
         } else if (cr_status == YPACR_STATUS_CANCEL) {
@@ -377,7 +381,7 @@ void yw_HandleInputAMR(struct ypaworld_data *ywd, struct VFMInput *ip)
 
                 case LV_BTN_HELP:
                     if (ci->flags & CIF_BUTTONUP) {
-                        ywd->Url = ypa_GetStr(ywd->LocHandle,STR_HELP_INGAMEMENU,"help\\l16.html");
+                        yw_ConfirmedOnlineHelp(ywd,ypa_GetStr(ywd->LocHandle,STR_HELP_INGAMEMENU,"help\\l16.html"));
                     };
                     break;
 

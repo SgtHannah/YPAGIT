@@ -1461,7 +1461,7 @@ void yw_HandleInputMR(struct ypaworld_data *ywd, struct VFMInput *ip)
                     };
                     if (ci->flags & CIF_BUTTONUP) {
                         MR.req.flags &= ~REQF_HelpDown;
-                        ywd->Url = ypa_GetStr(ywd->LocHandle,STR_HELP_INGAMEMAP,"help\\l14.html");
+                        yw_ConfirmedOnlineHelp(ywd,ypa_GetStr(ywd->LocHandle,STR_HELP_INGAMEMAP,"help\\l14.html"));
                     };
                     break;
 
