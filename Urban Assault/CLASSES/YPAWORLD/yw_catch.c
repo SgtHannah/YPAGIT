@@ -386,11 +386,11 @@ void yw_SetEventLoop(struct ypaworld_data *ywd, ULONG loop_id)
         case EVENTLOOP_TUTORIAL1:
             yw_AddDelayedFirstHitEvent(ywd,NULL,5000);
                 yw_AddLogMsg(ywd,LOGMSG_NOP);
-            yw_AddComplexEvent(ywd,yw_CheckCreateVehicle,40000);
+            yw_AddComplexEvent(ywd,yw_CheckCreateVehicle,20000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_CREATE);
-            yw_AddComplexEvent(ywd,yw_CheckControlVehicle,60000);
+            yw_AddComplexEvent(ywd,yw_CheckControlVehicle,20000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_CONTROL);
-            yw_AddComplexEvent(ywd,yw_CheckEnemiesDestroyed,60000);
+            yw_AddComplexEvent(ywd,yw_CheckEnemiesDestroyed,20000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_DESTROYROBO);
             yw_AddTerminateEvent(ywd,NULL,15000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_COMPLETE_1);
@@ -399,15 +399,15 @@ void yw_SetEventLoop(struct ypaworld_data *ywd, ULONG loop_id)
         case EVENTLOOP_TUTORIAL2:
             yw_AddDelayedFirstHitEvent(ywd,NULL,5000);
                 yw_AddLogMsg(ywd,LOGMSG_NOP);
-            yw_AddComplexEvent(ywd,yw_CheckCreateVehicle,40000);
+            yw_AddComplexEvent(ywd,yw_CheckCreateVehicle,20000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_CREATE);
-            yw_AddComplexEvent(ywd,yw_CheckMapComingUp,60000);
+            yw_AddComplexEvent(ywd,yw_CheckMapComingUp,20000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_MAP);
-            yw_AddDelayedCyclicEvent(ywd,yw_CheckEnemiesDestroyed,60000);
+            yw_AddDelayedCyclicEvent(ywd,yw_CheckEnemiesDestroyed,20000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_COMMAND);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_OPT_CONTROL);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_OPT_AGGR);
-            yw_AddComplexEvent(ywd,yw_CheckEnemiesDestroyed,60000);
+            yw_AddComplexEvent(ywd,yw_CheckEnemiesDestroyed,20000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_DESTROYALL);
             yw_AddTerminateEvent(ywd,NULL,15000);
                 yw_AddLogMsg(ywd,LOGMSG_EVENTMSG_COMPLETE_2);
