@@ -94,6 +94,7 @@ _dispatcher(void, yb_YBM_TR_LOGIC, struct trigger_logic_msg *msg)
     ybd->bact.relpos.z = gsi_msg.relpos_z;
     ybd->bact.Sector   = gsi_msg.sector;
 
+
     /*** Sektor-Sprung? ***/
     if (ybd->bact.Sector != old_sector) {
         _Remove((struct Node *) &(ybd->bact.SectorNode));
