@@ -21,8 +21,8 @@
         #include <windowsx.h>
         #endif
 
-        #define IErrorLog void
         #ifndef _MSC_VER
+        #define IErrorLog void
         #define BEGIN_INTERFACE
         #define END_INTERFACE
         #endif

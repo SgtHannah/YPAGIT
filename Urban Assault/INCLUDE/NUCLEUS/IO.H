@@ -23,6 +23,46 @@
 #include <exec/nodes.h>
 #endif
 
+#ifdef _MSC_VER
+
+#ifndef HANDLE
+typedef void * HANDLE;
+#endif
+
+#define NAME_MAX        255             /* maximum filename for HPFS or NTFS */
+typedef struct dirent {
+        char    d_dta[ 21 ];            /* disk transfer area */
+        char    d_attr;                         /* file's attribute */
+        unsigned short int d_time;      /* file's time */
+        unsigned short int d_date;      /* file's date */
+        long    d_size;                         /* file's size */
+        char    d_name[ NAME_MAX + 1 ]; /* file's name */
+        unsigned short d_ino;           /* serial number (not used) */
+        char    d_first;                        /* flag for 1st time */
+
+        HANDLE  hFind;
+} DIR;
+
+/* File attribute constants for d_attr field */
+
+#define _A_NORMAL       0x00    /* Normal file - read/write permitted */
+#define _A_RDONLY       0x01    /* Read-only file */
+#define _A_HIDDEN       0x02    /* Hidden file */
+#define _A_SYSTEM       0x04    /* System file */
+#define _A_VOLID        0x08    /* Volume-ID entry */
+#define _A_SUBDIR       0x10    /* Subdirectory */
+#define _A_ARCH         0x20    /* Archive file */
+
+extern DIR      *opendir( const char * );
+extern int      closedir( DIR * );
+extern struct dirent *readdir( DIR * );
+
+extern DIR *opendir( const char *s );
+extern int closedir( DIR *p );
+extern struct dirent *readdir( DIR *p);
+
+#endif
+
 /*-------------------------------------------------------------------
 **  Überblick über Nucleus File IO
 **  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

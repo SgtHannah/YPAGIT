@@ -10,6 +10,9 @@
 **
 **  (C) Copyright 1996 by A.Weissflog
 */
+#ifdef _MSC_VER
+#include <windows.h>
+#endif
 #include <exec/types.h>
 #include <utility/tagitem.h>
 

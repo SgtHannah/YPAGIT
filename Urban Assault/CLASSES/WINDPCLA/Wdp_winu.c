@@ -10,6 +10,10 @@
 **
 **  (C) Copyright 1994 by A.Weissflog
 */
+#ifdef _MSC_VER
+#include <windows.h>
+#include <nucleus\io.h>
+#endif
 #include <network/winlist.h>
 #include <ctype.h>
 #include <stdio.h>

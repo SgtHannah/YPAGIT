@@ -9,6 +9,9 @@
 **
 **  (C) Copyright 1997 by A.Flemming
 */
+#ifdef _MSC_VER
+#include <windows.h>
+#endif
 #include <exec/types.h>
 #include <exec/memory.h>
 
@@ -20,6 +23,9 @@
 
 #include "nucleus/nucleus2.h"
 #include "nucleus/math.h"
+#ifdef _MSC_VER
+#include "nucleus/io.h"
+#endif
 #include "ypa/ypaworldclass.h"
 #include "ypa/ypabactclass.h"
 #include "ypa/ypagunclass.h"

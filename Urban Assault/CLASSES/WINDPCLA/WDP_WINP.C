@@ -23,6 +23,8 @@ extern HWND win_HWnd;
 struct SRThread  srthread;
 CRITICAL_SECTION critical_section;
 
+void wdp_FreeMem( void *mem );
+
 /* -------------------------------------------------------------
 ** NEU: Weil im Remoteaufruf nur dpo2 ausgefüllt ist, sind alle
 ** Tests nur noch auf dpo2. Es ist ja auch das, was wir brauchen

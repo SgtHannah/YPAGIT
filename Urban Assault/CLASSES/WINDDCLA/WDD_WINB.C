@@ -849,8 +849,8 @@ BOOL FAR PASCAL wdd_DDrawEnumCallback(GUID FAR *lpGUID,
     /*** Caps abfragen ***/
     memset(&driver_caps,0,sizeof(driver_caps));
     driver_caps.dwSize = sizeof(driver_caps);
-    memset(&hel_caps,0,sizeof(driver_caps));
-    hel_caps.dwSize = sizeof(driver_caps);
+    memset(&hel_caps,0,sizeof(hel_caps));
+    hel_caps.dwSize = sizeof(hel_caps);
     if (lpDD->lpVtbl->GetCaps(lpDD,&driver_caps,&hel_caps) != DD_OK) {
         /*** Fehler, Driver ignorieren ***/
         lpDD->lpVtbl->Release(lpDD);

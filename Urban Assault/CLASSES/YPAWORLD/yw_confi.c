@@ -10,6 +10,10 @@
 **  (C) Copyright 1998 by A.Weissflog
 **
 */
+#ifdef _MSC_VER
+#include <windows.h>
+#endif
+
 #include <exec/types.h>
 
 #include <string.h>

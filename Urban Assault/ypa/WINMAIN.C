@@ -24,6 +24,13 @@ char     *win_CmdLine  = NULL;
 char      CmdLineCopy[ 1000 ];
 HINSTANCE win_LangDllInst = NULL;
 
+#ifdef _MSC_VER
+void __cdecl delay(int x)
+{
+	Sleep((DWORD)x);
+}
+#endif
+
 /*-----------------------------------------------------------------*/
 int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                    LPSTR lpCmdLine, int nCmdShow)
