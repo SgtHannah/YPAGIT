@@ -452,7 +452,7 @@ void yw_StartVoiceOver(struct ypaworld_data *ywd,
                     group=2; line=5; col1=1; col2=9; num_vars=1; break;                    
                 case LOGMSG_NETWORK_YOUWIN:
                     group=2; line=5; col1=1; col2=5; num_vars=1; break;                    
-                case LOGMSG_NETWORK_PARASITE_STOPPED:
+                case LOGMSG_PARASITE_STOPPED:
                     group=2; line=5; col1=1; col2=0xa; num_vars=1; break;
                 
                 case LOGMSG_CHAT:
