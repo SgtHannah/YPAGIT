@@ -792,7 +792,7 @@ _dispatcher( void, yb_YBM_GETSECTARGET, struct getsectar_msg *st)
         FLOAT  distance;
         int    i, j;
 
-        distance      = 1.5 * SECTOR_SIZE;
+        distance      = 1.0 * SECTOR_SIZE;
         points        = 0;
         st->SecTarget = NULL;
 

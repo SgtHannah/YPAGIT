@@ -350,6 +350,11 @@ _dispatcher(void, yb_YBM_FIGHTBACT, struct fight_msg *fight)
                 fire.flags         = 0;
                 _methoda( o, YBM_FIREMISSILE, &fire );
                 }
+            else {
+            
+                /*** Ziel kann nicht getroffen werden? Attack aus! ***/
+                ybd->bact.ExtraState &= ~EXTRA_ATTACK;
+                }
 
             if( (distance < SHOT_DIST) &&
                 (ybd->bact.mg_shot != NO_MACHINEGUN) ) {
@@ -797,6 +802,11 @@ _dispatcher(void, yb_YBM_FIGHTSECTOR, struct fight_msg *fight)
                 fire.start.z       =  ybd->bact.firepos.z;
                     fire.flags     = 0;
                 _methoda( o, YBM_FIREMISSILE, &fire );
+                }
+            else {
+            
+                /*** Ziel kann nicht getroffen werden? Attack aus! ***/
+                ybd->bact.ExtraState &= ~EXTRA_ATTACK;
                 }
             }
         }

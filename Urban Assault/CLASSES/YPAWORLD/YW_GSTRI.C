@@ -491,6 +491,11 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                         /*** nur Bestaetigung. Nix machen ***/
                         yw_CloseConfirmRequester( GSR );
                         break;
+                        
+                    case CONFIRM_CHANGEVIDEOMODE:
+                    
+                        yw_OKSettings( GSR );
+                        break;    
                     }
                 
                 yw_CloseConfirmRequester( GSR );
@@ -557,6 +562,11 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                     
                         /*** nur Bestaetigung. Nix machen ***/
                         yw_CloseConfirmRequester( GSR );
+                        break;
+                        
+                    case CONFIRM_CHANGEVIDEOMODE:
+                    
+                        yw_OKSettings( GSR );
                         break;
                     }
 
@@ -1155,9 +1165,22 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 if( (GSR->vmenu.Req.flags & REQF_Closed) &&
                     (GSR->d3dmenu.Req.flags & REQF_Closed) ) {
 
-                    /*** Requester mit OK schliessen ***/
-                    yw_OKSettings( GSR );
-                    GSR->shell_mode = SHELLMODE_TITLE;
+                    /* ---------------------------------------------------------------
+                    ** Requester mit OK schliessen. Wenn eine Aenderung der Aufloesung
+                    ** gefordert wird, Warnung anzeigen.
+                    ** -------------------------------------------------------------*/
+                    if( (GSR->settings_changed & SCF_MODE) &&
+                        (GSR->new_modus != GSR->ywd->GameRes) &&
+                        (GSR->new_modus != 0L)) {
+                    
+                        yw_OpenConfirmRequester( GSR, CONFIRM_CHANGEVIDEOMODE,
+                            ypa_GetStr( GlobalLocaleHandle, STR_VGADGET_WARNING1,
+                            "DO YOU WANT TO CHANGE VIDEOMODE?"),
+                            ypa_GetStr( GlobalLocaleHandle, STR_VGADGET_WARNING2,
+                            "THIS CAN ... PROBLEMS"), 0);
+                        }
+                    else      
+                        yw_OKSettings( GSR );
                     }
 
                 if( !(GSR->vmenu.Req.flags & REQF_Closed) ) {
@@ -1214,7 +1237,22 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
 
             case GS_SETTINGSOK:
 
-                yw_OKSettings( GSR );
+                /* ---------------------------------------------------------------
+                ** Requester mit OK schliessen. Wenn eine Aenderung der Aufloesung
+                ** gefordert wird, Warnung anzeigen.
+                ** -------------------------------------------------------------*/
+                if( (GSR->settings_changed & SCF_MODE) &&
+                    (GSR->new_modus != GSR->ywd->GameRes) &&
+                    (GSR->new_modus != 0L)) {
+                
+                    yw_OpenConfirmRequester( GSR, CONFIRM_CHANGEVIDEOMODE,
+                        ypa_GetStr( GlobalLocaleHandle, STR_VGADGET_WARNING1,
+                        "DO YOU WANT TO CHANGE VIDEOMODE?"),
+                        ypa_GetStr( GlobalLocaleHandle, STR_VGADGET_WARNING2,
+                        "THIS CAN ... PROBLEMS"), 0);
+                    }
+                else      
+                    yw_OKSettings( GSR );
                 break;
 
             case GS_CDSOUND_YES:
@@ -1778,7 +1816,8 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 GSR->D_InputMode = DIM_KILL;
 
                 if( !GSR->d_actualitem )
-                    strcpy(GSR->D_Name, UNKNOWN_NAME );
+                    strcpy(GSR->D_Name,  ypa_GetStr( GlobalLocaleHandle, STR_DGADGET_NEWUSER,
+                                        "NEW GAME") );
                 GSR->DCursorPos   = strlen( GSR->D_Name );
                 strncpy( d_name, GSR->D_Name, GSR->DCursorPos );
                 strncpy( &(d_name[ GSR->DCursorPos ]), CURSORSIGN, 1 );
@@ -1795,7 +1834,8 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 GSR->D_InputMode = DIM_LOAD;
 
                 if( !GSR->d_actualitem )
-                    strcpy(GSR->D_Name, UNKNOWN_NAME );
+                    strcpy(GSR->D_Name,  ypa_GetStr( GlobalLocaleHandle, STR_DGADGET_NEWUSER,
+                                        "NEW GAME") );
                 GSR->DCursorPos   = strlen( GSR->D_Name );
                 strncpy( d_name, GSR->D_Name, GSR->DCursorPos );
                 strncpy( &(d_name[ GSR->DCursorPos ]), CURSORSIGN, 1 );
@@ -1873,6 +1913,10 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
 
                 GSR->D_InputMode = DIM_SAVE;
 
+                if( !GSR->d_actualitem )
+                    strcpy(GSR->D_Name,  ypa_GetStr( GlobalLocaleHandle, STR_DGADGET_NEWUSER,
+                                        "NEW GAME") );
+                        
                 if( GSR->ywd->UseSystemTextInput ) {
 
                     struct windd_gettext gt;
@@ -1898,8 +1942,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                     }
                 else {
 
-                    if( !GSR->d_actualitem )
-                        strcpy(GSR->D_Name, UNKNOWN_NAME );
                     GSR->DCursorPos   = strlen( GSR->D_Name );
                     strncpy( d_name, GSR->D_Name, GSR->DCursorPos );
                     strncpy( &(d_name[ GSR->DCursorPos ]), CURSORSIGN, 1 );
@@ -5151,7 +5193,7 @@ void yw_Appear3DDevice( struct GameShellReq *GSR, BOOL remotestart )
 
     struct setstring_msg ss;
     int    i;
-    char   *selname, *selguid;
+    char  *selname, *selguid;
     struct windd_device wdm;
 
     /*** Aktuelles und  gewuenschtes suchen ***/
@@ -5160,17 +5202,18 @@ void yw_Appear3DDevice( struct GameShellReq *GSR, BOOL remotestart )
     wdm.flags = 0;
     i         = 0;
     do {
+
         _methoda( GSR->ywd->GfxObject, WINDDM_QueryDevice, &wdm );
         if( wdm.name ) {
             /*** selektiertes? ***/
-            if(i == GSR->d3dmenu.Selected) {
+            if( i == GSR->d3dmenu.Selected ) {
                 if (strcmp(wdm.name,"software")==0) selname = ypa_GetStr(GSR->ywd->LocHandle,STR_DISPLAY_SOFTWARE,"2472 = Software");
                 else                                selname = wdm.name;
                 selguid = wdm.guid;
+                }
             }
-        }
         i++;
-    } while(wdm.name);
+        }  while( wdm.name );
 
     if( FALSE   == remotestart ) {
 

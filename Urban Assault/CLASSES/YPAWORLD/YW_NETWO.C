@@ -1221,26 +1221,30 @@ void yw_HandleNetMessages( struct ypaworld_data *ywd )
                 ** meinen Flags uebereinstimmt. Folglich unlocke ich sie und setze
                 ** mein Flag zurueck. Somit ist alles synchron und der Mechanismus
                 ** funktioniert wieder.
+                ** Das alles nur, wenn wir noch in der shell sind.
                 ** -------------------------------------------------------------*/
-                ls.block = 0;
-                _methoda( GSR->ywd->nwo, NWM_LOCKSESSION, &ls );
-                GSR->blocked = FALSE;
+                if( 0 == ywd->netgamestartet ) {
                 
-                /* ------------------------------------------------------
-                ** Host ist immer ready to start. Das Versenden geschieht
-                ** mit der CD Message 
-                ** ----------------------------------------------------*/
-                GSR->ReadyToStart = TRUE;
-                gpd.number  = 0;
-                gpd.askmode = GPD_ASKNUMBER;
-                while( _methoda( ywd->nwo, NWM_GETPLAYERDATA, &gpd ) ) {
-    
-                    if( stricmp( ywd->gsr->NPlayerName, gpd.name ) == 0 ) {
-                        ywd->gsr->player2[ gpd.number ].ready_to_start = 1;   
-                        break;
-                        }
-                    gpd.number++;
-                    }   
+                    ls.block = 0;
+                    _methoda( GSR->ywd->nwo, NWM_LOCKSESSION, &ls );
+                    GSR->blocked = FALSE;
+                    
+                    /* ------------------------------------------------------
+                    ** Host ist immer ready to start. Das Versenden geschieht
+                    ** mit der CD Message 
+                    ** ----------------------------------------------------*/
+                    GSR->ReadyToStart = TRUE;
+                    gpd.number  = 0;
+                    gpd.askmode = GPD_ASKNUMBER;
+                    while( _methoda( ywd->nwo, NWM_GETPLAYERDATA, &gpd ) ) {
+        
+                        if( stricmp( ywd->gsr->NPlayerName, gpd.name ) == 0 ) {
+                            ywd->gsr->player2[ gpd.number ].ready_to_start = 1;   
+                            break;
+                            }
+                        gpd.number++;
+                        } 
+                    }  
                 break;
 
             case MK_NORMAL:
@@ -2360,7 +2364,10 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
                 
                     struct OBNode *killer_robo;
                     killer_robo = yw_GetRoboByOwner( ywd, dm->killerowner );
-                    dv->killer  = yw_GetBactByID( killer_robo->bact, dm->killer );
+                    if( killer_robo )
+                        dv->killer  = yw_GetBactByID( killer_robo->bact, dm->killer );
+                    else
+                        dv->killer  = NULL;
                     } 
 
                 /*** (FIXME FLOH) Meldung ans statistische Amt ***/
@@ -2953,7 +2960,10 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
             
                 struct OBNode *killer_robo;
                 killer_robo         = yw_GetRoboByOwner( ywd, rd->killerowner );
-                robo->bact->killer  = yw_GetBactByID( killer_robo->bact, rd->killer );
+                if( killer_robo )
+                    robo->bact->killer  = yw_GetBactByID( killer_robo->bact, rd->killer );
+                else
+                    robo->bact->killer  = NULL;
                 } 
 
             if (robo->bact->killer) {

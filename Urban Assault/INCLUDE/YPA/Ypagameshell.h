@@ -615,7 +615,7 @@ struct GameShellReq {
 #define CONFIRM_NETSTARTALONE   2   // Netzspiel allein starten
 #define CONFIRM_SAVEANDOVERWRITE 3  // Savegame in DiskReq ueberschreiben
 #define CONFIRM_MORECDS         4   // CDs reichen nicht
-
+#define CONFIRM_CHANGEVIDEOMODE 5   // wirklich Aufloesung aendern?
 
 /* ---------------------------------------------------------------------
 ** OBSOLET: Sollte nur noch für die Vehicleoffsets genommen werden,
