@@ -1993,6 +1993,9 @@ struct ypaworld_data {
     LONG FrameTime;             // FrameTime des aktuellen Frames
     LONG FrameCount;            // einfacher FrameCounter
     UBYTE *Version;             // Versions-String
+    
+    UWORD FireDownStatus;       // Status des Feuer-Buttons im letzten Frame
+    UWORD FireDown;             // TRUE, wenn Feuerbutton in diesem Frame niedergedrueckt
 
     /*** GUI ***/
     ULONG GUI_Ok;               // GUI ist momentan initialisiert

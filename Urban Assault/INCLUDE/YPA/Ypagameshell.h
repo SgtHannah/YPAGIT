@@ -1053,7 +1053,7 @@ struct video_node {
 #define VISSECTORS_NEAR     (5)                    // zu beachtende Sektoren
 #define NORMVISLIMIT_NEAR   YWA_NormVisLimit_DEF   // Sichtweite
 #define NORMDFADELEN_NEAR   YWA_NormDFadeLen_DEF   // DepthfadingGrenze
-#define VISSECTORS_FAR      (7)
+#define VISSECTORS_FAR      (9)
 #define NORMVISLIMIT_FAR    (YWA_NormVisLimit_DEF+(YWA_NormVisLimit_DEF/2))
 #define NORMDFADELEN_FAR    (YWA_NormDFadeLen_DEF+(YWA_NormDFadeLen_DEF/2))
 

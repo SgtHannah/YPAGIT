@@ -1141,6 +1141,8 @@ void yw_HandleInputMR(struct ypaworld_data *ywd, struct VFMInput *ip)
 **      11-Dec-97   floh    + Scrolling schaltet jetzt Lockmodus aus
 **                          + NoLock Button raus
 **      05-Mar-98   floh    + Online-Hilfe
+**      22-May-98   floh    + Dragselect hat jetzt groesseren Toleranz-Bereich
+**                            (5 Pixel)
 */
 {
     if (!(MR.req.flags & REQF_Closed)) {
@@ -1305,7 +1307,7 @@ void yw_HandleInputMR(struct ypaworld_data *ywd, struct VFMInput *ip)
                 /*** weit genug gedraggt? ***/
                 LONG dx = MR.drag_scr.xmax - MR.drag_scr.xmin;
                 LONG dy = MR.drag_scr.ymax - MR.drag_scr.ymin;
-                if ((abs(dx)>1) && (abs(dy)>1)) {
+                if ((abs(dx)>5) && (abs(dy)>5)) {
                     /*** Drag-Vorgang erfolgreich abschlieﬂen ***/
                     SR.ActiveMode = STAT_MODEF_ORDER;
                     MR.flags &= ~MAPF_DRAGGING;

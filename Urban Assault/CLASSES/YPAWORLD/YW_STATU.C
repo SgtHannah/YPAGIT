@@ -2818,7 +2818,7 @@ void yw_HandleInputSR(struct ypaworld_data *ywd, struct VFMInput *ip)
         else if (ip->HotKey != 0)                       do_sub=yw_SRHotKey(ywd,ip);
 
         /*** Vehikel tot und Feuertaste gedrueckt? ***/
-        if ((ACTION_DEAD == ywd->UVBact->MainState) && (ip->Buttons & BT_FIRE)) {
+        if ((ACTION_DEAD == ywd->UVBact->MainState) && (ywd->FireDown)) {
             new_viewer = yw_SRNextCom(ywd);
             ip->Buttons &= ~BT_FIRE;
         };

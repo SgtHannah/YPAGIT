@@ -2179,6 +2179,7 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
 **      09-May-98   floh    + setzt jetzt beim Mode-Umschalten auch 
 **                            den Font neu
 **      16-May-98   floh    + nucleus.ini Auswertung
+**      22-May-98   floh    + ywd->FireDown Initialisierung
 */
 {
     BOOL retval = FALSE;
@@ -2218,6 +2219,8 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
     ywd->DoJoystick           = FALSE;
     ywd->Url                  = NULL;
     ywd->LastOccupiedID       = 0;
+    ywd->FireDownStatus       = FALSE;
+    ywd->FireDown             = FALSE;
 
     memset(&(ywd->Level->Gate),0,sizeof(ywd->Level->Gate));
     memset(&(ywd->Level->Item),0,sizeof(ywd->Level->Item));

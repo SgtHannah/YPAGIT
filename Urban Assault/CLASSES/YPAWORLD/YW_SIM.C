@@ -33,6 +33,7 @@
 #include "ypa/guifinder.h"
 #include "ypa/guiconfirm.h"
 #include "ypa/ypaworldclass.h"
+#include "ypa/ypakeys.h"
 
 #include "bitmap/winddclass.h"
 #include "input/winpclass.h"
@@ -140,6 +141,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
 **                            CONTROL aktiviert ist.
 **      15-May-98   floh    + Joystick-Handling umgeschrieben...
 **      16-May-98   floh    + alternatives Joystick-Handling
+**      22-May-98   floh    + FireDown Handling
 */
 {
     struct ClickInfo *ci = &(ip->ClickInfo);
@@ -151,6 +153,17 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
     /*** Joystick disable? ***/
     if (ywd->Prefs.valid && (ywd->Prefs.Flags & YPA_PREFS_JOYDISABLE)) {
         joy_disable = TRUE;
+    };
+    
+    /*** FireDown Handling ***/
+    ywd->FireDown = FALSE;
+    if (ip->Buttons & BT_FIRE) {
+        if (!ywd->FireDownStatus) {
+            ywd->FireDown = TRUE;
+        };
+        ywd->FireDownStatus = TRUE;
+    } else {
+        ywd->FireDownStatus = FALSE;
     };
 
     if (ywd->UVBact->MainState == ACTION_DEAD){

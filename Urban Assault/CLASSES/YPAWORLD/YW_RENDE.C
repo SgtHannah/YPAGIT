@@ -198,7 +198,7 @@ void yw_RenderFrame(Object *o,
             bpub_msg.max_z = 1500.0;    // 1*Sektorsize + SlurpSize/2
         }else {
             /*** Farview ***/
-            bpub_msg.max_z = 2700.0;    // 2*Subsektor + Slurpsize
+            bpub_msg.max_z = 3500.0;    // was 2700: 2*Subsektor + Slurpsize
         };
 
         /*** <vis> immer abgerundet! ***/
