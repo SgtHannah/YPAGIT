@@ -388,10 +388,13 @@ void yw_SendChatMessage( struct ypaworld_data *ywd, char *text,
     struct ypamessage_text tm;
     WORD   number;
 
-    strcpy( tm.text, text );
+    // FIXME_FLOH: wurde nicht per strncpy() kopiert 
+    memset(tm.text, 0, sizeof(tm.text));
+    strncpy(tm.text, text, sizeof(tm.text)-1);
+    
     tm.generic.message_id  = YPAM_TEXT;
     tm.generic.owner       = ywd->gsr->NPlayerOwner;
-
+    
     sm.receiver_id         = NULL;
     sm.receiver_kind       = MSG_ALL;
     sm.data                = &tm;
@@ -407,10 +410,8 @@ void yw_SendChatMessage( struct ypaworld_data *ywd, char *text,
     
         /*** auch bei mir darstellen ***/
         struct logmsg_msg log;
-        char t[ 500 ];
-        
-        sprintf( t, "%s: %s", ywd->gsr->NPlayerName, text );
-
+        char t[512];
+        sprintf( t, "%s: %s", ywd->gsr->NPlayerName, tm.text );
         log.pri  = 10;
         log.msg  = t;
         log.bact = NULL;

@@ -104,7 +104,7 @@ unsigned long wdd_DoSoftCursor(struct windd_data *wdd);
 void wdd_GetMousePos(struct windd_data *, long *, long *);
 
 void wdd_DrawText(struct windd_data *,struct wdd_VFMFont **,unsigned char *,unsigned char **);
-char *wdd_GetText(struct windd_data *wdd, char *title_text, char *ok_text, char *cancel_text, char *default_text, long timer_val, void (*timer_func)(void *), void *timer_arg);
+char *wdd_GetText(struct windd_data *, char *, char *, char *, char *, long, void (*)(void *), void *, unsigned long, unsigned long); 
 void wdd_PlayMovie(struct windd_data *wdd, char *fname);
 void wdd_SetCursorMode(struct windd_data *wdd, unsigned long mode);
 unsigned long wdd_WriteGUID(char *fname, void *guid, char *alt_text);
@@ -1052,14 +1052,16 @@ _dispatcher(void, wdd_WINDDM_DisableGDI, void *nil)
 _dispatcher(void, wdd_WINDDM_GetText, struct windd_gettext *msg)
 /*
 **  CHANGED
-**      08-Jan-98   floh    created
+**      08-Jan-98   floh    created 
+**      15-Jun-98   floh    + msg->flags und msg->max_text_len
 */
 {
     struct windd_data *wdd = INST_DATA(cl,o);
     ENTERED("wdd_WINDDM_GetText");
     _methoda(o,WINDDM_EnableGDI,NULL);
     msg->result = wdd_GetText(wdd,msg->title_text,msg->ok_text,msg->cancel_text,
-                  msg->default_text,msg->timer_val,msg->timer_func,msg->timer_arg);
+                  msg->default_text,msg->timer_val,msg->timer_func,msg->timer_arg,
+                  msg->flags, msg->max_text_len);
     _methoda(o,WINDDM_DisableGDI,NULL);
     LEFT("wdd_WINDDM_GetText");
 }

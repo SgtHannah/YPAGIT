@@ -1836,12 +1836,14 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 if( GSR->ywd->UseSystemTextInput ) {
 
                     struct windd_gettext gt;
-
+                    memset(&gt,0,sizeof(gt));
                     gt.title_text   = ypa_GetStr( GlobalLocaleHandle, STR_DGADGET_ENTERNAME, "ENTER NAME");
                     gt.ok_text      = ypa_GetStr( GlobalLocaleHandle, STR_OK, "OK");
                     gt.cancel_text  = ypa_GetStr( GlobalLocaleHandle, STR_CANCEL, "CANCEL");
                     gt.default_text = GSR->D_Name;
                     gt.timer_func   = NULL;
+                    gt.max_text_len = STANDARD_NAMELEN;
+                    gt.flags        = WINDDF_GETTEXT_ISFILENAME;
                     _methoda( GSR->ywd->GfxObject, WINDDM_GetText, &gt );
                     if( gt.result ) {
 
@@ -1874,12 +1876,14 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 if( GSR->ywd->UseSystemTextInput ) {
 
                     struct windd_gettext gt;
-
+                    memset(&gt,0,sizeof(gt));
                     gt.title_text   = ypa_GetStr( GlobalLocaleHandle, STR_DGADGET_ENTERNAME, "ENTER NAME");
                     gt.ok_text      = ypa_GetStr( GlobalLocaleHandle, STR_OK, "OK");
                     gt.cancel_text  = ypa_GetStr( GlobalLocaleHandle, STR_CANCEL, "CANCEL");
                     gt.default_text = GSR->D_Name;
                     gt.timer_func   = NULL;
+                    gt.max_text_len = STANDARD_NAMELEN;
+                    gt.flags        = WINDDF_GETTEXT_ISFILENAME;
                     _methoda( GSR->ywd->GfxObject, WINDDM_GetText, &gt );
                     if( gt.result ) {
 
@@ -2491,12 +2495,13 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                         if( ywd->UseSystemTextInput ) {
 
                             struct windd_gettext gt;
-
+                            memset(&gt,0,sizeof(gt));
                             gt.title_text   = ypa_GetStr( GlobalLocaleHandle, STR_NGADGET_HLPLAYER, "ENTER CALLSIGN");
                             gt.ok_text      = ypa_GetStr( GlobalLocaleHandle, STR_OK, "OK");
                             gt.cancel_text  = ypa_GetStr( GlobalLocaleHandle, STR_CANCEL, "CANCEL");
                             gt.default_text = GSR->N_Name;
                             gt.timer_func   = NULL;
+                            gt.max_text_len = STANDARD_NAMELEN;
                             _methoda( GSR->ywd->GfxObject, WINDDM_GetText, &gt );
                             if( gt.result ) {
 
@@ -2725,12 +2730,13 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                         if( ywd->UseSystemTextInput ) {
 
                             struct windd_gettext gt;
-
+                            memset(&gt,0,sizeof(gt));
                             gt.title_text   = ypa_GetStr( GlobalLocaleHandle, STR_NGADGET_ENTERMESSAGE, "ENTER MESSAGE");
                             gt.ok_text      = ypa_GetStr( GlobalLocaleHandle, STR_OK, "OK");
                             gt.cancel_text  = ypa_GetStr( GlobalLocaleHandle, STR_CANCEL, "CANCEL");
                             gt.default_text = GSR->N_Name;
                             gt.timer_func   = NULL;
+                            gt.max_text_len = STANDARD_NAMELEN;
                             _methoda( GSR->ywd->GfxObject, WINDDM_GetText, &gt );
                             if( gt.result ) {
 

@@ -239,8 +239,11 @@ extern void wdd_Log(char *,...);
         ULONG timer_val;        // In: Callback Time in Millisec
         void (*timer_func)(void *);   // In: Timer-Callback-Routine
         void *timer_arg;        // In: optionales Arg für die TimerFunc
+        ULONG flags;            // In: siehe unten
+        ULONG max_text_len;     // In: maximale Textlaenge in Characters!
         char *result;           // Out: Ergebnis, darf NULL sein
     };
+    #define WINDDF_GETTEXT_ISFILENAME   (1<<0)      // entfernt alle ungueltigen Zeichen aus dem String
 
     struct windd_playmovie {
         char *fname;            // In: Filename des zu spielenden Mediafiles

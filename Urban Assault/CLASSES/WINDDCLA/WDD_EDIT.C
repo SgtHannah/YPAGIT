@@ -75,7 +75,6 @@ BOOL FAR PASCAL wdd_EditDialogProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lP
                 /*** Timer-Callback aufrufen ***/
                 KillTimer(hDlg,WDD_TIMERID);
                 wdd_TimerFunc(wdd_TimerArg);
-                MessageBeep(-1);
                 SetTimer(hDlg,WDD_TIMERID,wdd_TimerVal,NULL);
             };
             break;
@@ -89,7 +88,7 @@ BOOL FAR PASCAL wdd_EditDialogProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lP
 
                         /*** Inhalt der EditBox holen ***/
                         hEdit = GetDlgItem(hDlg,101);
-                        len = GetWindowText(hEdit,wdd_EditBoxBuf,sizeof(wdd_EditBoxBuf)-1);
+                        len = GetWindowText(hEdit,wdd_EditBoxBuf,sizeof(wdd_EditBoxBuf-1));
                         if (len == 0) wdd_EditBoxBuf[0] = 0;
 
                         /*** und Dialog killen ***/
@@ -109,7 +108,7 @@ BOOL FAR PASCAL wdd_EditDialogProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lP
                         /*** Inhalt der EditBox rüberkopieren ***/
                         HWND hEdit = (HWND) lParam;
                         int len;
-                        len = GetWindowText(hEdit,wdd_EditBoxBuf,sizeof(wdd_EditBoxBuf)-1);
+                        len = GetWindowText(hEdit,wdd_EditBoxBuf,sizeof(wdd_EditBoxBuf-1));
                         if (len == 0) wdd_EditBoxBuf[0] = 0;
                     };
                     break;
@@ -120,6 +119,58 @@ BOOL FAR PASCAL wdd_EditDialogProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lP
 }
 
 /*-----------------------------------------------------------------*/
+void wdd_ClipText(char *str, long num_bytes)
+/*
+**  FUNCTION
+**      Clippt den Text auf num_bytes, double-byte-clean.
+**
+**  CHANGED
+**      15-Jun-98   floh    created   
+*/
+{
+    char *p = str;
+    long i = 0;
+    while ((p = CharNext(p)) && (*p) && ((i=p-str)<num_bytes));
+    if (p && (*p)) {
+        p = CharPrev(str,p);
+        if (p) *p=0;
+    };
+}
+
+/*-----------------------------------------------------------------*/
+void wdd_FilterPathName(char *str)
+/*
+**  FUNCTION
+**      Ersetzt alle fuer Filenamen ungueltige Zeichen
+**      durch ein Leerzeichen.
+**
+**  CHANGED
+**      15-Jun-98   floh    created
+*/
+{
+    char *p;
+    for (p=str; *p; p=CharNext(p)) {
+        char c = *p;
+        if (!IsDBCSLeadByte(c)) {
+            switch (c) {
+                case '\\':
+                case '/':
+                case ':':
+                case '*':
+                case '?':
+                case '"':
+                case '<':
+                case '>':
+                case '|':
+                case ',':
+                    *p = ' ';
+                    break;
+            };
+        };
+    };
+}     
+
+/*-----------------------------------------------------------------*/
 char *wdd_GetText(struct windd_data *wdd,
                   char *title_text,
                   char *ok_text,
@@ -127,7 +178,9 @@ char *wdd_GetText(struct windd_data *wdd,
                   char *default_text,
                   long timer_val,
                   void (*timer_func)(void *),
-                  void *timer_arg)
+                  void *timer_arg,
+                  unsigned long flags,
+                  unsigned long max_text_len) 
 /*
 **  FUNCTION
 **      Erzeugt eine TextEditBox und wartet auf eine
@@ -141,6 +194,7 @@ char *wdd_GetText(struct windd_data *wdd,
 **      08-Jan-98   floh    created
 **      19-Mar-98   floh    + lädt die DlgBox Resource jetzt aus der
 **                            Locale-Dll
+**      15-Jun-98   floh    + <flags> und <max_text_len> Parameter
 */
 {
     if (wdd->hWnd && win_LangDllInst) {
@@ -162,8 +216,11 @@ char *wdd_GetText(struct windd_data *wdd,
                 wdd_TimerFunc   = timer_func;
                 wdd_TimerArg    = timer_arg;
                 retval = DialogBoxIndirect(win_Instance,hDlgBox,wdd->hWnd,(DLGPROC)wdd_EditDialogProc);
-                if (retval == 1) return(wdd_EditBoxBuf);
-                else             return(NULL);
+                if (retval == 1) { 
+                   if (max_text_len > 0) wdd_ClipText(wdd_EditBoxBuf,max_text_len);
+                   if (flags & (1<<0)) wdd_FilterPathName(wdd_EditBoxBuf); 
+                   return(wdd_EditBoxBuf);
+                } else return(NULL);
             };
         };
     };

@@ -1371,6 +1371,7 @@ _dispatcher(void, yw_BSM_TRIGGER, struct trigger_msg *msg)
                                                 ywd->chat_name );
 
         /*** Texteingabe... ***/
+        memset(&txtm,0,sizeof(txtm));
         txtm.title_text   = headline;
         txtm.ok_text      = ypa_GetStr( GlobalLocaleHandle, STR_OK, "OK");
         txtm.cancel_text  = ypa_GetStr( GlobalLocaleHandle, STR_CANCEL, "CANCEL");
@@ -1379,6 +1380,7 @@ _dispatcher(void, yw_BSM_TRIGGER, struct trigger_msg *msg)
         txtm.timer_val    = 250;
         txtm.timer_func   = yw_TimerCallbackStub;
         txtm.timer_arg    = (void *) ywd;
+        txtm.max_text_len = STANDARD_NAMELEN;
         _methoda(ywd->GfxObject,WINDDM_GetText,&txtm);
 
         /*** Rendering wieder an ***/
