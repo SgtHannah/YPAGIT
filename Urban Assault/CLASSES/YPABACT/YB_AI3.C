@@ -1015,9 +1015,9 @@ _dispatcher( void, yb_YBM_DOWHILEDEATH, struct trigger_logic_msg *msg )
             FLOAT sc_fct  = PLASMA_SCALE;
 
             if( sc_time < PLASMA_MINTIME )
-                    sc_time = PLASMA_MINTIME;
+                sc_time = PLASMA_MINTIME;
             if( sc_time > PLASMA_MAXTIME )
-                    sc_time = PLASMA_MAXTIME;
+                sc_time = PLASMA_MAXTIME;
                         
             if( ybd->bact.extravp[0].flags & EVF_Active ) {
                 

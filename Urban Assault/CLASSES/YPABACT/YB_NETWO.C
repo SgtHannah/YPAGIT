@@ -640,12 +640,18 @@ void yb_DoExtraVPHacks( struct ypabact_data *ybd, struct trigger_logic_msg *msg 
         LONG  sc_time = (LONG)( PLASMA_TIME * (FLOAT)ybd->bact.Maximum);
         FLOAT sc_fct  = PLASMA_SCALE;
 
-                if( sc_time < PLASMA_MINTIME )
-                        sc_time = PLASMA_MINTIME;
-                if( sc_time > PLASMA_MAXTIME )
-                        sc_time = PLASMA_MAXTIME;
-                        
-                yb_DoWhilePlasma( ybd, sc_time, msg->frame_time, sc_fct );
+        if( sc_time < PLASMA_MINTIME )
+                sc_time = PLASMA_MINTIME;
+        if( sc_time > PLASMA_MAXTIME )
+                sc_time = PLASMA_MAXTIME;
+                
+        yb_DoWhilePlasma( ybd, sc_time, msg->frame_time, sc_fct );
+      
+        ybd->bact.scale_time -= msg->frame_time;
+        if( ybd->bact.scale_time < 0) {
+            ybd->bact.extravp[0].vis_proto = NULL;
+            ybd->bact.extravp[0].vp_tform  = NULL;
+            }
         }
 
      /*** noch ein hack fuer das Robobeamen ***/

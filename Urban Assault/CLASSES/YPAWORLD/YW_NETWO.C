@@ -3901,7 +3901,6 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
             dv->extravp[0].flags    |= (EVF_Scale | EVF_Active);
 
             dv->extravp_logic        = EVLF_PLASMA;
-                
             break; 
             
         case YPAM_ENDPLASMA:

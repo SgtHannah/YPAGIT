@@ -335,8 +335,8 @@ _dispatcher(void, yb_YBM_TR_VISUAL, struct basepublish_msg *msg)
 
         /* -------------------------------------------
         ** DontRender bezieht sich nur auf HauptVP!
-                ** Die hier werden ueber ihre Flags geschalten
-                ** -----------------------------------------*/
+        ** Die hier werden ueber ihre Flags geschalten
+        ** -----------------------------------------*/
         if( ybd->bact.extravp[i].vis_proto && 
             (ybd->bact.extravp[i].flags & EVF_Active) ) {
 
@@ -381,7 +381,7 @@ _dispatcher(void, yb_YBM_TR_VISUAL, struct basepublish_msg *msg)
                 ybd->bact.extravp[i].vp_tform->loc_m.m32 = ybd->bact.extravp[i].dir.m23;
                 ybd->bact.extravp[i].vp_tform->loc_m.m33 = ybd->bact.extravp[i].dir.m33;
                 }
-                
+
             /*** und PUBLISH! ***/
             msg->owner_id = ybd->bact.ident;
             _methoda(ybd->bact.extravp[i].vis_proto, BSM_PUBLISH, msg);

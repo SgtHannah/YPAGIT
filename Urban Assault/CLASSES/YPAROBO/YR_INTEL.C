@@ -624,14 +624,16 @@ _dispatcher( void, yr_YBM_DOWHILEDEATH, struct trigger_logic_msg *msg )
                 sp.generic.owner      = yrd->bact->Owner;
                 sp.scale              = sc_fct;
                 sp.time               = sc_time;
-                sp.ident              = yrd->bact->ident;      
+                sp.ident              = yrd->bact->ident; 
+                sp.pos                = yrd->bact->pos;
+                sp.dir                = yrd->bact->dir;       
                 
                 sm.receiver_id        = NULL;
                 sm.receiver_kind      = MSG_ALL;
                 sm.data               = &sp;
                 sm.data_size          = sizeof( sp );
                 sm.guaranteed         = TRUE;
-                //_methoda( ywd->world, YWM_SENDMESSAGE, &sm );
+                _methoda( ywd->world, YWM_SENDMESSAGE, &sm );
                 }                 
             #endif
             } 
