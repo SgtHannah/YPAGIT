@@ -119,6 +119,8 @@ BOOL FAR PASCAL wdp_ProviderCallback( LPGUID    lpspGUID,
                                       DWORD     Flags,
                                       LPVOID    lpcontext )
 {
+
+
     /* --------------------------------------------------------------
     ** Diese HockRoutine wird für jeden provider einmal aufgerufen.
     ** Das heißt für uns, daß wir uns in das Provider-Array eintragen
@@ -128,6 +130,72 @@ BOOL FAR PASCAL wdp_ProviderCallback( LPGUID    lpspGUID,
     struct windp_win_data *wdata;
     HRESULT hr;
     LPDIRECTPLAY3A  temp_dpo;
+
+#define USE_ONLY_MICROSOFT_SERVICE_PROVIDERS
+#ifdef USE_ONLY_MICROSOFT_SERVICE_PROVIDERS
+
+	// {685BC400-9D2C-11CF-A9CD-00AA006886E3}
+	static const GUID s_guidIPX =
+	{ 0x685bc400, 0x9d2c, 0x11cf, { 0xa9, 0xcd, 0x00, 0xaa, 0x00, 0x68, 0x86, 0xe3 } };
+
+	// {36E95EE0-8577-11CF-960C-0080C7534E82}
+	static const GUID s_guidTCPIP =
+	{ 0x36e95ee0, 0x8577, 0x11cf, { 0x96, 0x0c, 0x00, 0x80, 0xc7, 0x53, 0x4e, 0x82 } };
+
+	// {44EAA760-CB68-11CF-9C4E-00A0C905425E}
+	static const GUID s_guidMODEM =
+	{ 0x44eaa760, 0xcb68, 0x11cf, { 0x9c, 0x4e, 0x00, 0xa0, 0xc9, 0x05, 0x42, 0x5e } };
+
+	// {0F1D6860-88D9-11CF-9C4E-00A0C905425E}
+	static const GUID s_guidSERIAL =
+	{ 0x0f1d6860, 0x88d9, 0x11cf, { 0x9c, 0x4e, 0x00, 0xa0, 0xc9, 0x05, 0x42, 0x5e } };
+
+	if (lpspGUID)
+	{
+		////char string[1024];
+		////
+		////wsprintf(string, "// {%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}\n"
+		////	"static const GUID s_%s =\n"
+		////	"{ 0x%08x, 0x%04x, 0x%04x, { 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x } };\n\n",
+		////	lpspGUID->Data1,
+		////	lpspGUID->Data2,
+		////	lpspGUID->Data3,
+		////	lpspGUID->Data4[0],
+		////	lpspGUID->Data4[1],
+		////	lpspGUID->Data4[2],
+		////	lpspGUID->Data4[3],
+		////	lpspGUID->Data4[4],
+		////	lpspGUID->Data4[5],
+		////	lpspGUID->Data4[6],
+		////	lpspGUID->Data4[7],
+		////	lpName,
+		////	lpspGUID->Data1,
+		////	lpspGUID->Data2,
+		////	lpspGUID->Data3,
+		////	lpspGUID->Data4[0],
+		////	lpspGUID->Data4[1],
+		////	lpspGUID->Data4[2],
+		////	lpspGUID->Data4[3],
+		////	lpspGUID->Data4[4],
+		////	lpspGUID->Data4[5],
+		////	lpspGUID->Data4[6],
+		////	lpspGUID->Data4[7]);
+		////
+		////OutputDebugString(string);
+
+		//
+		// hard-coded to only pay attention to the default MS DirectPlay
+		// service providers
+		//
+		if ((!IsEqualGUID(lpspGUID, &s_guidTCPIP)) &&
+			(!IsEqualGUID(lpspGUID, &s_guidIPX)) &&
+			(!IsEqualGUID(lpspGUID, &s_guidMODEM)) &&
+			(!IsEqualGUID(lpspGUID, &s_guidSERIAL)))
+		{
+			return TRUE;
+		}
+	}
+#endif
 
     wdata = (struct windp_win_data *) lpcontext;
 
