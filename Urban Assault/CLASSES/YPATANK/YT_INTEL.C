@@ -1349,7 +1349,9 @@ _dispatcher(void, yt_YBM_HANDLEINPUT, struct trigger_logic_msg *msg)
                 ytd->bact->gun_angle_user =  0.8;
 
             /*** Joystick only! Kanone links und rechts! ***/
-            ytd->bact->gun_leftright  -= (time * msg->input->Slider[ 15 ]);
+            if (msg->input->Buttons & (1<<31)) {
+                ytd->bact->gun_leftright  -= (time * msg->input->Slider[ 15 ]);
+            };
             if( ytd->bact->gun_leftright < -0.8)
                 ytd->bact->gun_leftright = -0.8;
             if( ytd->bact->gun_leftright >  0.8)
