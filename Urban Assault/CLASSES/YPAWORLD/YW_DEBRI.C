@@ -1385,6 +1385,8 @@ UBYTE *yw_DBLayoutSingleTechupgrade(struct ypaworld_data *ywd,
 **  CHANGED
 **      19-May-98   floh    created
 **      26-May-98   floh    + Gebaeude-Namen Multiplayer-tauglich gemacht...
+**      09-Jun-98   floh    + Weapon-Techupgrades wurden nicht immer richtig
+**                            angezeigt
 */
 {
     UBYTE buf_0[256];
@@ -1411,6 +1413,12 @@ UBYTE *yw_DBLayoutSingleTechupgrade(struct ypaworld_data *ywd,
             return(str);
         };
     };
+    
+    /*** zu einem Weapon-Upgrade die Waffe suchen? ***/
+    if ((!wp_num) && vp_num) {
+        wp_num = ywd->VP_Array[vp_num].Weapons[0];
+        if (wp_num == -1) wp_num=0;
+    };    
 
     /*** zugehoerige Prototype-Pointer ***/    
     if (vp_num) vp = &(ywd->VP_Array[vp_num]);
