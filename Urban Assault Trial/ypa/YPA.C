@@ -73,6 +73,12 @@ BOOL  RestoreData = FALSE;
 
 void ypa_ParseSnapDir( void );
 
+#ifdef __TRIAL__
+ULONG ypa_DoSplashScreen  = FALSE;
+Object *ypa_SplashScreenBmp = NULL;
+Object *ypa_GfxObject       = NULL;
+#endif 
+
 /*-----------------------------------------------------------------*/
 void kill(void)
 {
@@ -415,28 +421,49 @@ BOOL ypa_HandlePlayer(struct trigger_msg *trigger)
 **  Exit-Splash-Screen                                             **
 **                                                                 **
 **=================================================================*/
-void ypa_ExitSplashScreen(void)
+
+ULONG ypa_BeginSplashScreen(void)
 {
-    Object *pic;
-    Object *gfxo;
-    _OVE_GetAttrs(OVET_Object, &gfxo, TAG_DONE);
+    _OVE_GetAttrs(OVET_Object, &ypa_GfxObject, TAG_DONE);
 
     /*** Screen loeschen ***/
-    _methoda(gfxo, DISPM_Begin, NULL);
-    _methoda(gfxo, DISPM_End, NULL);
+    _methoda(ypa_GfxObject, DISPM_Begin, NULL);
+    _methoda(ypa_GfxObject, DISPM_End, NULL);
+
+    /*** Bmp laden ***/
     _SetAssign("rsrc","data:mc2res");
-    pic = _new("ilbm.class", RSA_Name, "exit.ilb",
-                         BMA_Texture,      TRUE,
-                         BMA_TxtBlittable, TRUE,
-                         TAG_DONE);
-    if (pic) {
+    ypa_SplashScreenBmp = _new("ilbm.class", RSA_Name, "exit.ilb",
+                               BMA_Texture,      TRUE,
+                               BMA_TxtBlittable, TRUE,
+                               TAG_DONE);
+    if (ypa_SplashScreenBmp) {
+        ypa_DoSplashScreen = TRUE; 
+        return(TRUE);
+    } else {
+        return(FALSE);
+    };
+}
+/*-----------------------------------------------------------------*/
+void ypa_EndSplashScreen(void)
+{
+    if (ypa_SplashScreenBmp) {
+        _dispose(ypa_SplashScreenBmp);
+        ypa_SplashScreenBmp = NULL;
+    };
+    ypa_GfxObject = NULL;
+}
+/*-----------------------------------------------------------------*/
+void ypa_BlitSplashScreen(void)
+{
+    Object *pic  = ypa_SplashScreenBmp;
+    Object *gfxo = ypa_GfxObject;
+
+    if (pic && gfxo) {
         struct rast_blit blt;
         struct disp_pointer_msg dpm;
-
         dpm.pointer = NULL;
         dpm.type    = DISP_PTRTYPE_NONE;
         _methoda(gfxo, DISPM_SetPointer, &dpm);
-
         _get(pic, BMA_Bitmap, &(blt.src));
         blt.from.xmin = blt.to.xmin = -1.0;
         blt.from.ymin = blt.to.ymin = -1.0;
@@ -448,16 +475,7 @@ void ypa_ExitSplashScreen(void)
             _methoda(gfxo, RASTM_Blit, &blt);
             _methoda(gfxo, RASTM_End2D, NULL);
             _methoda(gfxo, DISPM_End, NULL);
-
-            _methoda(gfxo, DISPM_Begin, NULL);
-            _methoda(gfxo, RASTM_Begin2D, NULL);
-            _methoda(gfxo, RASTM_Blit, &blt);
-            _methoda(gfxo, RASTM_End2D, NULL);
-            _methoda(gfxo, DISPM_End, NULL);
         };
-        memset(&Ip,0,sizeof(Ip));
-        delay(12000);
-        _dispose(pic);
     };
 }
 #endif
@@ -623,6 +641,16 @@ ULONG ypa_DoShellFrame(void)
     ULONG running = TRUE;
     char  filename[ 200 ];
 
+    #ifdef __TRIAL__
+    if (ypa_DoSplashScreen) {
+        ypa_BlitSplashScreen();
+        if (Ip.NormKey != 0) {
+            ypa_EndSplashScreen();
+            return(FALSE);
+        } else return(TRUE);
+    };
+    #endif
+
     GSR.frame_time   = Trigger.frame_time;
     GSR.global_time  = Trigger.global_time;
     GSR.input = &Ip;
@@ -632,9 +660,10 @@ ULONG ypa_DoShellFrame(void)
     /*** Was war der Rückkehrwert für uns? ***/
     if( GSR.GSA.LastAction == A_QUIT ) {
         #ifdef __TRIAL__
-        ypa_ExitSplashScreen();
+            if (!ypa_BeginSplashScreen()) running = FALSE;
+        #else 
+            running = FALSE;
         #endif
-        running = FALSE;
         }
 
     /*** einen neuen Level starten ***/
