@@ -2103,8 +2103,6 @@ LONG yw_GetInternalNumber( ULONG type, ULONG number )
                 case HOTKEY_TOCMDR - 128:       value = I_TOCOMMANDER; break;
                 case HOTKEY_QUIT - 128:         value = I_QUIT;        break;
                 case HOTKEY_LOGWIN - 128:       value = I_LOGWIN;      break;
-                case HOTKEY_NEXTITEM - 128:     value = I_NEXTITEM;    break;
-                case HOTKEY_PREVITEM - 128:     value = I_PREVITEM;    break;
                 case HOTKEY_CTRL2LM - 128:      value = I_LASTMSG;     break;
                 case HOTKEY_PAUSE - 128:        value = I_PAUSE;       break;
                 case HOTKEY_TOALL - 128:        value = I_TOALL;       break;

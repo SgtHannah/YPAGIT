@@ -333,16 +333,6 @@ _dispatcher( BOOL, yw_YWM_INITGAMESHELL, struct GameShellReq *GSR )
     ii->number   = HOTKEY_LOGWIN - 128;
     ii->pos      = 0;
 
-    ii = &( GSR->inp[ I_NEXTITEM ]);
-    ii->kind     = GSI_HOTKEY;
-    ii->number   = HOTKEY_NEXTITEM - 128;
-    ii->pos      = 0;
-
-    ii = &( GSR->inp[ I_PREVITEM ]);
-    ii->kind     = GSI_HOTKEY;
-    ii->number   = HOTKEY_PREVITEM - 128;
-    ii->pos      = 0;
-
     ii = &( GSR->inp[ I_LASTMSG ]);
     ii->kind     = GSI_HOTKEY;
     ii->number   = HOTKEY_CTRL2LM - 128;
@@ -839,12 +829,6 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
 
     ii = &( GSR->inp[ I_LOGWIN ]);
     ii->menuname = ypa_GetStr( GlobalLocaleHandle, STR_IMENU_LOGWIN, GS_LOGWINTEXT);
-
-    ii = &( GSR->inp[ I_NEXTITEM ]);
-    ii->menuname = ypa_GetStr( GlobalLocaleHandle, STR_IMENU_NEXTITEM, GS_NEXTITEMTEXT);
-
-    ii = &( GSR->inp[ I_PREVITEM ]);
-    ii->menuname = ypa_GetStr( GlobalLocaleHandle, STR_IMENU_PREVITEM, GS_PREVITEMTEXT);
 
     ii = &( GSR->inp[ I_LASTMSG ]);
     ii->menuname = ypa_GetStr( GlobalLocaleHandle, STR_IMENU_LASTMSG, GS_LASTMSGTEXT);

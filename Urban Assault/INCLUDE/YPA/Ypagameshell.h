@@ -190,7 +190,7 @@ struct input_info {
 #define GS_ANALYZERTEXT     "SITUATION ANALYZER"
 
 #define USERNAMELEN         256     // so lang darf ein Username sein
-#define NUM_INPUTEVENTS     47      // soviele Einträge hat das Input-Menü
+#define NUM_INPUTEVENTS     45      // soviele Einträge hat das Input-Menü
 #define MESSAGE_TIME        1500    // solange bleibt eine Meldung da
 #define MAX_LANGUAGELEN     32      // soviele Zeichen darf die Sprache enthalten
 #define SESSIONNAMELEN      1024    // Länge bezogen auf größe des Gadgets!
@@ -957,21 +957,19 @@ struct GameShellReq {
 #define I_TOROBO            30L
 #define I_NEXTMAN           31L
 #define I_TOCOMMANDER       32L
-#define I_NEXTITEM          33L
-#define I_PREVITEM          34L
-#define I_LASTMSG           35L
-#define I_PAUSE             36L
-#define I_TOALL             37L
-#define I_AGGR1             38L
-#define I_AGGR2             39L
-#define I_AGGR3             40L
-#define I_AGGR4             41L
-#define I_AGGR5             42L
-#define I_WAYPOINT          43L
-#define I_HELP              44L
-#define I_LASTOCCUPIED      45L
-#define I_MAKECOMMANDER     46L
-#define I_ANALYZER          47L
+#define I_LASTMSG           33L
+#define I_PAUSE             34L
+#define I_TOALL             35L
+#define I_AGGR1             36L
+#define I_AGGR2             37L
+#define I_AGGR3             38L
+#define I_AGGR4             39L
+#define I_AGGR5             40L
+#define I_WAYPOINT          41L
+#define I_HELP              42L
+#define I_LASTOCCUPIED      43L
+#define I_MAKECOMMANDER     44L
+#define I_ANALYZER          45L
 
 /*** Die Shellsounds 1. SoundSource ***/
 #define SHELLSOUND_VOLUME           0   // für'n Lautstärkeregler
