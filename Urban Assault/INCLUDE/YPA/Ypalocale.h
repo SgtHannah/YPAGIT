@@ -380,6 +380,7 @@ static UBYTE *ypa_GetStr(UBYTE **loc, ULONG id, UBYTE *def)
 #define STR_IMENU_HELP              (559)
 #define STR_IMENU_LASTOCCUPIED      (560)
 #define STR_IMENU_MAKECOMMANDER     (561)
+#define STR_IMENU_ANALYZER          (562)
 
 /*** allgemeine Beschreiber ***/
 #define STR_NGADGET_LEVELTEXT       (600)
