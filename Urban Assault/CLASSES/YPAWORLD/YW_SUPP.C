@@ -1159,6 +1159,7 @@ ULONG yw_WorldMiscParser(struct ScriptParser *p)
 **                          + unit_limit_value Keyword
 **      29-Jun-98   floh    + beam_energy_start Keyword
 **                          + beam_energy_add Keyword
+**      03-Jul-98   floh    + easy_cheat_keys Keyword
 */
 {
     UBYTE *kw   = p->keyword;
@@ -1174,6 +1175,7 @@ ULONG yw_WorldMiscParser(struct ScriptParser *p)
             ywd->GlobalUnitLimitArg  = 0;
             ywd->BeamEnergyStart     = YPA_BEAMENERGY_START_DEF;
             ywd->BeamEnergyAdd       = YPA_BEAMENERGY_ADD_DEF;
+            ywd->EasyCheatKeys       = FALSE;
             p->status = PARSESTAT_RUNNING;
             return(PARSE_ENTERED_CONTEXT);
         } else return(PARSE_UNKNOWN_KEYWORD);
@@ -1218,6 +1220,7 @@ ULONG yw_WorldMiscParser(struct ScriptParser *p)
         else if (stricmp(kw,"unit_limit_arg")==0)     ywd->GlobalUnitLimitArg  = strtol(data,NULL,0);            
         else if (stricmp(kw,"beam_energy_start")==0)  ywd->BeamEnergyStart     = strtol(data,NULL,0);
         else if (stricmp(kw,"beam_energy_add")==0)    ywd->BeamEnergyAdd       = strtol(data,NULL,0);                            
+        else if (stricmp(kw,"easy_cheat_keys")==0)    ywd->EasyCheatKeys       = strtol(data,NULL,0);                            
                             
         /*** UNKNOWN KEYWORD ***/
         else return(PARSE_UNKNOWN_KEYWORD);
@@ -1506,10 +1509,12 @@ ULONG yw_CheckCheatKey(struct ypaworld_data *ywd,
 **
 **  CHANGED
 **      29-May-98   floh    created
+**      03-Jul-98   floh    + beachtet jetzt ywd->EasyCheatKeys 
 */
 {
     struct ClickInfo *ci = &(ip->ClickInfo);
-    if ((ip->NormKey == keycode) && (ci->flags & CIF_RMOUSEHOLD)) {
+    if ((ip->NormKey == keycode) && 
+        ((ci->flags & CIF_RMOUSEHOLD) || (ywd->EasyCheatKeys))) {
         return(TRUE);
     } else {
         return(FALSE);

@@ -2285,6 +2285,7 @@ struct ypaworld_data {
     LONG BeamEnergyAdd;             // Adder fuer Beamgate-Energy
     LONG ActBeamEnergy;             // aktuelle Energie fuer's Fahrzeuge wegbeamen
     LONG BeamEnergyStore;           // zusammenaddierte Energie aller gebeamten Vehikel
+    ULONG EasyCheatKeys;            // wenn TRUE, keinen RMB Check machen
 };
 
 #define YPA_UNITLIMITTYPE_HARD          (0) // einfaches Hardlimit
