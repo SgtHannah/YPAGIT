@@ -56,7 +56,7 @@ LINK32=link.exe
 # Begin Special Build Tool
 TargetPath=.\Release\ua_msvc.exe
 SOURCE=$(InputPath)
-PostBuild_Cmds=copy $(TargetPath) \\A360498\ypa
+PostBuild_Cmds=copy $(TargetPath) \\mlyons3\ua
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "WINYPA - Win32 Debug"
@@ -87,7 +87,7 @@ LINK32=link.exe
 # Begin Special Build Tool
 TargetPath=.\Debug\ua_msvcd.exe
 SOURCE=$(InputPath)
-PostBuild_Cmds=copy $(TargetPath) \\BigLitterBox\ua	copy $(TargetPath) \public
+PostBuild_Cmds=copy $(TargetPath) \public 	copy  $(TargetPath) \\mlyons3\ua
 # End Special Build Tool
 
 !ENDIF 
