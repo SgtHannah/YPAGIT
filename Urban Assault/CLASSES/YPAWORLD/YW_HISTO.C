@@ -164,13 +164,13 @@ BOOL yw_AddHistoryEvent(struct ypaworld_data *ywd,
                 hhead->inst_ptr = hhead->previnst_ptr;
             };
             break;
-        case YPAHIST_CONSEC:       size=sizeof(struct ypa_HistConSec);     break;
-        case YPAHIST_VHCLKILL:     size=sizeof(struct ypa_HistVhclKill);   break;
-        case YPAHIST_VHCLCREATE:   size=sizeof(struct ypa_HistVhclCreate); break;
-        case YPAHIST_SQUADPOS:     size=sizeof(struct ypa_HistSquadPos);   break;
-        case YPAHIST_POWERSTATION: size=sizeof(struct ypa_HistConSec);     break;
-        case YPAHIST_TECHUPGRADE:  size=sizeof(struct ypa_HistConSec);     break;
-        default: size=0;
+        case YPAHIST_CONSEC:       size=sizeof(struct ypa_HistConSec);      break;
+        case YPAHIST_VHCLKILL:     size=sizeof(struct ypa_HistVhclKill);    break;
+        case YPAHIST_VHCLCREATE:   size=sizeof(struct ypa_HistVhclCreate);  break;
+        case YPAHIST_SQUADPOS:     size=sizeof(struct ypa_HistSquadPos);    break;
+        case YPAHIST_POWERSTATION: size=sizeof(struct ypa_HistConSec);      break;
+        case YPAHIST_TECHUPGRADE:  size=sizeof(struct ypa_HistTechUpgrade); break;
+        default:                   size=0;
     };
     if (size > 0) {
         /*** neue Instruktion übernehmen ***/
@@ -209,6 +209,7 @@ BOOL yw_LoadHistoryBuffer(struct HistoryHeader *hhead, APTR fp)
 **
 **  CHANGED
 **      10-Sep-97   floh    created
+**      19-May-98   floh    + TechUpgrades neu
 */
 {
     ULONG num_cols,num_lines;
@@ -248,8 +249,9 @@ BOOL yw_LoadHistoryBuffer(struct HistoryHeader *hhead, APTR fp)
                     size = sizeof(struct ypa_HistNewFrame); break;
                 case YPAHIST_CONSEC:
                 case YPAHIST_POWERSTATION:
-                case YPAHIST_TECHUPGRADE:
                     size = sizeof(struct ypa_HistConSec); break;
+                case YPAHIST_TECHUPGRADE:
+                    size = sizeof(struct ypa_HistTechUpgrade); break;
                 case YPAHIST_VHCLKILL:
                     size = sizeof(struct ypa_HistVhclKill); break;
                 case YPAHIST_VHCLCREATE:

@@ -24,7 +24,7 @@
 */
 struct ypa_PlayerStats {
     ULONG Kills;        // Kills
-    ULONG Losses;       // Losses
+    ULONG UserKills;    // Kills durch User
     ULONG Time;         // Playing Time
     ULONG SecCons;      // Sectors Conquered
     ULONG Score;        // Score dieses Players

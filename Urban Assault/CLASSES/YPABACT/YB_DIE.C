@@ -525,10 +525,21 @@ _dispatcher(void, yb_YBM_DIE, void *nix)
     if( ybd->bact.Owner ) {
         UBYTE owner;
         if( ybd->bact.killer ) {
+            ULONG is_user;
             owner = ybd->bact.killer->Owner;
             vkill.cmd    = YPAHIST_VHCLKILL;
-            vkill.owners = ( (owner<<3) | (ybd->bact.Owner) );
-            vkill.vp     = ybd->bact.TypeID;
+            vkill.owners = ((owner<<3) | (ybd->bact.Owner));
+            _get(ybd->bact.killer->BactObject,YBA_Viewer,&is_user);
+            if (is_user) {
+                vkill.owners |= (1<<7); // Killer war ein User
+            };
+            if (ybd->bact.ExtraState & EXTRA_ISVIEWER) {
+                vkill.owners |= (1<<6); // Opfer war ein User
+            };
+            vkill.vp = ybd->bact.TypeID;
+            if (BCLID_YPAROBO == ybd->bact.BactClassID) {
+                vkill.vp |= (1<<15); // Opfer war ein Robo
+            };
             vkill.pos_x  = (UBYTE)((ybd->bact.pos.x*256)/ybd->bact.WorldX);
             vkill.pos_z  = (UBYTE)((ybd->bact.pos.z*256)/ybd->bact.WorldZ);
             _methoda( ybd->world, YWM_NOTIFYHISTORYEVENT, &vkill );

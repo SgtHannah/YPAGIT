@@ -586,6 +586,8 @@ void yw_SetOwner(struct ypaworld_data *ywd,
 **      26-Aug-97   floh    created
 **      09-Sep-97   floh    + Powerstation/Techupgrades jetzt auch per
 **                            YWM_NOTIFYHISTORYEVENT
+**      19-May-98   floh    + Techupgrades werden nicht mehr hier
+**                            als Historyevent notified
 */
 {
     if (sec->Owner != owner) {
@@ -603,10 +605,6 @@ void yw_SetOwner(struct ypaworld_data *ywd,
         switch(sec->WType) {
             case WTYPE_Kraftwerk:
                 hcs.cmd = YPAHIST_POWERSTATION;
-                _methoda(ywd->world,YWM_NOTIFYHISTORYEVENT,&hcs);
-                break;
-            case WTYPE_Wunderstein:
-                hcs.cmd = YPAHIST_TECHUPGRADE;
                 _methoda(ywd->world,YWM_NOTIFYHISTORYEVENT,&hcs);
                 break;
         };
@@ -951,8 +949,8 @@ void yw_CheckUnderAttack(struct ypaworld_data *ywd, struct Cell *sec,
     };
 }
 
-
-LONG GET_SUB2( FLOAT x )
+/*-----------------------------------------------------------------*/
+LONG GET_SUB2(FLOAT x)
 {
     /* ---------------------------------------------------------------------
     ** Wie das Makro, nur werden die Slurps den naechstliegenden SubSektoren
@@ -964,14 +962,9 @@ LONG GET_SUB2( FLOAT x )
     
     p = (LONG)(x/(SLURP_WIDTH/2));
     p = p % 8;
-    
-    if( p < 3 )
-        return( 1 );
-    else
-        if( p > 4 ) 
-            return( 3 );
-        else
-            return( 2 );
+    if (p<3)      return(1);
+    else if (p>4) return(3);
+    else          return(2);
 }
 
 /*-----------------------------------------------------------------*/
@@ -1015,15 +1008,12 @@ _dispatcher(void, yw_YWM_MODSECTORENERGY, struct energymod_msg *msg)
 **      11-Feb-98   floh    + bei sehr großen Energie-Einwirkungen, die
 **                            mehrere Legos überspringen, werden jetzt
 **                            alle Explosions-Stufen angezeigt.
+**      18-May-98   floh    + neues Techupgrade History-Notifying
 */
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
 
     /*** Subkoordinaten des Ereignisses... ***/
-    //LONG subx = GET_SUB(msg->pnt.x);
-    //LONG suby = GET_SUB(-(msg->pnt.z));
-    //LONG secx = subx >> 2;
-    //LONG secy = suby >> 2;
     LONG secx =   msg->pnt.x  / SECTOR_SIZE;
     LONG secy = (-msg->pnt.z) / SECTOR_SIZE;
 
@@ -1054,6 +1044,7 @@ _dispatcher(void, yw_YWM_MODSECTORENERGY, struct energymod_msg *msg)
             ULONG old_lego;
             ULONG new_lego;
             LONG lego_adder;
+            ULONG old_owner;
 
             /*** Array Index ermitteln ***/
             if (sec->SType == SECTYPE_COMPACT) {
@@ -1092,23 +1083,38 @@ _dispatcher(void, yw_YWM_MODSECTORENERGY, struct energymod_msg *msg)
             yw_CheckUnderAttack(ywd, sec, msg);            
 
             /*** neuer Owner? ***/
+            old_owner = sec->Owner;
             yw_CheckSector(ywd, sec, secx, secy, msg->owner, msg);
 
             /*** Wunderstein erobert??? ***/
             if (WTYPE_Wunderstein == sec->WType) {
                 if (ywd->URBact && (ywd->URBact->Owner == sec->Owner)) {
                     /*** YAY! ***/
-                    #ifdef __NETWORK__
-                    if( ywd->playing_network )
-                        yw_ActivateNetWunderstein(ywd,sec,sec->WIndex);
-                    else
-                        yw_ActivateWunderstein(ywd,sec,sec->WIndex);
-                    #else
-                        yw_ActivateWunderstein(ywd,sec,sec->WIndex);
-                    #endif
+                    struct ypa_HistTechUpgrade htu;
+                    if (ywd->playing_network) yw_ActivateNetWunderstein(ywd,sec,sec->WIndex);
+                    else                      yw_ActivateWunderstein(ywd,sec,sec->WIndex);
+                    
+                    /*** Techupgrade als HistoryEvent registrieren ***/
+                    htu.cmd       = YPAHIST_TECHUPGRADE;
+                    htu.sec_x     = secx;
+                    htu.sec_y     = secy;
+                    htu.old_owner = old_owner;
+                    htu.new_owner = sec->Owner;
+                    htu.vp_num    = ywd->touch_stone.vp_num;
+                    htu.wp_num    = ywd->touch_stone.wp_num;
+                    htu.bp_num    = ywd->touch_stone.bp_num;
+                    switch(ywd->gem[ywd->touch_stone.gem].type) {
+                        case 1:  htu.type = YPAHIST_TECHTYPE_WEAPON; break;
+                        case 2:  htu.type = YPAHIST_TECHTYPE_ARMOR;  break;
+                        case 3:  htu.type = YPAHIST_TECHTYPE_VEHICLE; break;
+                        case 4:  htu.type = YPAHIST_TECHTYPE_BUILDING; break;
+                        case 5:  htu.type = YPAHIST_TECHTYPE_RADAR; break;
+                        case 6:  htu.type = YPAHIST_TECHTYPE_BUILDANDVEHICLE; break;
+                        default: htu.type = YPAHIST_TECHTYPE_GENERIC; break;
+                    };
+                    _methoda(o,YWM_NOTIFYHISTORYEVENT,&htu);
                 };
             } else if (WTYPE_DeadWunderstein == sec->WType) {
-                #ifdef __NETWORK__
                 if (ywd->playing_network) {
                     /*** falls Gesamtenergie auf 0, Wunderstein ***/
                     /*** endgültig killen                       ***/
@@ -1120,7 +1126,6 @@ _dispatcher(void, yw_YWM_MODSECTORENERGY, struct energymod_msg *msg)
                     };
                     if (e==0) yw_DisableNetWunderstein(ywd,sec,sec->WIndex);
                 };
-                #endif
             };
         };
     };

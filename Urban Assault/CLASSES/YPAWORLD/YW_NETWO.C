@@ -2272,17 +2272,27 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
                 /*** Kennzeichnen ***/
                 dv->ExtraState |= EXTRA_LOGICDEATH;
 
-                /*** Meldung ans statistische Amt ***/
-                vkill.cmd    = YPAHIST_VHCLKILL;
-                if( dv->killer )
+                /*** (FIXME FLOH) Meldung ans statistische Amt ***/
+                if (dv->killer) {
+                    ULONG is_user;
                     ko = dv->killer->Owner;
-                else
-                    ko = 0;
-                vkill.owners = ( (ko<<3) | (dv->Owner) );
-                vkill.vp     = dv->TypeID;
-                vkill.pos_x  = (UBYTE)((dv->pos.x*256)/dv->WorldX);
-                vkill.pos_z  = (UBYTE)((dv->pos.z*256)/dv->WorldZ);
-                _methoda( ywd->world, YWM_NOTIFYHISTORYEVENT, &vkill );
+                    vkill.cmd = YPAHIST_VHCLKILL;
+                    vkill.owners = ((ko<<3) | (dv->Owner));
+                    _get(dv->killer->BactObject,YBA_Viewer,&is_user);
+                    if (is_user) {
+                        vkill.owners |= (1<<7); // Killer war ein User
+                    };
+                    if (dv->ExtraState & EXTRA_ISVIEWER) {
+                        vkill.owners |= (1<<6); // Opfer war ein User
+                    };
+                    vkill.vp     = dv->TypeID;
+                    if (BCLID_YPAROBO == dv->BactClassID) {
+                        vkill.vp |= (1<<15); // Opfer war ein Robo
+                    };
+                    vkill.pos_x  = (UBYTE)((dv->pos.x*256)/dv->WorldX);
+                    vkill.pos_z  = (UBYTE)((dv->pos.z*256)/dv->WorldZ);
+                    _methoda( ywd->world, YWM_NOTIFYHISTORYEVENT, &vkill );
+                };
                 
                 /*** Als tot markieren, weil dispose auch DIE verwendet ***/
                 dv->ExtraState |= EXTRA_LOGICDEATH;
@@ -2803,16 +2813,26 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
             ** angewendet. Und dann geht ja hier bei der Auswertung schon
             ** was los...
             ** --------------------------------------------------------*/
-            vkill.cmd    = YPAHIST_VHCLKILL;
-            if( robo->bact->killer )
+            if (robo->bact->killer) {
+                ULONG is_user;
                 ko = robo->bact->killer->Owner;
-            else
-                ko = 0;
-            vkill.owners = ( (ko<<3) | (robo->bact->Owner) );
-            vkill.vp     = robo->bact->TypeID;
-            vkill.pos_x  = (UBYTE)((robo->bact->pos.x*256)/robo->bact->WorldX);
-            vkill.pos_z  = (UBYTE)((robo->bact->pos.z*256)/robo->bact->WorldZ);
-            _methoda( ywd->world, YWM_NOTIFYHISTORYEVENT, &vkill );
+                vkill.cmd = YPAHIST_VHCLKILL;
+                vkill.owners = ((ko<<3) | (robo->bact->Owner));
+                _get(robo->bact->killer->BactObject,YBA_Viewer,&is_user);
+                if (is_user) {
+                    vkill.owners |= (1<<7); // Killer war ein User
+                };
+                if (dv->ExtraState & EXTRA_ISVIEWER) {
+                    vkill.owners |= (1<<6); // Opfer war ein User
+                };
+                vkill.vp = dv->TypeID;
+                if (BCLID_YPAROBO == robo->bact->BactClassID) {
+                    vkill.vp |= (1<<15); // Opfer war ein Robo
+                };
+                vkill.pos_x  = (UBYTE)((robo->bact->pos.x*256)/robo->bact->WorldX);
+                vkill.pos_z  = (UBYTE)((robo->bact->pos.z*256)/robo->bact->WorldZ);
+                _methoda( ywd->world, YWM_NOTIFYHISTORYEVENT, &vkill );
+            };
 
             /* ----------------------------------------------------------
             ** Meldung machen. Wie im Einzelspieler kommt die Meldung

@@ -55,7 +55,7 @@ struct HistoryHeader {
 #define YPAHIST_VHCLCREATE   (4)    // <struct ypa_HistVhclCreate>
 #define YPAHIST_SQUADPOS     (5)    // <struct ypa_HistSquadPos>
 #define YPAHIST_POWERSTATION (6)    // <struct ypa_HistConSec>
-#define YPAHIST_TECHUPGRADE  (7)    // <struct ypa_HistConSec>
+#define YPAHIST_TECHUPGRADE  (7)    // <struct ypa_HistTechUpgrade>
 
 /*** ein Frame wird nur geschrieben, wenn innerhalb des Frames ***/
 /*** Ereignisse stattfinden!!!                                 ***/
@@ -71,6 +71,27 @@ struct ypa_HistConSec {
     UBYTE sec_y;
     UBYTE new_owner;
 };
+
+/*** ein Techupgrade wurde erobert... ***/
+struct ypa_HistTechUpgrade {
+    UBYTE cmd;              // YPAHIST_TECHUPGRADE
+    UBYTE sec_x;
+    UBYTE sec_y;
+    UBYTE old_owner;
+    UBYTE new_owner;
+    UBYTE type;             // siehe unten
+    WORD  vp_num;           // Prototype-Nummer des betroffenen Vehicles
+    WORD  wp_num;
+    WORD  bp_num;
+};
+#define YPAHIST_TECHTYPE_NONE               (0)    
+#define YPAHIST_TECHTYPE_WEAPON             (1)
+#define YPAHIST_TECHTYPE_ARMOR              (2)
+#define YPAHIST_TECHTYPE_VEHICLE            (3)
+#define YPAHIST_TECHTYPE_BUILDING           (4)
+#define YPAHIST_TECHTYPE_RADAR              (5)
+#define YPAHIST_TECHTYPE_BUILDANDVEHICLE    (6)
+#define YPAHIST_TECHTYPE_GENERIC            (7)
 
 /*
 **  Ein Vehicle wurde gekillt!
