@@ -726,23 +726,38 @@ void yw_TriggerShellBgGameTut(struct ypaworld_data *ywd,
                 ULONG ln_stat = ywd->LevelNet->Levels[ywd->LevelNet->MouseOverLevel].status;
                 if (ln_stat == LNSTAT_FINISHED) {
                     /*** Level sofort starten ***/
-                    gsr->GSA.LastAction = A_PLAY;
-                    gsr->GSA.ActionParameter[0] = ywd->LevelNet->MouseOverLevel;
-                    gsr->GSA.ActionParameter[1] = ywd->LevelNet->MouseOverLevel;
-                } else {
-                    /*** Missionbriefing  ***/
-                    if (!yw_InitMissionBriefing(ywd,ywd->LevelNet->MouseOverLevel)) {
-                        /*** also den Level sofort starten ***/
+                    if (yw_CheckCD(FALSE,TRUE,
+                        ypa_GetStr(ywd->LocHandle,STR_APPNAME,"21 == YOUR PERSONAL AMOK"),
+                        ypa_GetStr(ywd->LocHandle,STR_CDREQUEST_BODYTEXT,"2466 == THE YPA CD IS REQUIRED.")))
+                    {
                         gsr->GSA.LastAction = A_PLAY;
                         gsr->GSA.ActionParameter[0] = ywd->LevelNet->MouseOverLevel;
                         gsr->GSA.ActionParameter[1] = ywd->LevelNet->MouseOverLevel;
                     };
+                } else {
+                    /*** Missionbriefing  ***/
+                    if (yw_CheckCD(FALSE,TRUE,
+                        ypa_GetStr(ywd->LocHandle,STR_APPNAME,"21 == YOUR PERSONAL AMOK"),
+                        ypa_GetStr(ywd->LocHandle,STR_CDREQUEST_BODYTEXT,"2466 == THE YPA CD IS REQUIRED.")))
+                    {
+                        if (!yw_InitMissionBriefing(ywd,ywd->LevelNet->MouseOverLevel)) {
+                            /*** also den Level sofort starten ***/
+                            gsr->GSA.LastAction = A_PLAY;
+                            gsr->GSA.ActionParameter[0] = ywd->LevelNet->MouseOverLevel;
+                            gsr->GSA.ActionParameter[1] = ywd->LevelNet->MouseOverLevel;
+                        };
+                    };
                 };
             }else if (ci->flags & CIF_RMOUSEDOWN){
-                /*** Right-Click: Level sofort starten ***/
-                gsr->GSA.LastAction = A_PLAY;
-                gsr->GSA.ActionParameter[0] = ywd->LevelNet->MouseOverLevel;
-                gsr->GSA.ActionParameter[1] = ywd->LevelNet->MouseOverLevel;
+                if (yw_CheckCD(FALSE,TRUE,
+                    ypa_GetStr(ywd->LocHandle,STR_APPNAME,"21 == YOUR PERSONAL AMOK"),
+                    ypa_GetStr(ywd->LocHandle,STR_CDREQUEST_BODYTEXT,"2466 == THE YPA CD IS REQUIRED.")))
+                {
+                    /*** Right-Click: Level sofort starten ***/
+                    gsr->GSA.LastAction = A_PLAY;
+                    gsr->GSA.ActionParameter[0] = ywd->LevelNet->MouseOverLevel;
+                    gsr->GSA.ActionParameter[1] = ywd->LevelNet->MouseOverLevel;
+                };
             };
         };
     }else if (LEVELSTAT_BRIEFING == ywd->Level->Status){
