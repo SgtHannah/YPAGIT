@@ -137,7 +137,9 @@ unsigned long w3d_LockBackBuffer(struct windd_data *wdd, struct win3d_data *w3d)
 
         DDSURFACEDESC ddsd;
         HRESULT ddrval;
-
+        
+        /*** wenn schon ein Lock drauf, sofort zurueck ***/
+        if (wdd->back_ptr) return(TRUE);        
         wdd_CheckLostSurfaces(wdd);
         memset(&ddsd,0,sizeof(ddsd));
         ddsd.dwSize = sizeof(ddsd);

@@ -553,15 +553,15 @@ long FAR PASCAL wdd_WinProc(HWND hWnd, UINT message,
 				ClipCursor(&r);
                 if (wdd) {
                     wdd_CheckLostSurfaces(wdd);
-                };
+                };                
 			} else {
+                /*** App wird deaktiviert ***/
 				ClipCursor(NULL);
-                /*** invalidiere Back-Ptr ***/
                 if (wdd && wdd->back_ptr) {
-                    wdd->back_ptr   = NULL;
                     wdd->back_pitch = 0;
+                    wdd->back_ptr   = NULL;
                     ddrval = wdd->lpDDSBack->lpVtbl->Unlock(wdd->lpDDSBack,NULL);
-                };                            
+                };
             };
             if (wdd) wdd_SetMouseImage(wdd,1,TRUE);        
             break;
@@ -2464,20 +2464,24 @@ void wdd_Begin(struct windd_data *wdd)
         wdd_Clear(wdd);
 
         if (!wdd_DoDirect3D) {
-            /*** DirectDraw: Lock auf Back-Surface (etwas Brute Force...) ***/
-            DDSURFACEDESC ddsd;
+        
+            /*** ist evtl. schon ein Lock drauf? ***/
+            if (NULL == wdd->back_ptr) {
+                /*** DirectDraw: Lock auf Back-Surface (etwas Brute Force...) ***/
+                DDSURFACEDESC ddsd;
 
-            memset(&ddsd,0,sizeof(ddsd));
-            ddsd.dwSize = sizeof(ddsd);
-            ddrval = wdd->lpDDSBack->lpVtbl->Lock(wdd->lpDDSBack,NULL,&ddsd,
-                                                  DDLOCK_NOSYSLOCK|DDLOCK_WAIT,NULL);
-            if (ddrval == DD_OK) {
-                wdd->back_ptr   = ddsd.lpSurface;
-                wdd->back_pitch = ddsd.lPitch;
-            } else {
-                wdd->back_ptr   = NULL;
-                wdd->back_pitch = NULL;
-                wdd_Log("-> wdd_Begin(): Lock on primary surface failed.\n");
+                memset(&ddsd,0,sizeof(ddsd));
+                ddsd.dwSize = sizeof(ddsd);
+                ddrval = wdd->lpDDSBack->lpVtbl->Lock(wdd->lpDDSBack,NULL,&ddsd,
+                                                      DDLOCK_NOSYSLOCK|DDLOCK_WAIT,NULL);
+                if (ddrval == DD_OK) {
+                    wdd->back_ptr   = ddsd.lpSurface;
+                    wdd->back_pitch = ddsd.lPitch;
+                } else {
+                    wdd->back_ptr   = NULL;
+                    wdd->back_pitch = NULL;
+                    wdd_FailMsg("wdd_winbox.c/wdd_Begin", "Lock on back surface failed", ddrval);
+                };
             };
         } else {
             wdd->back_ptr   = NULL;
@@ -2504,6 +2508,8 @@ void wdd_End(struct windd_data *wdd)
 **      14-Feb-97   floh    Windowed-Modus nur noch 8 Bit
 **      15-Feb-97   floh    ungültiges Window-Handle wird
 **                          abgefangen
+**      29-Jun-98   floh    + Unlocken der Backsurface loeschte den
+**                            Backptr nicht...
 */
 {
     /*** Window noch gültig? ***/
@@ -2513,8 +2519,10 @@ void wdd_End(struct windd_data *wdd)
         POINT p;
 
         /*** Backsurface unlocken ***/
-        if ((!wdd_DoDirect3D) && (wdd->back_ptr)) {
+        if ((!wdd_DoDirect3D) && wdd->back_ptr) {
             ddrval = wdd->lpDDSBack->lpVtbl->Unlock(wdd->lpDDSBack,NULL);
+            wdd->back_ptr   = NULL;
+            wdd->back_pitch = 0;
         };
         if (wdd->flags & WINDDF_IsWindowed) {
 
@@ -2685,7 +2693,7 @@ void wdd_EnableGDI(struct windd_data *wdd, unsigned long mode)
         wdd_DuringEnableGDI = TRUE;
         
         /*** im DirectDraw Modus zuerst Backsurface unlocken ***/
-        if (!wdd_DoDirect3D) {
+        if ((!wdd_DoDirect3D) && wdd->back_ptr) {
             ddrval = wdd->lpDDSBack->lpVtbl->Unlock(wdd->lpDDSBack,NULL);
             wdd->back_ptr   = NULL;
             wdd->back_pitch = 0;
