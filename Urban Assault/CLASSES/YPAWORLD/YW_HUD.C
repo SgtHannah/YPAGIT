@@ -229,6 +229,78 @@ UBYTE *yw_3DLifebarOverBact(struct ypaworld_data *ywd,
 }
 
 /*-----------------------------------------------------------------*/
+UBYTE *yw_3DNameOverBact(struct ypaworld_data *ywd, 
+                         UBYTE *str,
+                         struct Bacterium *b)
+/*
+**  FUNCTION
+**      Rendert den Multiplayer-Namen ueber ein Vehikel.
+**
+**  CHANGED
+**      21-May-98   floh    created
+*/
+{
+    if (ywd->gsr && ywd->playing_network) {
+    
+        struct flt_m3x3 *vm   = &(ywd->ViewerDir);
+        struct flt_triple *vp = &(ywd->ViewerPos);
+        struct flt_triple *p  = &(b->pos);
+        UBYTE *name = ywd->gsr->player[b->Owner].name;
+        FLOAT tx,ty,tz;
+        FLOAT x,y,z;
+        
+        /*** Name ueberhaupt gueltig? ***/        
+        if (!name[0]) return(str);        
+        
+        /*** ermittle x,y im ViewerSpace ***/
+        tx = p->x - vp->x;
+        ty = p->y - vp->y;
+        tz = p->z - vp->z;
+        x = vm->m11*tx + vm->m12*ty + vm->m13*tz;
+        y = vm->m21*tx + vm->m22*ty + vm->m23*tz;
+        z = vm->m31*tx + vm->m32*ty + vm->m33*tz;
+
+        /*** innerhalb des View-Volumes? ***/
+        if ((z>30.0) && (x<z) && (x>-z) && (y<z) && (y>-z)) {
+
+            ULONG fnt_id = FONTID_TRACY;
+            struct VFMFont *fnt = ywd->Fonts[fnt_id];
+            WORD xpos,ypos,x_size,y_size;
+            ULONG color_index;
+
+            /*** 2D transformieren ***/
+            x /= z;
+            y /= z;
+
+            /*** String-Position und Groesse ***/
+            x_size = 96;
+            y_size = fnt->height;
+            xpos = (ywd->DspXRes>>1) * (x + 1.0);
+            ypos = (ywd->DspYRes>>1) * (y + 1.0);
+            if ((xpos+x_size) >= ywd->DspXRes) x_size = ywd->DspXRes - xpos - 1;
+
+            /*** 2D-Clipping ***/
+            if (x_size<=0) return(str);
+            if ((xpos<0)||((xpos+x_size)>=ywd->DspXRes)||(ypos<0)||((ypos+y_size)>=ywd->DspYRes))
+            {
+                return(str);
+            };
+            xpos -= (ywd->DspXRes>>1);
+            ypos -= (ywd->DspYRes>>1);
+
+            new_font(str,fnt_id);
+            pos_abs(str,xpos,ypos);
+
+            /*** Namen rendern ***/
+            color_index = YPACOLOR_OWNER_0 + b->Owner;  
+            dbcs_color(str,yw_Red(ywd,color_index),yw_Green(ywd,color_index),yw_Blue(ywd,color_index));
+            str = yw_TextBuildClippedItem(fnt,str,name,x_size,' '); 
+        };
+    };
+    return(str);
+}
+
+/*-----------------------------------------------------------------*/
 void yw_VectorOutline(struct ypaworld_data *ywd,
                       struct Skeleton *sklt,
                       FLOAT tx,  FLOAT ty,
@@ -366,11 +438,22 @@ void yw_3DCursorOverBact(struct ypaworld_data *ywd, struct Bacterium *b)
         sklt = h->HudVecSklt[HUDVEC_TRIANGLE];
         if (sklt) {
             FLOAT m11,m12,m21,m22,sx,sy;
-            sx = 0.0075;
-            sy = 0.01;
             m11 = 1.0;  m12 = 0.0;
             m21 = 0.0;  m22 = 1.0;
-            yw_VectorOutline(ywd,sklt,x,y-0.08,m11,m12,m21,m22,sx,sy,color,NULL,NULL);
+            
+            /*** Commander bekommt einen doppelten ***/
+            if ((b->master == b->robo) && (b->Owner == ywd->URBact->Owner)) {
+                sx = 0.015;
+                sy = 0.02;
+                yw_VectorOutline(ywd,sklt,x,y-0.08,m11,m12,m21,m22,sx,sy,color,NULL,NULL);
+                sx = 0.005;
+                sy = 0.00666;
+                yw_VectorOutline(ywd,sklt,x,y-0.08,m11,m12,m21,m22,sx,sy,color,NULL,NULL);
+            } else {
+                sx = 0.0075;
+                sy = 0.01;
+                yw_VectorOutline(ywd,sklt,x,y-0.08,m11,m12,m21,m22,sx,sy,color,NULL,NULL);
+            };
         };
         if (is_selected) {
             sklt = h->HudVecSklt[HUDVEC_FRAME];
@@ -1352,10 +1435,11 @@ void yw_VecRenderVisor(struct ypaworld_data *ywd, struct YPAHud *h)
 }
 
 /*-----------------------------------------------------------------*/
-void yw_3DOverlayCursors(struct ypaworld_data *ywd)
+UBYTE *yw_3DOverlayCursors(struct ypaworld_data *ywd, UBYTE *str)
 /*
 **  CHANGED
-**      17-Dec-97   floh    created      
+**      17-Dec-97   floh    created 
+**      21-May-98   floh    + Anzeige des Multiplayer-Namens     
 */
 {
     LONG sec_x,sec_y,end_x,end_y,store_sec_x;
@@ -1395,11 +1479,17 @@ void yw_3DOverlayCursors(struct ypaworld_data *ywd)
                             yd = INST_DATA( ((struct nucleusdata *)b->BactObject)->o_Class, b->BactObject);
                             if (!(yd->flags & GUN_RoboGun)) yw_3DCursorOverBact(ywd,b);
                         } else yw_3DCursorOverBact(ywd,b);
+                        
+                        /*** handelt es sich hier um einen Multiplayer-Opponenten? ***/
+                        if (ywd->playing_network && (b->ExtraState & EXTRA_ISVIEWER) && (ywd->gsr)) {
+                            str = yw_3DNameOverBact(ywd,str,b);
+                        };    
                     };
                 };
             };
         };
     };
+    return(str);
 }
 
 /*-----------------------------------------------------------------*/
@@ -1450,7 +1540,6 @@ UBYTE *yw_RenderHUDVecs(struct ypaworld_data *ywd, UBYTE *str)
     yw_VecRenderVisor(ywd,h);
     _methoda(ywd->GfxObject, RASTM_IntInvClipRegion, &inv_rr);
     str = yw_RenderVID(ywd,h,str,-0.7,0.3,ywd->UVBact,-1,HUDVID_SCALEUP);
-    yw_3DOverlayCursors(ywd);
 
     /*** ClipRect zuruecksetzten ***/
     if (!(MR.req.flags & REQF_Closed)) {
@@ -1553,6 +1642,9 @@ void yw_RenderHUD(struct ypaworld_data *ywd)
     if (ywd->visor.target) {
         str = yw_3DLifebarOverBact(ywd,str,ywd->visor.target);
     };
+    
+    /*** Overlay-Cursors ueber Vehikel ***/
+    str = yw_3DOverlayCursors(ywd,str);
 
     /*** EOS ***/
     eos(str);

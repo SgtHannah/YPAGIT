@@ -1160,6 +1160,9 @@ UBYTE *yw_RenderMapCursors(struct ypaworld_data *ywd, UBYTE *str)
 **      15-Dec-97   floh    + Bugfix: Robo possibly selected war broken
 **                          + Bugfix: Robo selected war auch broken
 **      20-May-98   floh    + LastMessage-Sender-Anzeige war broken
+**      21-May-98   floh    + sollte jetzt ueber allen Wegpunkten des
+**                            ausgewaehlten Geschwaders einen Orts-Cursor
+**                            zeichnen.
 */
 {
     /*** FontID und Size für Sector-Cursors ***/
@@ -1372,6 +1375,22 @@ UBYTE *yw_RenderMapCursors(struct ypaworld_data *ywd, UBYTE *str)
                                          MAP_CURSOR_POSTAR,
                                          vhc_width, vhc_height);
                     break;
+            };
+            
+            /*** wenn im Wegpunkt-Modus, Wegpunkte zeichnen ***/
+            if (cmdr->ExtraState & EXTRA_DOINGWAYPOINT) {
+                ULONG i;
+                if (cmdr->num_waypoints > 0) {
+                    if (cmdr->ExtraState & EXTRA_WAYPOINTCYCLE) i=0;
+                    else                                        i=cmdr->count_waypoints;
+                    for (i; i<cmdr->num_waypoints; i++) {
+                        str = yw_MapFontChar(str, vhc_fid, 
+                                cmdr->waypoint[i].x,
+                                cmdr->waypoint[i].z,
+                                MAP_CURSOR_GOTO,
+                                vhc_width, vhc_height);
+                    };
+                };
             };
         };
     };

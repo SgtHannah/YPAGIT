@@ -134,6 +134,7 @@ struct YPAWinStatus {
     ULONG IsValid;              // überhaupt gültig?
     ULONG IsOpen;               // für jedes offene Window ein Flag
     struct ClickRect Rect;
+    ULONG Data[8];              // beliebige fensterspezifische Daten
 };
 
 struct YPAStatusReq {
