@@ -186,11 +186,17 @@ unsigned long dshow_PlayMovie(char *fname, HWND hwnd)
 		lpDD->lpVtbl->GetDisplayMode(lpDD, &ddsd);
 		if ((ddsd.dwWidth==640) && (ddsd.dwHeight==480)) b640x480=TRUE;
 		else                                             b640x480=FALSE;
-		if (b640x480 || SUCCEEDED(lpDD->lpVtbl->SetCooperativeLevel(lpDD, hwnd, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN)))
+		//if (b640x480 || SUCCEEDED(lpDD->lpVtbl->SetCooperativeLevel(lpDD, hwnd, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN)))
+		//{
+		//	if (b640x480 || SUCCEEDED(lpDD->lpVtbl->SetDisplayMode(lpDD, 640, 480, 16)))
+		//	{
+		//		if (b640x480 || SUCCEEDED(lpDD->lpVtbl->SetCooperativeLevel(lpDD, NULL, DDSCL_NORMAL)))
+		//		{
+		if (SUCCEEDED(lpDD->lpVtbl->SetCooperativeLevel(lpDD, hwnd, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN)))
 		{
-			if (b640x480 || SUCCEEDED(lpDD->lpVtbl->SetDisplayMode(lpDD, 640, 480, 16)))
+			if (SUCCEEDED(lpDD->lpVtbl->SetDisplayMode(lpDD, 640, 480, 16)))
 			{
-				if (b640x480 || SUCCEEDED(lpDD->lpVtbl->SetCooperativeLevel(lpDD, NULL, DDSCL_NORMAL)))
+				if (SUCCEEDED(lpDD->lpVtbl->SetCooperativeLevel(lpDD, NULL, DDSCL_NORMAL)))
 				{
 			
 					hr = pigb->lpVtbl->QueryInterface(pigb, &IID_IVideoWindow, (void **)&pivw);
