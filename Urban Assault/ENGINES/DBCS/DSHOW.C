@@ -132,6 +132,7 @@ unsigned long dshow_PlayMovie(char *fname, HWND hwnd)
 **
 **  CHANGED
 **      22-Jan-98   floh    created
+**      29-May-98   floh    + etwas umgruppiert...
 */
 {
     HRESULT hr;
@@ -140,49 +141,42 @@ unsigned long dshow_PlayMovie(char *fname, HWND hwnd)
     WCHAR path[MAXPATH];
     WNDPROC oldWinProc = NULL;
     MSG msg;
-
 	LPDIRECTDRAW lpDD=NULL;
+
+	hr = CoCreateInstance(&CLSID_FilterGraph,
+						  NULL,
+						  CLSCTX_INPROC_SERVER,
+						  &IID_IGraphBuilder,
+						  (void **)&pigb);
+	if (FAILED(hr)) {
+		nc_LogMsg("DShow ERROR: Filtergraph creation failed.\n");
+		return(FALSE);
+	};
+    MultiByteToWideChar(CP_ACP,0,fname,-1,path,MAXPATH);
+    dshow_StopReceived = FALSE;
+	hr = pigb->lpVtbl->RenderFile(pigb,path,NULL);
+	if (FAILED(hr)) {
+		nc_LogMsg("DShow ERROR: RenderFile() failed (File Not Found: %s)\n",fname);
+        dshow_Cleanup();
+        return(FALSE);
+	};
 
 	if (SUCCEEDED(DirectDrawCreate(NULL, &lpDD, NULL)))
 	{
 		DDSURFACEDESC	ddsd;
 		BOOL			b640x480;
 
-		dshow_StopReceived = FALSE;
-
-		hr = CoCreateInstance(&CLSID_FilterGraph,
-							  NULL,
-							  CLSCTX_INPROC_SERVER,
-							  &IID_IGraphBuilder,
-							  (void **)&pigb);
-		if (FAILED(hr)) {
-			nc_LogMsg("DShow ERROR: Filtergraph creation failed.\n");
-			return(FALSE);
-		};
-
-		MultiByteToWideChar(CP_ACP,0,fname,-1,path,MAXPATH);
-		
 		oldWinProc = SetWindowLong(hwnd,GWL_WNDPROC,dshow_WinProc);
-
 		ddsd.dwSize=sizeof(ddsd);
 		lpDD->lpVtbl->GetDisplayMode(lpDD, &ddsd);
-		if ((ddsd.dwWidth==640) && (ddsd.dwHeight==480))
-			b640x480=TRUE;
-		else
-			b640x480=FALSE;
-
+		if ((ddsd.dwWidth==640) && (ddsd.dwHeight==480)) b640x480=TRUE;
+		else                                             b640x480=FALSE;
 		if (b640x480 || SUCCEEDED(lpDD->lpVtbl->SetCooperativeLevel(lpDD, hwnd, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN)))
 		{
 			if (b640x480 || SUCCEEDED(lpDD->lpVtbl->SetDisplayMode(lpDD, 640, 480, 16)))
 			{
 				if (b640x480 || SUCCEEDED(lpDD->lpVtbl->SetCooperativeLevel(lpDD, NULL, DDSCL_NORMAL)))
 				{
-					hr = pigb->lpVtbl->RenderFile(pigb,path,NULL);
-					if (FAILED(hr)) {
-						nc_LogMsg("DShow ERROR: RenderFile() failed (File Not Found: %s)\n",fname);
-						dshow_Cleanup();
-						return(FALSE);
-					};
 			
 					hr = pigb->lpVtbl->QueryInterface(pigb, &IID_IVideoWindow, (void **)&pivw);
 					pivw->lpVtbl->put_Owner(pivw, (OAHWND)hwnd);
@@ -231,16 +225,13 @@ unsigned long dshow_PlayMovie(char *fname, HWND hwnd)
 			}
 		}
 
-		dshow_Cleanup();
-
 		if (lpDD)
 		{
 			lpDD->lpVtbl->Release(lpDD);
 			lpDD=NULL;
 		}
 	}
-
-
+    dshow_Cleanup();
     return(TRUE);
 }
 
