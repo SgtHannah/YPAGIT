@@ -715,7 +715,7 @@ void yw_VecRenderCompass(struct ypaworld_data *ywd, struct YPAHud *h)
     };
     sx = 0.07;
     sy = 0.08;
-    yw_SetInterpolateColors(ywd,color0,0xffffff);
+    yw_SetInterpolateColors(ywd,color0,color0);
     yw_VectorOutline(ywd,h->HudVecSklt[HUDVEC_FRAME],
                      tx, ty,
                      m11, m12, m21, m22,
