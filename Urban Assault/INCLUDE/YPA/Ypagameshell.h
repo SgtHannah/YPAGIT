@@ -280,7 +280,7 @@ struct netlevel {
 
 #define SEPHOSTFROMSESSION      "|"
 #define TIME_CHECK_LATENCY      (2000)
-#define MAX_LATENCY             (3000)  // Latency fuer Hin- und Rueckweg 
+#define MAX_LATENCY             (5000)  // Latency fuer Hin- und Rueckweg 
 #define LATENCY_COUNT_HOST      (200)   // Achtung, Frametime ist 1, so ist es Zahl der Fr.
 #define LATENCY_COUNT_CLIENT    (500)
 #define ENDTROUBLE_COUNT        (3000)  // solange Grund fuer Loesung anzeigen
@@ -343,6 +343,8 @@ struct GameShellReq {
     LONG    i_selfirst;         // fürs Umschalten bei Slidern
     BOOL    joystick;           // soll joystick unterstützt werden?
     BOOL    new_joystick;
+    BOOL    altjoystick;        // alternatives Modell
+    BOOL    new_altjoystick;
     BOOL    new_forcefeedback;
     BOOL    input_changemode;
     WORD    imenu_xoffset;      // Versatz des menüs bzgl. 0,0
@@ -628,27 +630,28 @@ struct GameShellReq {
 #define REQ_NET             (1L<<9)     // Der Netzrequester
 
 /*** Soundflags ***/
-#define SF_SOUND            (1<<0)      // Sound überhaupt
-#define SF_INVERTLR         (1<<1)      // Vertauschung der Links-Rechts-Verteilung
-#define SF_PLAYRIGHT        (1<<2)      // damit er weiß, daß er nach Left noch
+#define SF_INVERTLR         (1<<0)      // Vertauschung der Links-Rechts-Verteilung
+#define SF_PLAYRIGHT        (1<<1)      // damit er weiß, daß er nach Left noch
                                         // was zu spielenn hat
-#define SF_PLAYINVERT       (1<<3)      // wegen pos. verschieben etc.
+#define SF_PLAYINVERT       (1<<2)      // wegen pos. verschieben etc.
 #define SF_CDSOUND          (1<<4)
 
 /*** videoflags ***/
 #define VF_FARVIEW          (1<<0)      // Weitsicht
 #define VF_HEAVEN           (1<<1)      // Himmel zeichnen
 #define VF_SOFTMOUSE        (1<<2)
-#define VF_FILTERING        (1<<3)
+#define VF_DRAWPRIMITIVE    (1<<3)
+#define VF_16BITTEXTURE     (1<<4)      // 
 
 /*** Was hat sich im Inputrequester veraendert? ***/
 #define ICF_JOYSTICK        (1L<<0)
 #define ICF_FORCEFEEDBACK   (1L<<1)
+#define ICF_ALTJOYSTICK     (1L<<2)
 
 /*** Was hat sich im Settingsrequester veraendert? ***/
 #define SCF_MODE            (1L<<0)
 #define SCF_INVERT          (1L<<1)
-#define SCF_SOUND           (1L<<2)
+#define SCF_16BITTEXTURE    (1L<<2)
 #define SCF_HEAVEN          (1L<<3)
 #define SCF_FARVIEW         (1L<<4)
 #define SCF_ENEMYINDICATOR  (1L<<5)
@@ -656,7 +659,7 @@ struct GameShellReq {
 #define SCF_FXVOLUME        (1L<<7)
 #define SCF_CDVOLUME        (1L<<8)
 #define SCF_CDSOUND         (1L<<9)
-#define SCF_FILTERING       (1L<<10)
+#define SCF_DRAWPRIMITIVE   (1L<<10)
 #define SCF_SOFTMOUSE       (1L<<11)
 #define SCF_3DDEVICE        (1L<<12)
 
@@ -680,10 +683,9 @@ struct GameShellReq {
 #define GSID_PL_LOAD        1015    // Laden
 #define GSID_NET            1016    // Netzwerk
 #define GSID_HELP           1017
-#define GSID_TUTORIAL       1018
-#define GSID_GAME           1019
-#define GSID_PL_QUIT        1020    // das QuitIcon
-#define GSID_PL_GOTOLOADSAVE 1021   
+#define GSID_GAME           1018
+#define GSID_PL_QUIT        1019    // das QuitIcon
+#define GSID_PL_GOTOLOADSAVE 1020   
 
 #define GSID_JOYSTICK       1050    // Z 1013, Joystickschalter
 #define GSID_INPUTOK        1051    // Sachen übernehmen
@@ -696,6 +698,7 @@ struct GameShellReq {
 #define GSID_INPUTHEADLINE2 1058
 #define GSID_INPUTHEADLINE3 1059
 #define GSID_INPUTHEADLINE4 1060
+#define GSID_ALTJOYSTICK    1061    // alternatives Joystick model
 
 #define GSID_DISKSTRING     1100    // das Stringgadget zum Dateirequester
 #define GSID_LOAD           1101    // LOAD-Button
@@ -710,7 +713,7 @@ struct GameShellReq {
 #define GSID_DISKHEADLINE3  1110
 #define GSID_DISKHEADLINE4  1111
 
-#define GSID_SOUND_SWITCH   1150    // soll es überhaupt Sound geben?
+#define GSID_16BITTEXTURE   1150    // soll es überhaupt Sound geben?
 #define GSID_SOUND_LR       1151    // Schalter für links-recht-Verteilung
 #define GSID_FXVOLUMESLIDER 1152    // der Volumeslider
 #define GSID_FXVOLUMENUMBER 1153    // Textgadget mit aktueller Lautstärke
@@ -726,15 +729,13 @@ struct GameShellReq {
 #define GSID_ENEMYINDICATOR 1163    // Zeichne Zeuch in die 3D-Welt
 #define GSID_CDSOUND        1164
 #define GSID_SOFTMOUSE      1165
-#define GSID_FILTERING      1166
+#define GSID_DRAWPRIMITIVE  1166
 #define GSID_SETTINGSHELP   1167
 #define GSID_SETTINGSHEADLINE  1168
 #define GSID_SETTINGSHEADLINE2 1169
 #define GSID_SETTINGSHEADLINE3 1170
 #define GSID_SETTINGSHEADLINE4 1171
 #define GSID_3DMENU_BUTTON  1172
-#define GSID_SAVED3D        1173
-#define GSID_D3DMODUS       1174
 
 #define GSID_NETSTRING      1200    // das Netzwerkstringgadget
 #define GSID_NETOK          1201
@@ -806,9 +807,8 @@ struct GameShellReq {
 #define GS_NET_OPEN             1022    // NetzRequester öffnen
 #define GS_NET_CLOSE            1023    // NetzRequester schließen
 #define GS_GAME_OPEN            1024    // gamescreen zeigen
-#define GS_TUTORIAL_OPEN        1025    // Tutorialscreen zeigen
-#define GS_HELP_OPEN            1026    // Hilfe aufrufen
-#define GS_PL_GOTOLOADSAVE      1027
+#define GS_HELP_OPEN            1025    // Hilfe aufrufen
+#define GS_PL_GOTOLOADSAVE      1026
 
 #define GS_USEJOYSTICK          1050
 #define GS_NOJOYSTICK           1051
@@ -818,6 +818,8 @@ struct GameShellReq {
 #define GS_NOFORCEFEEDBACK      1055
 #define GS_USEFORCEFEEDBACK     1056
 #define GS_SWITCHOFF            1057
+#define GS_ALTJOYSTICK_YES      1058
+#define GS_ALTJOYSTICK_NO       1059
 
 #define GS_VMENU_OPEN           1100    // Öffnet Resolution-Menu
 #define GS_VMENU_CLOSE          1101    // machts wieder zu
@@ -832,8 +834,8 @@ struct GameShellReq {
 #define GS_FXSLIDERHOLD         1110
 #define GS_SOUND_LR             1111    // Verteilung Links  rechts
 #define GS_SOUND_RL             1112    // Verteilung rechts links
-#define GS_SOUND_YES            1113    // Sound? na klar!
-#define GS_SOUND_NO             1114    // Sound? ach nö!
+#define GS_16BITTEXTURE_YES     1113    //  na klar!
+#define GS_16BITTEXTURE_NO      1114    //  ach nö!
 #define GS_SOUND_HITFXVOLUME    1115    // Slider angefaßt
 #define GS_SOUND_HOLDFXVOLUME   1116    // Slider gehalten
 #define GS_SOUND_RELEASEFXVOLUME 1117   // Slider losgelassen
@@ -849,8 +851,8 @@ struct GameShellReq {
 #define GS_ENEMY_NO             1127
 #define GS_CDSOUND_YES          1128
 #define GS_CDSOUND_NO           1129
-#define GS_FILTERING            1130
-#define GS_NOFILTERING          1131
+#define GS_DRAWPRIMITIVE_YES    1130
+#define GS_DRAWPRIMITIVE_NO     1131
 #define GS_SOFTMOUSE            1132
 #define GS_NOSOFTMOUSE          1133
 #define GS_3DMENU_OPEN          1134
