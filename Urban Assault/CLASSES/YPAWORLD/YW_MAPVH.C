@@ -1480,7 +1480,7 @@ UBYTE *yw_RenderMapCursors(struct ypaworld_data *ywd, UBYTE *str)
         if (WTYPE_OpenedGate == g->sec->WType) {
             LONG b_energy = yw_CountVehicleEnergyInSector(ywd,g->sec);
             UBYTE buf[32];
-            sprintf(buf,"%d/%d",b_energy,ywd->ActBeamEnergy);
+            sprintf(buf,"%d/%d",b_energy*CREATE_ENERGY_FACTOR,ywd->ActBeamEnergy*CREATE_ENERGY_FACTOR);
             str = yw_MapString(ywd,buf,FONTID_LTRACY,str,g->sec_x,g->sec_y);
         };
     };

@@ -172,6 +172,7 @@ _dispatcher(ULONG, yw_YWM_BEAMNOTIFY, struct beamnotify_msg *msg)
 **                            ich schmeiss jetzt erstmal auch Raketen
 **                            raus...
 **      29-Jun-98   floh    + MaxNumBuddies Test bezieht jetzt die Beamenergue mit ein
+**      30-Jun-98   floh    + man kann jetzt keine "angeschnittenen" Vehikel mehr mitnehmen
 */
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
@@ -197,6 +198,7 @@ _dispatcher(ULONG, yw_YWM_BEAMNOTIFY, struct beamnotify_msg *msg)
     } else {
 
         /*** ein ordinäres Vehikel... ***/
+        ywd->BeamEnergyStore += (b->Maximum+99)/100; 
         if ((ywd->Level->NumBuddies < MAXNUM_BUDDIES) &&
             (ywd->BeamEnergyStore < ywd->ActBeamEnergy))
         {
@@ -205,7 +207,6 @@ _dispatcher(ULONG, yw_YWM_BEAMNOTIFY, struct beamnotify_msg *msg)
             bi->TypeID    = b->TypeID;
             bi->Energy    = b->Energy;
             ywd->Level->NumBuddies++;
-            ywd->BeamEnergyStore += (b->Maximum+99)/100; 
         } else {
             retval = FALSE;
         };

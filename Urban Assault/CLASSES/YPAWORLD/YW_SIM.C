@@ -145,6 +145,9 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
 **      22-May-98   floh    + FireDown Handling
 **      31-May-98   floh    + Extra Mouse Control Tooltip
 **      26-Jun-98   floh    + Joystick-Handling umgeschrieben
+**      30-Jun-98   floh    + Bugfixes am Joystick-Code
+**                          + loescht fuer eine halbe Sekunde die Feuertaste,
+**                            wenn User in ein neues Vehikel springt
 */
 {
     struct ClickInfo *ci = &(ip->ClickInfo);
@@ -152,6 +155,9 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
 
     /*** Joystick-Signal-Button weglöschen ***/
     ip->Buttons &= ~(1<<31);
+    
+    /*** Feuertaste wegloeschen? ***/
+    if ((ywd->TimeStamp - ywd->UserVehicleTimeStamp) < 500) ip->Buttons &= ~(BT_FIRE);    
 
     /*** Joystick disable? ***/
     if (ywd->Prefs.valid && (ywd->Prefs.Flags & YPA_PREFS_JOYDISABLE)) {

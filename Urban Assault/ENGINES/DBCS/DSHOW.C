@@ -86,14 +86,15 @@ long FAR PASCAL dshow_WinProc(HWND hWnd, UINT message,
 **  CHANGED
 **      28-Jan-98   floh    created
 **      26-Feb-98   floh    + ein paar neue Messages getrappt
+**      30-Jun-98   floh    + Movies koennen nur noch per Escape
+**                            geskipt werden
 */
 {
     switch(message) {
 
         case WM_KEYDOWN:
-        case WM_LBUTTONDOWN:
             /*** Movieplayer stoppen ***/
-            dshow_StopMovie();
+            if (wParam == VK_ESCAPE) dshow_StopMovie();
             break;
 
         case WM_ERASEBKGND:
