@@ -18,6 +18,9 @@
 #include <ctype.h>
 
 #include "nucleus/nucleus2.h"
+#include "engine/engine.h"
+#include "visualstuff/ov_engine.h"
+#include "bitmap/winddclass.h"
 #include "ypa/ypaworldclass.h"
 #include "ypa/ypalocale.h"
 
@@ -25,6 +28,7 @@
 
 /*-----------------------------------------------------------------*/
 _extern_use_nucleus
+_extern_use_ov_engine
 
 /*-------------------------------------------------------------------
 **  PLEASE NOTE!
@@ -338,9 +342,23 @@ _dispatcher(ULONG, yw_YWM_SETLANGUAGE, struct setlanguage_msg *msg)
 
     /*** UseSystemInput Flag gesetzt? ***/
     use_system_text_input = ypa_GetStr(ywd->LocHandle,STR_USESYSTEMTEXTINPUT,"FALSE");
-    if (stricmp(use_system_text_input,"FALSE")==0) ywd->UseSystemTextInput = FALSE;
-    else                                           ywd->UseSystemTextInput = TRUE;
-
+    if (stricmp(use_system_text_input,"FALSE")==0) {
+        /*** Lowres-Aufloesungen enablen ***/
+        Object *gfxo;
+        _OVE_GetAttrs(OVET_Object,&gfxo,TAG_DONE);
+        if (gfxo) {
+            _set(gfxo,WINDDA_DisableLowres,FALSE);
+        };        
+        ywd->UseSystemTextInput = FALSE;
+    } else {
+        /*** Lowres-Aufloesungen disablen ***/
+        Object *gfxo;
+        _OVE_GetAttrs(OVET_Object,&gfxo,TAG_DONE);
+        if (gfxo) {
+            _set(gfxo,WINDDA_DisableLowres,TRUE);
+        };        
+        ywd->UseSystemTextInput = TRUE;
+    };
 
     /*** all ok ***/
     return(TRUE);

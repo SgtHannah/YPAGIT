@@ -1398,6 +1398,7 @@ UBYTE *yw_DBLayoutSingleTechupgrade(struct ypaworld_data *ywd,
 /*
 **  CHANGED
 **      19-May-98   floh    created
+**      26-May-98   floh    + Gebaeude-Namen Multiplayer-tauglich gemacht...
 */
 {
     UBYTE buf_0[256];
@@ -1437,7 +1438,10 @@ UBYTE *yw_DBLayoutSingleTechupgrade(struct ypaworld_data *ywd,
         
     /*** name_str ***/
     if (vp)      name_str = ypa_GetStr(ywd->LocHandle,STR_NAME_VEHICLES+vp_num,vp->Name);
-    else if (bp) name_str = ypa_GetStr(ywd->LocHandle,STR_NAME_BUILDINGS+bp_num,bp->Name);
+    else if (bp) {
+        if (ywd->WasNetworkSession) name_str = ypa_GetStr(ywd->LocHandle,STR_NAME_NETWORK_BUILDINGS+bp_num,bp->Name);
+        else                        name_str = ypa_GetStr(ywd->LocHandle,STR_NAME_BUILDINGS+bp_num,bp->Name);
+    };    
     
     /*** type_str und value_str ***/
     switch(dbtu->type) {
@@ -1481,8 +1485,11 @@ UBYTE *yw_DBLayoutSingleTechupgrade(struct ypaworld_data *ywd,
             
         case YPAHIST_TECHTYPE_BUILDANDVEHICLE:
             if (vp && bp) {
+                UBYTE *name;
+                if (ywd->WasNetworkSession) name = ypa_GetStr(ywd->LocHandle,STR_NAME_NETWORK_BUILDINGS+bp_num,bp->Name);
+                else                        name = ypa_GetStr(ywd->LocHandle,STR_NAME_BUILDINGS+bp_num,bp->Name);
                 type_str = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_TU_BUILDANDVEHICLE,"COMBINED UPGRADE:");
-                sprintf(buf_0,"%s",ypa_GetStr(ywd->LocHandle,STR_NAME_BUILDINGS+bp_num,bp->Name));
+                sprintf(buf_0,"%s",name_str);
                 value_str = buf_0;
             };
             break;

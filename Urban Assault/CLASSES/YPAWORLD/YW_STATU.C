@@ -1427,7 +1427,9 @@ void yw_SRLayoutThingMenu(struct ypaworld_data *ywd)
             ULONG bnum = SR.ThingRemap[i+m->FirstShown].index;
             struct BuildProto *blg = &(ywd->BP_Array[bnum]);
             ULONG cost  = (blg->CEnergy / 100);
-            UBYTE *name = ypa_GetStr(ywd->LocHandle,STR_NAME_BUILDINGS+bnum,blg->Name); 
+            UBYTE *name;
+            if (ywd->playing_network) name = ypa_GetStr(ywd->LocHandle,STR_NAME_NETWORK_BUILDINGS+bnum,blg->Name);
+            else                      name = ypa_GetStr(ywd->LocHandle,STR_NAME_BUILDINGS+bnum,blg->Name);
             if ((i+m->FirstShown) == m->Selected) sel=TRUE;
             str = yw_SRLayoutVhclBlgItem(ywd,sel,m,str,blg->TypeIcon,name,cost);
         };

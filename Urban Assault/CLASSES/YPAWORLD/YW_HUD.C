@@ -1263,6 +1263,7 @@ UBYTE *yw_RenderBID(struct ypaworld_data *ywd,
 **
 **  CHANGED
 **      10-Feb-98   floh    created
+**      26-May-98   floh    oops, Gebaeude-Name war noch nicht lokalisiert...
 */
 {
     FLOAT dt;
@@ -1291,7 +1292,10 @@ UBYTE *yw_RenderBID(struct ypaworld_data *ywd,
 
     /*** und die einzelnen Elemente rendern ***/
     if (blink) {
-        str = yw_RenderTextbar(ywd,h,str,bp->Name,tx,ty);
+        UBYTE *name;
+        if (ywd->playing_network) name = ypa_GetStr(ywd->LocHandle,STR_NAME_NETWORK_BUILDINGS+bp_num,bp->Name);
+        else                      name = ypa_GetStr(ywd->LocHandle,STR_NAME_BUILDINGS+bp_num,bp->Name);
+        str = yw_RenderTextbar(ywd,h,str,name,tx,ty);
     };
 
     /*** Ende ***/

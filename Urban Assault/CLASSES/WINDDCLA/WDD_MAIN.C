@@ -118,13 +118,14 @@ void wdd_Log(char *string,...);
 struct MinList wdd_IDList;
 struct MinList wdd_DevList;
 
-#define WINDD_NUM_CONFIG_ITEMS (5)
+#define WINDD_NUM_CONFIG_ITEMS (6)
 struct ConfigItem wdd_ConfigItems[WINDD_NUM_CONFIG_ITEMS] = {
     {"gfx.force_soft_cursor",       CONFIG_BOOL, FALSE },
     {"gfx.all_modes",               CONFIG_BOOL, FALSE },
     {"gfx.movie_player",            CONFIG_BOOL, TRUE },
     {"gfx.force_alpha_textures",    CONFIG_BOOL, FALSE },
     {"gfx.use_draw_primitive",      CONFIG_BOOL, FALSE },
+    {"gfx.disable_lowres",          CONFIG_BOOL, FALSE },
 };
 
 extern unsigned long wdd_ForceAlphaTextures;
@@ -474,6 +475,7 @@ _dispatcher(Object *, wdd_OM_NEW, struct TagItem *attrs)
 **      17-Sep-97   floh    + liest ConfigItems
 **      10-Mar-98   floh    + DDraw/D3D Init passiert jetzt hier,
 **                            nicht mehr in MakeClass
+**      26-May-98   floh    + disable_lowres Handling
 */
 {
     struct disp_idnode *idnode = NULL;
@@ -525,6 +527,7 @@ _dispatcher(Object *, wdd_OM_NEW, struct TagItem *attrs)
     wdd->movieplayer        = wdd_ConfigItems[2].data;
     wdd->forcealphatextures = wdd_ConfigItems[3].data;
     wdd->usedrawprimitive   = wdd_ConfigItems[4].data;
+    wdd->disablelowres      = wdd_ConfigItems[5].data;
     
     /*** Mode-Flags auswerten ***/
     if (idnode->data[0] & WINDDF_IsWindowed)    wdd->flags |= WINDDF_IsWindowed;
@@ -628,6 +631,7 @@ _dispatcher(void, wdd_OM_SET, struct TagItem *attrs)
 /*
 **  CHANGED
 **      23-Feb-98   floh    created
+**      26-May-98   floh    + WINDDA_DisableLowres
 */
 {
     struct windd_data *wdd = INST_DATA(cl,o);
@@ -652,6 +656,9 @@ _dispatcher(void, wdd_OM_SET, struct TagItem *attrs)
                     case WINDDA_CursorMode:
                         wdd_SetCursorMode(wdd,data);
                         break;
+                    case WINDDA_DisableLowres:
+                        wdd->disablelowres = data;
+                        break;    
                 };
         };
     };
@@ -801,13 +808,26 @@ _dispatcher(ULONG, wdd_DISPM_Query, struct disp_query_msg *msg)
 **      11-Nov-96   floh    created
 */
 {
+    struct windd_data *wdd = INST_DATA(cl,o);
     ULONG id = msg->id;
     struct disp_idnode *ind;
 
     if (id != 0) {
         ind = wdd_GetIDNode(id);
     } else {
-        ind = (struct disp_idnode *) wdd_IDList.mlh_Head;
+        if (wdd->disablelowres) {
+            /*** skippe alle Aufloesungen unter 512 ***/
+            struct MinList *ls = &wdd_IDList;
+            struct MinNode *nd;
+            for (nd=ls->mlh_Head; nd->mln_Succ; nd=nd->mln_Succ) {
+                ind = (struct disp_idnode *) nd;
+                /*** data[1] ist sichtbare Breite ***/
+                if (ind->data[1] >= 512) break;
+            };
+            if (nd->mln_Succ == NULL) ind = NULL;
+        } else {
+            ind = wdd_IDList.mlh_Head;
+        };
     };
     if (ind) {
         struct disp_idnode *next;
