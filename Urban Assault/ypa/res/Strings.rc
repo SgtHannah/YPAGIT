@@ -22,6 +22,7 @@
 **                                    recompile every time.  
 **              19-May-98   floh    + even more Dummy Strings
 **              29-May-98   floh    + fixed some new strings 
+**				30-May-98	floh	+ some more new strings
 */
 #include "windows.h"
 #include "windowsx.h"
@@ -528,7 +529,7 @@ BEGIN
     559, "Help"
     560, "Jump to Last Occupied Unit"
     561, "Become Current Squad Leader"
-    562, "<>"
+    562, "562 == Situation Analyzer"
     563, "<>"
     564, "<>"
     565, "<>"
@@ -852,7 +853,7 @@ BEGIN
     877, "877 == Activate Ground Unit Throttle (HUH?)"
     878, "878 == 16 Bit Textures May Resolve Display Artefacts With Some 3D Cards"
     879, "879 == Use DrawPrimtive calls (may improve performace)"
-    880, "<>"
+    880, "880 == Mouse Control Mode activated, press Right Mouse Button to deactivate"
     881, "<>"
     882, "<>"
     883, "<>"
