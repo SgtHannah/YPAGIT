@@ -363,17 +363,17 @@ void yw_DBMapLoaded(struct ypaworld_data *ywd,
     struct snd_cdcontrol_msg cd;
 
     /*** AudioTrack für Debriefing ***/
-    cd.command = SND_CD_STOP;
-    _ControlCDPlayer(&cd);
-    if( ywd->gsr && ywd->gsr->debriefingtrack ) {
-        cd.command   = SND_CD_SETTITLE;
-        cd.para      = ywd->gsr->debriefingtrack;
-        cd.min_delay = ywd->gsr->debriefing_min_delay;
-        cd.max_delay = ywd->gsr->debriefing_max_delay;
-        _ControlCDPlayer(&cd);
-        cd.command = SND_CD_PLAY;
-        _ControlCDPlayer(&cd);
-    };
+    //cd.command = SND_CD_STOP;
+    //_ControlCDPlayer(&cd);
+    //if( ywd->gsr && ywd->gsr->debriefingtrack ) {
+    //    cd.command   = SND_CD_SETTITLE;
+    //    cd.para      = ywd->gsr->debriefingtrack;
+    //    cd.min_delay = ywd->gsr->debriefing_min_delay;
+    //    cd.max_delay = ywd->gsr->debriefing_max_delay;
+    //    _ControlCDPlayer(&cd);
+    //    cd.command = SND_CD_PLAY;
+    //    _ControlCDPlayer(&cd);
+    //};
 
     /*** Vorbereitung für Map-Blitting ***/
     mb->Status    = MBSTATUS_MAPSCALING;

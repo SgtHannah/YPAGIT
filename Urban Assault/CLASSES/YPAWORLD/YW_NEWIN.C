@@ -966,6 +966,7 @@ BOOL yw_LoadSet(struct ypaworld_data *ywd, ULONG set_num)
 **                            damit irgendwelche Warte-Pointer nicht 
 **                            ueberschrieben werden.
 **      29-May-98   floh    + jetzt mit Load-Optimierung beim Set-Object
+**      02-Jun-98   floh    + loescht das ControlLock Flag
 */
 {
     UBYTE *str;
@@ -980,6 +981,9 @@ BOOL yw_LoadSet(struct ypaworld_data *ywd, ULONG set_num)
     APTR sdf;
 
     _OVE_GetAttrs(OVET_Object,&(ywd->GfxObject),TAG_DONE);
+
+    /*** ControlLock Flag loeschen ***/
+    ywd->ControlLock = FALSE;
 
     /*** Set-Assign setzen ***/
     sprintf(set_path,"data:set%d",set_num);
@@ -2223,6 +2227,8 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
 **                          + UserRoboDied wird initialisiert
 **      30-May-98   floh    + Ooops, IngameStats wurden nicht korrekt
 **                            zurueckgesetzt...
+**      03-Jun-98   floh    + setzt jetzt ywd->netplayerstatus
+**                            zurueck
 */
 {
     BOOL retval = FALSE;
@@ -2265,6 +2271,7 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
     memset(&(ywd->Level->Gate),0,sizeof(ywd->Level->Gate));
     memset(&(ywd->Level->Item),0,sizeof(ywd->Level->Item));
     memset(&(ywd->gem),0,sizeof(ywd->gem));
+    memset(&(ywd->netplayerstatus),0,sizeof(ywd->netplayerstatus));
 
     /*** Statistix rücksetzen ***/
     ywd->MaxSquads   = 0;

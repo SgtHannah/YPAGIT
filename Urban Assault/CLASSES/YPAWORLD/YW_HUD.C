@@ -1584,6 +1584,7 @@ void yw_RenderHUD(struct ypaworld_data *ywd)
 **      24-Nov-97   floh    + blinkende Todesmeldung DBCS enabled
 **      10-Dec-97   floh    + Tot-Message eingefaerbt
 **      17-Dec-97   floh    + yw_3DOverlayCursors()
+**      02-Jun-98   floh    + Drone Destroyed Meldung jetzt in weiss
 */
 {
     UBYTE *str = YPA_HudStr;
@@ -1613,7 +1614,7 @@ void yw_RenderHUD(struct ypaworld_data *ywd)
                 new_font(str,FONTID_TRACY);
                 xpos_brel(str,0);
                 ypos_abs(str,ypos);
-                dbcs_color(str,yw_Red(ywd,YPACOLOR_OWNER_6),yw_Green(ywd,YPACOLOR_OWNER_6),yw_Blue(ywd,YPACOLOR_OWNER_6));
+                dbcs_color(str,255,255,255);
                 str = yw_TextCenteredSkippedItem(ywd->Fonts[FONTID_TRACY],
                                                  str, dmsg, ywd->DspXRes);
             };

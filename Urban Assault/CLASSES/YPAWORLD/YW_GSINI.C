@@ -3421,25 +3421,15 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
 
     /*** Ein Lied! ***/
     if( GSR->ywd->Prefs.Flags & YPA_PREFS_CDSOUNDENABLE ) {
-
-        if( GSR->aftergame ) {
-
-            cd.command   = SND_CD_SETTITLE;
-            cd.min_delay = ywd->gsr->debriefing_min_delay;
-            cd.max_delay = ywd->gsr->debriefing_max_delay;
-            cd.para      = GSR->debriefingtrack;
-            }
-        else {
-
-            cd.command   = SND_CD_SETTITLE;
-            cd.min_delay = ywd->gsr->shell_min_delay;
-            cd.max_delay = ywd->gsr->shell_max_delay;
-            cd.para      = GSR->shelltrack;
-            }
-
-        _ControlCDPlayer( &cd );
+        cd.command   = SND_CD_STOP;
+        _ControlCDPlayer(&cd);
+        cd.command   = SND_CD_SETTITLE;
+        cd.min_delay = ywd->gsr->shell_min_delay;
+        cd.max_delay = ywd->gsr->shell_max_delay;
+        cd.para      = GSR->shelltrack;
+        _ControlCDPlayer(&cd);
         cd.command = SND_CD_PLAY;
-        _ControlCDPlayer( &cd );
+        _ControlCDPlayer(&cd);
         }
 
     return( TRUE );
