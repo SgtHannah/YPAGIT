@@ -723,46 +723,6 @@ _dispatcher( void, yb_YBM_BREAKFREE, struct trigger_logic_msg *msg)
                     }
                 }
 
-            /* -------------------------------------------------------
-            ** Umstrukturierung
-            ** hat keinen Sinn mehr, weil PanzerGeschwader in der Form
-            ** nicht mehr existieren.
-            ** -----------------------------------------------------*/
-//            if( (ybd->bact.internal_time - ybd->bact.bf2_time) > (5 * BF_TIME) ) {
-//
-//                /*** Nur, wenn ich Commander bin ***/
-//                if( ybd->bact.master == ybd->bact.robo ) {
-//
-//                    struct organize_msg org;
-//
-//                    org.specialbact = NULL;
-//                    org.mode        = ORG_NEARTOCOM;
-//
-//                    _methoda( o, YBM_ORGANIZE, &org );
-//
-//                    /* ----------------------------------------------------
-//                    ** Dem neuen Chef Zeit und mpos aktualisieren, damit er
-//                    ** sich nicht auch gleich wieder umorganisiert.
-//                    ** --------------------------------------------------*/
-//                    if( ybd->bact.master != ybd->bact.robo ) {
-//
-//                        ybd->bact.master_bact->mpos =     ybd->bact.master_bact->pos;
-//                        ybd->bact.master_bact->bf2_time = ybd->bact.master_bact->internal_time;
-//                        }
-//                    }
-//                }
-
-            /*** Weiterer Test, wenn nun gar nix mehr geht ***/
-            if( (ybd->bact.internal_time - ybd->bact.bf2_time) > (12 * BF_TIME) ) {
-
-                /*** Kill them all ***/
-                struct setstate_msg state;
-
-                ybd->bact.Energy = -10;
-                state.main_state = ACTION_DEAD;
-                state.extra_off  = state.extra_on = 0L;
-                _methoda( o, YBM_SETSTATE, &state );
-                }
 
             return;
             }

@@ -675,7 +675,14 @@ void yb_DoBeamStuff( struct ypabact_data *ybd )
                                    ywd->Level->Num );
                 if( !_methoda( ybd->world, YWM_SAVEGAME, &slg ) )
                     _LogMsg("Warning, Save error\n");
-
+                else {
+                    /*** nun ist rst-File nicht mehr notwendig ***/
+                    sprintf( filename, "save:%s/%d.rst\0",
+                                       ywd->gsr->UserName,
+                                       ywd->Level->Num );
+                    _FDelete( filename );
+                    }
+    
                 ybd->bact.pos = merke_pos;
 
                 /* --------------------------------------------

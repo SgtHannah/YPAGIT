@@ -222,7 +222,6 @@ _dispatcher(void, yr_YBM_DIE, void *nix)
     /*** Nun rufe ich die Supermethode auf. ***/
     _supermethoda( cl, o, YBM_DIE, NULL );
 
-    #ifdef __NETWORK__
     if( ywd->playing_network && (yrd->bact->Owner != 0) ) {
 
         Object *vo;
@@ -256,43 +255,43 @@ _dispatcher(void, yr_YBM_DIE, void *nix)
         /* ----------------------------------------------------------------
         ** Apropos Netzwerk. Wenn ich der letze Robo der Userrobo ist, dann
         ** mache ich Siegesmeldung.
+        ** QUARK!!! Das macht YPAM_ROBODIE!!!
         ** --------------------------------------------------------------*/
-        if( yrd->bact->Owner != ywd->gsr->NPlayerOwner ) {
-
-            BOOL found_player_robo = FALSE, found_enemy_robo = FALSE;
-            struct OBNode *robo = (struct OBNode *)ywd->CmdList.mlh_Head;
-
-            while( robo->nd.mln_Succ ) {
-
-                if( (BCLID_YPAROBO          == robo->bact->BactClassID) &&
-                    (ywd->gsr->NPlayerOwner == robo->bact->Owner) &&
-                    (ACTION_DEAD            != robo->bact->MainState) )
-                    found_player_robo = TRUE;
-
-                if( (BCLID_YPAROBO          == robo->bact->BactClassID) &&
-                    (ywd->gsr->NPlayerOwner != robo->bact->Owner) &&
-                    (ACTION_DEAD            != robo->bact->MainState) )
-                    found_enemy_robo = TRUE;
-
-                robo = (struct OBNode *) robo->nd.mln_Succ;
-                }
-
-            /*** Was losschicken? ***/
-            if( found_player_robo && (!found_enemy_robo) ) {
-
-                struct logmsg_msg log;
-
-                /*** Der Spieler ist der letzte Lebendige ***/
-                log.pri  = 10;
-                log.msg  = ypa_GetStr( RoboLocaleHandle,
-                           STR_NET_YOUWIN, "YOU WIN THE GAME");
-                log.bact = NULL;
-                log.code = 0;
-                _methoda( ywd->world, YWM_LOGMSG, &log );
-                }
-            }
+//        if( yrd->bact->Owner != ywd->gsr->NPlayerOwner ) {
+//
+//            BOOL found_player_robo = FALSE, found_enemy_robo = FALSE;
+//            struct OBNode *robo = (struct OBNode *)ywd->CmdList.mlh_Head;
+//
+//            while( robo->nd.mln_Succ ) {
+//
+//                if( (BCLID_YPAROBO          == robo->bact->BactClassID) &&
+//                    (ywd->gsr->NPlayerOwner == robo->bact->Owner) &&
+//                    (ACTION_DEAD            != robo->bact->MainState) )
+//                    found_player_robo = TRUE;
+//
+//                if( (BCLID_YPAROBO          == robo->bact->BactClassID) &&
+//                    (ywd->gsr->NPlayerOwner != robo->bact->Owner) &&
+//                    (ACTION_DEAD            != robo->bact->MainState) )
+//                    found_enemy_robo = TRUE;
+//
+//                robo = (struct OBNode *) robo->nd.mln_Succ;
+//                }
+//
+//            /*** Was losschicken? ***/
+//            if( found_player_robo && (!found_enemy_robo) ) {
+//
+//                //struct logmsg_msg log;
+//
+//                /*** Der Spieler ist der letzte Lebendige ***/
+//                //log.pri  = 10;
+//                //log.msg  = ypa_GetStr( RoboLocaleHandle,
+//                //           STR_NET_YOUWIN, "YOU WIN THE GAME");
+//                //log.bact = NULL;
+//                //log.code = 0;
+//                //_methoda( ywd->world, YWM_LOGMSG, &log );
+//                }
+//            }
         }
-    #endif
 
 }        
 

@@ -339,7 +339,8 @@ void yb_setAttrs(Object *o, struct ypabact_data *ybd, struct TagItem *attrs)
                         ** wir nicht im Cyclemodus sind.
                         ** --------------------------------------------------*/
                         if( (BCLID_YPAMISSY != ybd->bact.BactClassID) &&
-                            (BCLID_YPAROBO  != ybd->bact.BactClassID) ) {
+                            (BCLID_YPAROBO  != ybd->bact.BactClassID) &&
+                            (ACTION_DEAD    != ybd->bact.MainState) ) {
                         
                             if( ybd->bact.master == ybd->bact.robo ) {
                                 
