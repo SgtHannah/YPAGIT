@@ -1685,6 +1685,7 @@ struct YPAGamePrefs {
 #define YPA_PREFS_SOFTMOUSE     (1<<6)      // zeichne Software-Mousepointer
 #define YPA_PREFS_FILTERING     (1<<7)      // Kaffee filtern
 #define YPA_PREFS_CDSOUNDENABLE (1<<8)      // CD-Sound ist enabled
+#define YPA_PREFS_JOYMODEL2     (1<<9)      // alternatives Joystick-Modell
 
 /*-------------------------------------------------------------------
 **  Mission-Briefing-Parameter
@@ -2190,6 +2191,8 @@ struct ypaworld_data {
     FLOAT PrevJoyX;         // alter Status von JoyX
     FLOAT PrevJoyY;         // alter Status von JoyY
     FLOAT PrevJoyZ;         // alter Status von JoyZ
+    FLOAT PrevJoyHatX;
+    FLOAT PrevJoyHatY;
 
     /*** Movie Data ***/
     struct ypa_MovieData MovieData;
