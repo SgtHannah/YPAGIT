@@ -499,7 +499,8 @@ struct GameShellReq {
     LONG    latency_check;          // Zaehler fuer Latency Messages
     LONG    network_trouble_count;  // Zaehler fuer Problembearbeitung (max. Dauer)
     LONG    network_allok_count;    // Solange art der Loesung anzeigen
-    LONG    corpse_check;           // Zaehler zum testen nicht beseitigter schattenvehicle                                
+    LONG    corpse_check;           // Zaehler zum testen nicht beseitigter schattenvehicle 
+    LONG    sendscore;              // Zaehler, nachdem mal wieder der score abgeglichen werden muss                               
 
     /*** Playerdata 8 weil Eigentümer auch Offset !!! ***/
     struct playerdata player[ 8 ];  // offset ist der Eigentümer!

@@ -992,6 +992,33 @@ void yw_HandleNetMessages( struct ypaworld_data *ywd )
         /*** Zeit aktualisieren ***/
         ywd->update_time = ywd->TimeStamp;
         }
+        
+    /*** Score schicken? ***/
+    if( (ywd->gsr->is_host) && (ywd->netgamestartet)) {
+    
+        if( ywd->gsr->sendscore < 0 ) {
+        
+            struct ypamessage_score scm;
+            struct sendmessage_msg sm;
+            int     i;
+            
+            scm.generic.owner      = ywd->gsr->NPlayerOwner;
+            scm.generic.message_id = YPAM_SCORE;
+            for( i = 0; i < MAXNUM_OWNERS; i++ )
+                scm.score[ i ] = ywd->IngameStats[ i ];
+    
+            sm.data                 = &scm;
+            sm.data_size            = sizeof( scm );
+            sm.receiver_kind        = MSG_ALL;
+            sm.receiver_id          = NULL;
+            sm.guaranteed           = FALSE;
+            _methoda( ywd->world, YWM_SENDMESSAGE, &sm );
+        
+            ywd->gsr->sendscore = 1500;
+            }
+        else
+            ywd->gsr->sendscore -= ywd->gsr->frame_time;
+        }
 
     msg_count = 0;
 
@@ -1444,6 +1471,7 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
     struct ypamessage_starttrouble *st;
     struct ypamessage_endtrouble *et;
     struct ypamessage_cd *cdm;
+    struct ypamessage_score *scm;
     struct ypamessage_race rcm2;
     struct createbuilding_msg cb;
     struct createvehicle_msg cv;
@@ -4249,6 +4277,23 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
                 gpd.number++;
                 }   
 
+            break;
+            
+        case YPAM_SCORE:
+            
+            scm = (struct ypamessage_score *)( rm->data );
+            size = sizeof( struct ypamessage_score );
+            
+            // Sollte man immer bekommen koennen
+            //if( ywd->gsr->player[ owner ].was_killed ) break;
+            
+            /* --------------------------------------------------------
+            ** Wird nur von Clients empfangen, weil nur der Host
+            ** berechnet und nur der Client empfaengt. So ist der Score
+            ** trotz Netzproblemen konsistent.
+            ** ------------------------------------------------------*/
+            for( i = 0; i < MAXNUM_OWNERS; i++ )
+                ywd->IngameStats[ i ] = scm->score[ i ];
             break;
             
         default:

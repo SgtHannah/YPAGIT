@@ -37,6 +37,10 @@
 #include "ypa/yparoboclass.h"
 #endif
 
+#ifndef YPA_YPAPLAYERSTATS_H
+#include "ypa/ypaplayerstats.h"
+#endif
+
 /*** Vereinbarungen ***/
 
 // 2 Updates pro Message ist Verschwendung....
@@ -709,6 +713,16 @@ struct ypamessage_cd {                         // hat sich geaendert
     UBYTE   cd;                                 // 0 oder nicht 0, je nachdem
     BYTE    ready;                              // Vorzeichenbehaftet. -1 sagt ungueltig
     BYTE    p[2];
+};
+
+
+#define YPAM_SCORE              (YPAM_BASE+43)  // derzeitiger Score des Hosts
+struct ypamessage_score {                         
+                                                
+    struct ypamessage_generic generic;
+    
+    //+++++++++++++++++++++++++++++++++++++
+    struct ypa_PlayerStats score[ 8 ];
 };
     
 #endif

@@ -309,6 +309,7 @@ _dispatcher(ULONG, yw_YWM_NETWORKLEVEL, struct createlevel_msg *msg)
     
     /*** erstmal 5 min Zeit geben, um messages reinzulassen ***/
     ywd->gsr->corpse_check       = ywd->TimeStamp + 300000;
+    ywd->gsr->sendscore          = 3000;    // nicht gleich initphase zumuellen   
 
     /*** Weil die netzwerkauswertung ja von 0 anbeginnt ... ***/
     memset( ywd->GlobalStats, 0, sizeof( ywd->GlobalStats ));

@@ -190,7 +190,8 @@ BOOL yw_AddHistoryEvent(struct ypaworld_data *ywd,
     };
     
     /*** Ingame Scoring ***/
-    yw_Score(ywd, event, &(ywd->IngameStats));
+    if( (ywd->gsr) && (ywd->gsr->is_host) )
+        yw_Score(ywd, event, &(ywd->IngameStats));
 
     /*** Ende ***/
 }
