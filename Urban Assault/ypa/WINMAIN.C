@@ -37,32 +37,39 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 {
     MSG msg;
     HWND old_hwnd;
+    HANDLE hMutex;
 
     win_Instance = hInstance;
     win_CmdShow  = nCmdShow;
     win_HWnd     = NULL;
     win_CmdLine  = lpCmdLine;
-
-    /*** laufen wir schon? ***/
-    old_hwnd = FindWindow("UA Window Class","Urban Assault");
-    if (old_hwnd) {
-        /*** jo, alte Instanz aktivieren, und selbst beenden ***/
-        ShowWindow(old_hwnd,SW_RESTORE);
-        SetForegroundWindow(old_hwnd);
-        return(0);
+    
+    /*** Test, ob wir schon laufen ***/
+    hMutex = CreateMutex(NULL,FALSE,"UA Running Test Mutex");
+    if (hMutex) {
+        DWORD last_error = GetLastError();
+        if (last_error == ERROR_ALREADY_EXISTS) {
+            /*** ok, wir sind schon da, evtl. Window aktivieren ***/
+            HWND old_hwnd;            
+            old_hwnd = FindWindow("UA Window Class","Urban Assault");
+            if (old_hwnd) {
+                /*** jo, alte Instanz aktivieren, und selbst beenden ***/
+                ShowWindow(old_hwnd,SW_RESTORE);
+                SetForegroundWindow(old_hwnd);
+                CloseHandle(hMutex);
+                return(0);
+            };
+        };
     };
-
+        
     /*** COM initialisieren ***/
     CoInitialize(NULL);
 
-    /*** Priority boosten ***/
-    // SetPriorityClass(GetCurrentProcess(),HIGH_PRIORITY_CLASS);
-
     /* --------------------------------------------
-    ** Simulation einer C-Shell-Parameter-Übergabe,
-    ** Windows übergibt aber keinen Programmnamen
+    ** Simulation einer C-Shell-Parameter-Uebergabe,
+    ** Windows uebergibt aber keinen Programmnamen
     ** ------------------------------------------*/
-    strcpy( CmdLineCopy, win_CmdLine );
+    strcpy(CmdLineCopy, win_CmdLine);
     if (ypa_Init()) {
         while (1) {
             if (PeekMessage(&msg,NULL,0,0,PM_NOREMOVE)) {
@@ -74,7 +81,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                     TranslateMessage(&msg);
                     DispatchMessage(&msg);
                 };
-            } else if (GetActiveWindow()) {
+            } else if (GetActiveWindow()) {    
                 if (!ypa_DoFrame()) {
                     if (win_HWnd) DestroyWindow(win_HWnd);
                     ypa_Kill();
@@ -85,6 +92,9 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         };
     };
     CoUninitialize();
+
+    /*** Mutex aufraeumen ***/
+    if (hMutex) CloseHandle(hMutex);    
     return(0);
 }
 
