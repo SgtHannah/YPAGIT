@@ -38,7 +38,7 @@
     /*** DDraw Zeuch ***/
     #ifndef __DDRAW_INCLUDED_
     #include <ddraw.h>
-    #endif
+    #endif           
 
     /*** Direct3D Zeuch ***/
     #ifndef _D3D_H_
@@ -66,7 +66,7 @@
 **  DEBUGGING MACROS
 */
 
-// #define WDD_DEBUG   (1)
+//#define WDD_DEBUG   (1)
 extern void wdd_Log(char *,...);
 #ifdef WDD_DEBUG
     #define ENTERED(x) wdd_Log("-> %s entered\n",x);

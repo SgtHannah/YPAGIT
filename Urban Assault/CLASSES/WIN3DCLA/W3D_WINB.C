@@ -138,6 +138,7 @@ unsigned long w3d_LockBackBuffer(struct windd_data *wdd, struct win3d_data *w3d)
         DDSURFACEDESC ddsd;
         HRESULT ddrval;
 
+        wdd_CheckLostSurfaces(wdd);
         memset(&ddsd,0,sizeof(ddsd));
         ddsd.dwSize = sizeof(ddsd);
         ddrval = wdd->lpDDSBack->lpVtbl->Lock(wdd->lpDDSBack,NULL,&ddsd,
@@ -170,9 +171,11 @@ void w3d_UnlockBackBuffer(struct windd_data *wdd, struct win3d_data *w3d)
 */
 {
     ENTERED("w3d_UnlockBackBuffer");    
-    if (wdd->hWnd) {
+    if (wdd->hWnd && wdd->back_ptr) {
         HRESULT ddrval;
         ddrval = wdd->lpDDSBack->lpVtbl->Unlock(wdd->lpDDSBack,NULL);
+        wdd->back_ptr   = NULL;
+        wdd->back_pitch = 0;
     };
     LEFT("w3d_UnlockBackBuffer");
 }

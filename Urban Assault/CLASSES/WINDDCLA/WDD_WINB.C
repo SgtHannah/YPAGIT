@@ -535,6 +535,7 @@ long FAR PASCAL wdd_WinProc(HWND hWnd, UINT message,
 */
 {
 	RECT r;
+    HRESULT ddrval;
 
     /*** hole LID des windd.class Objekts als "UserData" ***/
     struct windd_data *wdd = (struct windd_data *) GetClassLong(hWnd,0);
@@ -547,11 +548,19 @@ long FAR PASCAL wdd_WinProc(HWND hWnd, UINT message,
         case WM_ACTIVATEAPP:
 			if (((BOOL)wParam)==TRUE)
 			{
+                /*** App wird aktiviert ***/
 				GetWindowRect(hWnd, &r);
 				ClipCursor(&r);
-			}
-			else
+			} else {
+                /*** App wird deaktiviert ***/
 				ClipCursor(NULL);
+                /*** invalidiere Back-Ptr ***/
+                if (wdd && wdd->back_ptr) {
+                    wdd->back_ptr   = NULL;
+                    wdd->back_pitch = 0;
+                    ddrval = wdd->lpDDSBack->lpVtbl->Unlock(wdd->lpDDSBack,NULL);
+                };                            
+            };
             if (wdd) wdd_SetMouseImage(wdd,1,TRUE);        
             break;
 
@@ -2502,7 +2511,7 @@ void wdd_End(struct windd_data *wdd)
         POINT p;
 
         /*** Backsurface unlocken ***/
-        if (!wdd_DoDirect3D) {
+        if ((!wdd_DoDirect3D) && (wdd->back_ptr)) {
             ddrval = wdd->lpDDSBack->lpVtbl->Unlock(wdd->lpDDSBack,NULL);
         };
         if (wdd->flags & WINDDF_IsWindowed) {
