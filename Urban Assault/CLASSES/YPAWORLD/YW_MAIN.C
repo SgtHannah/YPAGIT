@@ -517,7 +517,7 @@ _dispatcher(Object *, yw_OM_NEW, struct TagItem *attrs)
         return(NULL);
     };
     slm.lang = "language";
-    _methoda(o,YWM_SETLANGUAGE,&slm);    
+    _methoda(newo,YWM_SETLANGUAGE,&slm);    
     
     /*** CD-Check ***/
     if (!yw_CheckCD(TRUE,TRUE,

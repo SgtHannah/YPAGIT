@@ -572,7 +572,7 @@ _dispatcher(Object *, wdd_OM_NEW, struct TagItem *attrs)
     wdd = INST_DATA(cl,newo);
     wdd->id = id;
 
-    wdd->forcesoftcursor    = wdd_ConfigItems[0].data;
+    wdd->forcesoftcursor    = FALSE;
     wdd->movieplayer        = wdd_ConfigItems[2].data;
     wdd->disablelowres      = wdd_ConfigItems[5].data;
     wdd->forcealphatextures = force_alpha_textures;

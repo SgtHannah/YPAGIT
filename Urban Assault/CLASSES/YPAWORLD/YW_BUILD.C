@@ -43,6 +43,7 @@ void yw_BactOverkill(struct ypaworld_data *ywd, ULONG sec_x, ULONG sec_y)
 **      07-Feb-96   floh    created
 **      16-Apr-98   floh    + vollstaendig umgeschrieben
 **      26-Apr-98   floh    + es werden nur noch Flaks zerstoert
+**      02-Jun-98   floh    + ooops, Robo-Flaks konnten gekillt werden...
 */
 {
     struct Cell *sec = &(ywd->CellArea[sec_y * ywd->MapSizeX + sec_x]);
@@ -59,7 +60,9 @@ void yw_BactOverkill(struct ypaworld_data *ywd, ULONG sec_x, ULONG sec_y)
 				(b->MainState != ACTION_CREATE)    &&
                 (b->BactClassID == BCLID_YPAGUN))                
             {
-                do_vehicle = TRUE;
+                ULONG is_robo_gun;
+                _get(b->BactObject,YGA_RoboGun,&is_robo_gun);
+                if (!is_robo_gun) do_vehicle = TRUE;
             };
         } else {
             /*** Singleplayer Test-Kriterium ***/
@@ -68,7 +71,10 @@ void yw_BactOverkill(struct ypaworld_data *ywd, ULONG sec_x, ULONG sec_y)
 				(b->MainState != ACTION_CREATE)   &&
                 (b->BactClassID == BCLID_YPAGUN))
             {                
-                do_vehicle = TRUE;
+                /*** handelt es sich hier um eine Robo-Gun? ***/
+                ULONG is_robo_gun;
+                _get(b->BactObject,YGA_RoboGun,&is_robo_gun);
+                if (!is_robo_gun) do_vehicle = TRUE;
             };
         };
         if (do_vehicle) {
