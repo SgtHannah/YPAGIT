@@ -1005,6 +1005,7 @@ void yw_HandleNetMessages( struct ypaworld_data *ywd )
         struct logmsg_msg log;
         BOOL   player_found, own_player;
         char  *e = NULL;
+        struct locksession_msg ls;
 
         ywd->gsr->transfer_rcvcount += rm.size;
         msg_count++;
@@ -1038,28 +1039,6 @@ void yw_HandleNetMessages( struct ypaworld_data *ywd )
 
             case MK_CREATEPLAYER: 
                             
-                /*** An diesen (!) eine Welcome-Message schicken ***/
-                wm.generic.owner      = 0; // egal...
-                wm.generic.message_id = YPAM_WELCOME;
-                wm.myrace             = ywd->gsr->SelRace;
-                wm.cd                 = ywd->gsr->cd;      
-                    
-                /* ---------------------------------------------
-                ** den Ready-To-Start-Status brauchen alle wegen
-                ** den Zeichen im Menue
-                ** -------------------------------------------*/
-                wm.ready_to_start     = GSR->ReadyToStart;
-    
-                sm.data          = &wm;
-                sm.data_size     = sizeof( wm );
-                sm.receiver_kind = MSG_PLAYER;
-                sm.receiver_id   = (char *)(rm.data);
-                sm.guaranteed    = TRUE;
-                _methoda( ywd->world, YWM_SENDMESSAGE, &sm );
-                 
-                if(ywd->gsr->NLevelOffset)    
-                    yw_SendCheckSum( ywd, ywd->gsr->NLevelOffset );
-
                 /* -----------------------------------------------
                 ** Bin ich Host in einem Lobbyspiel und steht die
                 ** Levelnummer schon fest, dann hat dieser Spieler
@@ -1088,6 +1067,27 @@ void yw_HandleNetMessages( struct ypaworld_data *ywd )
                     _methoda( GSR->ywd->world, YWM_SENDMESSAGE, &sm);
                     }
 
+                /*** An diesen (!) eine Welcome-Message schicken ***/
+                wm.generic.owner      = 0; // egal...
+                wm.generic.message_id = YPAM_WELCOME;
+                wm.myrace             = ywd->gsr->SelRace;
+                wm.cd                 = ywd->gsr->cd;      
+                    
+                /* ---------------------------------------------
+                ** den Ready-To-Start-Status brauchen alle wegen
+                ** den Zeichen im Menue
+                ** -------------------------------------------*/
+                wm.ready_to_start     = GSR->ReadyToStart;
+    
+                sm.data          = &wm;
+                sm.data_size     = sizeof( wm );
+                sm.receiver_kind = MSG_PLAYER;
+                sm.receiver_id   = (char *)(rm.data);
+                sm.guaranteed    = TRUE;
+                _methoda( ywd->world, YWM_SENDMESSAGE, &sm );
+                 
+                if(ywd->gsr->NLevelOffset)    
+                    yw_SendCheckSum( ywd, ywd->gsr->NLevelOffset );
 
                 /*** Name in player2 merken ***/
                 _get( ywd->nwo, NWA_NumPlayers, &i );
@@ -1187,6 +1187,16 @@ void yw_HandleNetMessages( struct ypaworld_data *ywd )
             case MK_HOST:
 
                 ywd->gsr->is_host = TRUE;
+
+                /* ---------------------------------------------------------------
+                ** Ich habe keine Ahnung, ob der LockStatus der Session mit
+                ** meinen Flags uebereinstimmt. Folglich unlocke ich sie und setze
+                ** mein Flag zurueck. Somit ist alles synchron und der Mechanismus
+                ** funktioniert wieder.
+                ** -------------------------------------------------------------*/
+                ls.block = 0;
+                _methoda( GSR->ywd->nwo, NWM_LOCKSESSION, &ls );
+                GSR->blocked = FALSE;
                 break;
 
             case MK_NORMAL:
@@ -3281,7 +3291,14 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
             while( _methoda( ywd->nwo, NWM_GETPLAYERDATA, &gpd ) ) {
 
                 if( stricmp( rm->sender_id, gpd.name ) == 0 ) {
-
+                
+                    /* -------------------------------------------------
+                    ** Alte Rasse des Spielers freischalten! Vorerst nur
+                    ** lobbymode.
+                    ** -----------------------------------------------*/
+                    if( ywd->gsr->remotestart )
+                        ywd->gsr->FreeRaces |= ywd->gsr->player2[ gpd.number ].race; 
+                    
                     ywd->gsr->player2[ gpd.number ].race           = wm->myrace;
                     ywd->gsr->player2[ gpd.number ].ready_to_start = wm->ready_to_start;
                     ywd->gsr->player2[ gpd.number ].welcomed       = TRUE;
@@ -4187,12 +4204,21 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
             size = sizeof( struct ypamessage_cd );
             if( ywd->gsr->player[ owner ].was_killed ) break;
             
+            /* --------------------------------------------------
+            ** Die CD Message wird regelmaessig geschickt, somit
+            ** kann sie Zusatzinformationen enthalten, die das
+            ** problem verlorengegangener Initmessages vielleicht
+            ** loesen koennen.
+            ** ------------------------------------------------*/
+
+
             gpd.number  = 0;
             gpd.askmode = GPD_ASKNUMBER;
             while( _methoda( ywd->nwo, NWM_GETPLAYERDATA, &gpd ) ) {
 
                 if( stricmp( rm->sender_id, gpd.name ) == 0 ) {
                     ywd->gsr->player2[ gpd.number ].cd = cdm->cd;
+                    
                     break;
                     }
                 gpd.number++;

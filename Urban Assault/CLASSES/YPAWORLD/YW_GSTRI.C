@@ -340,6 +340,11 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
             sbp.number = GSID_PL_QUIT;
             sbp.x      = 0;   
             _methoda( GSR->UBalken, BTM_SETBUTTONPOS, &sbp);
+
+            ss.unpressed_text = ypa_GetStr( GlobalLocaleHandle, STR_SHELL_BACKFROMBRIEFING, "2438 == BACK");
+            ss.pressed_text   = NULL;
+            ss.number         = GSID_PL_QUIT;
+            _methoda( GSR->UBalken, BTM_SETSTRING, &ss );  
             }
 
         if( ywd->Level->Status == LEVELSTAT_DEBRIEFING ) {
@@ -803,11 +808,15 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 if( yw_CheckOlderSaveGame( GSR ) ) 
                     yw_OpenConfirmRequester( GSR, CONFIRM_LOADFROMMAP, 
                         ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_LOADANDOVERWRITE, 
-                                    "DO YOU WANT TO LOAD >>>OLDER<<< SAVEGAME?"),0 );
+                                    "DO YOU WANT TO LOAD >>>OLDER<<< SAVEGAME?"),
+                        ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_LOADANDOVERWRITE2, 
+                                    "2439"), 0 );
                 else
                     yw_OpenConfirmRequester( GSR, CONFIRM_LOADFROMMAP, 
                         ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_LOAD, 
-                                    "DO YOU WANT TO LOAD INGAME SAVEGAME?"), 0 );
+                                    "DO YOU WANT TO LOAD INGAME SAVEGAME?"), 
+                        ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_LOAD2, 
+                                    "2440"), 0 );
                 break;
                 
             case GS_PL_SETBACK:
@@ -1601,7 +1610,9 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                                 if( GSR->d_actualitem )
                                     yw_OpenConfirmRequester( GSR, CONFIRM_SAVEANDOVERWRITE,
                                     ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_SAVEANDOVERWRITE,
-                                    "DO YOU WANT TO OVERWRITE THIS PLAYER STATUS?"),0);
+                                    "DO YOU WANT TO OVERWRITE THIS PLAYER STATUS?"),
+                                    ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_SAVEANDOVERWRITE2,
+                                    "2441"), 0);
                                 else
                                     yw_EAR_Save( GSR );
                                 break;
@@ -1748,7 +1759,9 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                       if( GSR->d_actualitem )
                             yw_OpenConfirmRequester( GSR, CONFIRM_SAVEANDOVERWRITE,
                             ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_SAVEANDOVERWRITE,
-                            "DO YOU WANT TO OVERWRITE THIS PLAYER STATUS?"),0);
+                            "DO YOU WANT TO OVERWRITE THIS PLAYER STATUS?"),
+                            ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_SAVEANDOVERWRITE2,
+                            "2441"), 0);
                         else
                             yw_EAR_Save( GSR );
                         break;
@@ -2658,21 +2671,23 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                         if( GSR->is_host ) {
 
                             /*** Möglichkeit zum starten ***/
-                            char *t;
+                            char *t1, *t2;
                             
                             /*** Wenn nur ein Spieler, dann Sicherheitsabfrage ***/
                             if( 1 < _methoda( GSR->ywd->nwo, NWM_GETNUMPLAYERS, NULL ) ) {
                                 
                                 /*** CD Check ***/
-                                if( t = yw_NotEnoughCDs( GSR ) ) 
-                                    yw_OpenConfirmRequester( GSR, CONFIRM_MORECDS, t, 1 );
+                                if( yw_NotEnoughCDs( GSR, &t1, &t2 ) ) 
+                                    yw_OpenConfirmRequester( GSR, CONFIRM_MORECDS, t1, t2, 1 );
                                 else
                                     yw_StartNetGame( GSR );
                                 }
                             else
                                 yw_OpenConfirmRequester( GSR, CONFIRM_NETSTARTALONE,
                                     ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_NETSTARTALONE,
-                                                "DO YOU REALLY WANT TO START WITHOUT OTHER PLAYERS?"), 0);      
+                                                "DO YOU REALLY WANT TO START WITHOUT OTHER PLAYERS?"), 
+                                    ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_NETSTARTALONE2,
+                                                "2442"), 0);      
                             }
                         break;
 
@@ -3497,36 +3512,47 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
             swb.number = GSID_SELRACE;
             _methoda( GSR->bnet, BTM_ENABLEBUTTON, &swb );
                 
-            /*** freie Rassengadgets für Owner aktivieren ***/ 
+            /* ------------------------------------------------------------
+            ** freie Rassengadgets für Owner aktivieren, wenn die Rassen da
+            ** sind und ein Client noch nicht ready gedrueckt hat 
+            ** ----------------------------------------------------------*/
+                         
             if( (0 < GSR->NLevelOffset) && (GSR->NLevelOffset < MAXNUM_LEVELS) ) {
             
                 UBYTE  warschonda;
-               
                 l = &(GSR->ywd->LevelNet->Levels[ GSR->NLevelOffset ]);
-                swb.number = GSID_USERRACE;
-                if( l->races & 2 )
-                    _methoda( GSR->bnet, BTM_ENABLEBUTTON, &swb );
-                else
+               
+                if( !( (0==GSR->is_host) && (GSR->ReadyToStart)) ) {
+            
+                    swb.number = GSID_USERRACE;
+                    if( l->races & 2 )
+                        _methoda( GSR->bnet, BTM_ENABLEBUTTON, &swb );
+                    else
+                        _methoda( GSR->bnet, BTM_DISABLEBUTTON, &swb );
+        
+                    swb.number = GSID_KYTERNESER;
+                    if( l->races & 64 )
+                        _methoda( GSR->bnet, BTM_ENABLEBUTTON, &swb );
+                    else
+                        _methoda( GSR->bnet, BTM_DISABLEBUTTON, &swb );
+        
+                    swb.number = GSID_MYKONIER;
+                    if( l->races & 8 )
+                        _methoda( GSR->bnet, BTM_ENABLEBUTTON, &swb );
+                    else
+                        _methoda( GSR->bnet, BTM_DISABLEBUTTON, &swb );
+        
+                    swb.number = GSID_TAERKASTEN;
+                    if( l->races & 16 )
+                        _methoda( GSR->bnet, BTM_ENABLEBUTTON, &swb );
+                    else
+                        _methoda( GSR->bnet, BTM_DISABLEBUTTON, &swb );
+                    }
+                else {
+                    swb.number = GSID_SELRACE;
                     _methoda( GSR->bnet, BTM_DISABLEBUTTON, &swb );
-    
-                swb.number = GSID_KYTERNESER;
-                if( l->races & 64 )
-                    _methoda( GSR->bnet, BTM_ENABLEBUTTON, &swb );
-                else
-                    _methoda( GSR->bnet, BTM_DISABLEBUTTON, &swb );
-    
-                swb.number = GSID_MYKONIER;
-                if( l->races & 8 )
-                    _methoda( GSR->bnet, BTM_ENABLEBUTTON, &swb );
-                else
-                    _methoda( GSR->bnet, BTM_DISABLEBUTTON, &swb );
-    
-                swb.number = GSID_TAERKASTEN;
-                if( l->races & 16 )
-                    _methoda( GSR->bnet, BTM_ENABLEBUTTON, &swb );
-                else
-                    _methoda( GSR->bnet, BTM_DISABLEBUTTON, &swb );
-    
+                    }
+        
                 /*** Rassenauswahl "pressen" ***/
                 sbs.who = 0;
                 switch( GSR->SelRace ) {
@@ -6028,7 +6054,8 @@ void yw_CloseConfirmRequester( struct GameShellReq *GSR )
 
 
 
-void yw_OpenConfirmRequester( struct GameShellReq *GSR, ULONG modus, char *text, ULONG type )
+void yw_OpenConfirmRequester( struct GameShellReq *GSR, ULONG modus, char *text, 
+                               char *text2, ULONG type )
 {
 /*
 **  FUNCTION    Oeffnet einen Requester um eine Aktion zu bestaetigen. Dieser
@@ -6083,7 +6110,15 @@ void yw_OpenConfirmRequester( struct GameShellReq *GSR, ULONG modus, char *text,
     ss.unpressed_text = text;
     ss.pressed_text   = NULL;
     ss.number         = GSID_CONFIRMTEXT;
-    _methoda( GSR->confirm, BTM_SETSTRING, &ss );  
+    _methoda( GSR->confirm, BTM_SETSTRING, &ss );
+    
+    if( text2 )  
+        ss.unpressed_text = text2;
+    else
+        ss.unpressed_text = " ";
+    ss.pressed_text   = NULL;
+    ss.number         = GSID_CONFIRMTEXT2;
+    _methoda( GSR->confirm, BTM_SETSTRING, &ss );
 
     /*** nicht darstellen ***/
     sp.modus = SP_PUBLISH;
@@ -6193,7 +6228,7 @@ void yw_CheckCDStatus( struct GameShellReq *GSR )
     cdm.cd                 = GSR->cd;
     cdm.generic.message_id = YPAM_CD;
     cdm.generic.owner      = 0; // weil nicht feststehend
-
+        
     sm.data                = (char *) &cdm;
     sm.data_size           = sizeof( cdm );
     sm.receiver_kind       = MSG_ALL;
@@ -6203,7 +6238,7 @@ void yw_CheckCDStatus( struct GameShellReq *GSR )
 }
 
 
-char *yw_NotEnoughCDs( struct GameShellReq *GSR )
+BOOL yw_NotEnoughCDs( struct GameShellReq *GSR, char **t1, char **t2 )
 {
     /* ----------------------------------------------
     ** Sieht nach, ob die CDs reichen. Gibt NULL oder
@@ -6218,14 +6253,22 @@ char *yw_NotEnoughCDs( struct GameShellReq *GSR )
         if( GSR->player2[ i ].cd )
             num_cds++;
             
-    if( (num_players > 3) && (num_cds < 2) )
-        return( ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_NEED2CD, 
-                 "YOU NEED 2 CD TO START 4 PLAYER GAME")); 
+    if( (num_players > 3) && (num_cds < 2) ) {
+        *t1 = ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_NEED2CD, 
+                 "YOU NEED 2 CD TO START 4 PLAYER GAME"); 
+        *t2 = ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_NEED2CD2, 
+                 "2444"); 
+        return( TRUE );
+        }
         
-    if( num_cds < 1 )
-        return( ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_NEEDCD, 
-                 "YOU NEED A CD TO START THIS GAME")); 
+    if( num_cds < 1 ) {
+        *t1 =  ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_NEEDCD, 
+                 "YOU NEED A CD TO START THIS GAME"); 
+        *t2 =  ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_NEEDCD2, 
+                 "2443"); 
+        return( TRUE );
+        }
 
-    return( NULL );
+    return( FALSE );
 }        
         

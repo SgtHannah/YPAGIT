@@ -707,7 +707,6 @@ struct ypamessage_cd {                         // hat sich geaendert
     //+++++++++++++++++++++++++++++++++++++
     
     UBYTE   cd;                                 // 0 oder nicht 0, je nachdem
-    UBYTE   p[3];
 };
     
 #endif

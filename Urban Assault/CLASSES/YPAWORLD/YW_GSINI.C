@@ -428,7 +428,7 @@ _dispatcher( BOOL, yw_YWM_INITGAMESHELL, struct GameShellReq *GSR )
             ** ---------------------------------------------------------*/    
             yw_LocStrCpy( ywd->gsr->NPlayerName, crs.name );
 
-            if( crs.is_host )
+            if( crs.is_host ) 
                 ywd->gsr->is_host = 1;
             else
                 ywd->gsr->is_host = 0;
@@ -454,6 +454,7 @@ _dispatcher( BOOL, yw_YWM_INITGAMESHELL, struct GameShellReq *GSR )
                     }
                     
                 GSR->player2[ gpd.number ].ready_to_start = 1;
+                GSR->ReadyToStart = TRUE;
                 
                 GSR->n_selmode = NM_LEVEL;
                 }                         
@@ -1246,7 +1247,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
     nb.disabled_font = FONTID_ENERGY;
     nb.modus         = BM_GADGET;
     nb.x             = GET_X_COORD(160);
-    nb.y             = GET_Y_COORD(245);
+    nb.y             = GET_Y_COORD(255);
     nb.w             = GET_X_COORD(80);
     nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_OK, "OK");
     nb.pressed_text  = NULL;
@@ -1278,7 +1279,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
       nb.disabled_font = FONTID_MAPCUR_4;
       nb.modus         = BM_STRING;
       nb.x             = GET_X_COORD(160);
-      nb.y             = GET_Y_COORD(225);
+      nb.y             = GET_Y_COORD(210);
       nb.w             = GET_X_COORD(320);
       nb.unpressed_text= " ";
       nb.pressed_text  = NULL;
@@ -1294,7 +1295,16 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
 
       if( _methoda( GSR->confirm, BTM_NEWBUTTON, &nb ) ) {
        
-       button_ok = TRUE;
+       nb.y             = GET_Y_COORD(225);
+       nb.unpressed_text= " ";
+       nb.pressed_text  = NULL;
+       nb.ID            = GSID_CONFIRMTEXT2;
+       nb.flags         = BT_TEXT|BT_CENTRE;
+
+       if( _methoda( GSR->confirm, BTM_NEWBUTTON, &nb ) ) {
+       
+        button_ok = TRUE;
+        }
        }
       }
      } 

@@ -798,6 +798,7 @@ struct GameShellReq {
 #define GSID_CONFIRMOK      1300
 #define GSID_CONFIRMCANCEL  1301
 #define GSID_CONFIRMTEXT    1302
+#define GSID_CONFIRMTEXT2   1303
 
 #define GSID_OBJECT_INPUT   2000    // das gesamte Inputobjekt, also dessen ID im Req.
 #define GSID_OBJECT_PLAY    2001    // das gesamte Playobjekt,  also dessen ID im Req.

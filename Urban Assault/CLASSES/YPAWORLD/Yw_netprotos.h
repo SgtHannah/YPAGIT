@@ -53,5 +53,5 @@ void yw_TellAboutCheckSum( struct ypaworld_data *ywd );
 void yw_DisConnectFromRobo( struct ypaworld_data *ywd, struct OBNode *vehicle );
 char *yw_CorpsesInCellar( struct GameShellReq *GSR );
 void yw_CheckCDStatus( struct GameShellReq *GSR );
-char *yw_NotEnoughCDs( struct GameShellReq *GSR );
+BOOL yw_NotEnoughCDs( struct GameShellReq *GSR, char **t1, char **t2 );
 
