@@ -618,7 +618,7 @@ BEGIN
     641, "Next"
     642, "Last Saved"
     643, "Start Mission"
-    644, "Main Menu"
+    644, "Exit"
     645, "<>"
     646, "<>"
     647, "<>"
