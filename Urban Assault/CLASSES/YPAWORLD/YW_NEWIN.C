@@ -2281,6 +2281,7 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
 **                            zurueck
 **      06-Jun-98   floh    + VhclSectorRatio initialisiert
 **      29-Jun-98   floh    + ywd->BeamEnergyStore wird zurueckgesetzt
+**      02-Jun-98   floh    + ywd->UserInvulnerable 
 */
 {
     BOOL retval = FALSE;
@@ -2328,6 +2329,7 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
     ywd->UserRoboDied         = FALSE;
     ywd->VehicleSectorRatio   = 0.0;
     ywd->BeamEnergyStore      = 0;
+    ywd->UserInvulnerable     = FALSE;
 
     memset(&(ywd->Level->Gate),0,sizeof(ywd->Level->Gate));
     memset(&(ywd->Level->Item),0,sizeof(ywd->Level->Item));

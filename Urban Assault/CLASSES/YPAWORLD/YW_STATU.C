@@ -2273,7 +2273,7 @@ void yw_SRHandleVehicleSwitch(struct ypaworld_data *ywd,
             FR.l.Req.req_cbox.rect = ywd->Prefs.VhclFinderStatus.Rect;
             yw_ListSetRect(ywd,&(FR.l),-2,-2);
         };
-    } else if (ACTION_DEAD == act_vhcl->BactClassID) {
+    } else if (ACTION_DEAD == act_vhcl->MainState) {
         /*** von einem toten Vehikel in ein lebendes Vehikel? ***/
         if (ywd->Prefs.VhclMapStatus.IsValid && ywd->Prefs.VhclMapStatus.IsOpen) {
             yw_OpenReq(ywd,&(MR.req));
@@ -2283,7 +2283,12 @@ void yw_SRHandleVehicleSwitch(struct ypaworld_data *ywd,
             yw_OpenReq(ywd,&(FR.l.Req));
             yw_ReqToFront(ywd,&(FR.l.Req));
         };
+        /*** falls es sich nicht um den Robo handelt, Invulnerabe Flag setzen ***/
+        if (BCLID_YPAROBO != new_vhcl->BactClassID) ywd->UserInvulnerable = TRUE;
     };        
+    
+    /*** generell, falls in einen Nicht-Robo geschaltet, Lock On Viewer an ***/
+    if (BCLID_YPAROBO != new_vhcl->BactClassID) MR.lock_mode = MAP_LOCK_VIEWER; 
 }         
 
 /*-----------------------------------------------------------------*/

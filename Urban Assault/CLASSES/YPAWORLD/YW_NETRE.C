@@ -442,10 +442,8 @@ BOOL yw_LaunchChatSample( struct ypaworld_data *ywd, WORD number )
 
     /*** altes Sample freigeben ***/
     if( ywd->gsr->ChatObject ) {
-
-        /*** Muß ein EndSoundSource sein??? ***/
-        //_EndSoundSource( &( ywd->gsr->ChatSound ), 0 );
-
+        _EndSoundSource(&(ywd->gsr->ChatSound), 0);
+        _KillSoundCarrier(&(ywd->gsr->ChatSound));
         _dispose( ywd->gsr->ChatObject );
         ywd->gsr->ChatObject = NULL;
         }
@@ -456,7 +454,7 @@ BOOL yw_LaunchChatSample( struct ypaworld_data *ywd, WORD number )
     if( ywd->gsr->ChatObject = _new( "wav.class", RSA_Name, filename, TAG_DONE) ) {
 
         /*** Sample holen ***/
-        _get( ywd->gsr->ChatObject, SMPA_Sample, &( ywd->gsr->ChatSound.src[ 0 ].sample));
+        _InitSoundCarrier(&(ywd->gsr->ChatSound));
 
         /*** Soundstruktur ausfüllen für pos und Richtung ***/
         ywd->gsr->ChatSound.vec.x = 0.0;
@@ -467,9 +465,10 @@ BOOL yw_LaunchChatSample( struct ypaworld_data *ywd, WORD number )
         ywd->gsr->ChatSound.pos.z = 0.0;
         ywd->gsr->ChatSound.src[ 0 ].volume = 500;
         ywd->gsr->ChatSound.src[ 0 ].pitch  = 0;
+        _get(ywd->gsr->ChatObject, SMPA_Sample, &(ywd->gsr->ChatSound.src[0].sample));
 
         /*** Abfeuern ***/
-        _StartSoundSource( &( ywd->gsr->ChatSound), 0 );
+        _StartSoundSource(&(ywd->gsr->ChatSound),0);
 
         /*** Pfad wieder rücksetzen ***/
         _SetAssign("rsrc",old_path);

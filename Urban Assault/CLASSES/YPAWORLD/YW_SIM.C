@@ -159,6 +159,9 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
     /*** Feuertaste wegloeschen? ***/
     if ((ywd->TimeStamp - ywd->UserVehicleTimeStamp) < 500) ip->Buttons &= ~(BT_FIRE);    
 
+    /*** Unverwundbarkeits-Flag loeschen? ***/
+    if ((ywd->TimeStamp - ywd->UserVehicleTimeStamp) > 3000) ywd->UserInvulnerable = FALSE; 
+
     /*** Joystick disable? ***/
     if (ywd->Prefs.valid && (ywd->Prefs.Flags & YPA_PREFS_JOYDISABLE)) {
         joy_disable = TRUE;
@@ -610,6 +613,7 @@ void yw_PutDebugInfo(struct ypaworld_data *ywd, struct VFMInput *ip)
 **      28-Feb-98   floh    + sollte jetzt mit DBCS Strings arbeiten
 **      14-May-98   floh    + neue Page fuer Input-Info
 **      06-Jun-98   floh    + paar neue Debuganzeigen
+**      02-Jul-98   floh    + UserInvulnerable Yes/No
 */
 {
     if (ywd->DebugInfo) {
@@ -681,6 +685,8 @@ void yw_PutDebugInfo(struct ypaworld_data *ywd, struct VFMInput *ip)
                 str = yw_PutDbgMsg(ywd,str,&buf_ptr,"rld ratio: %8.2f,%8.2f,%8.2f,%8.2f,%8.2f,%8.2f,%8.2f,%8.2f",
                                    ywd->RoughRatio[0],ywd->RoughRatio[1],ywd->RoughRatio[2],ywd->RoughRatio[3],
                                    ywd->RoughRatio[4],ywd->RoughRatio[5],ywd->RoughRatio[6],ywd->RoughRatio[7]);
+                new_line(str);
+                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"invulnerable: %s",ywd->UserInvulnerable ? "YES" : "NO");
                 new_line(str);
             break;
 

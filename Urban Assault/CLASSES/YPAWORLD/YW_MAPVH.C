@@ -1217,6 +1217,7 @@ UBYTE *yw_RenderMapCursors(struct ypaworld_data *ywd, UBYTE *str)
 **                            zeichnen.
 **      13-Jun-98   floh    + Fahrzeug-Anzahl ueber offene Beamgates
 **      17-Jun-98   floh    + possibly selected ueber Robo war wieder broken
+**      02-Jul-98   floh    + Energie-Anzeige ueber Beamgates jetzt einstellig 
 */
 {
     /*** FontID und Size für Sector-Cursors ***/
@@ -1478,10 +1479,14 @@ UBYTE *yw_RenderMapCursors(struct ypaworld_data *ywd, UBYTE *str)
     for (i=0; i<ywd->Level->NumGates; i++) {
         struct Gate *g = &(ywd->Level->Gate[i]);
         if (WTYPE_OpenedGate == g->sec->WType) {
-            LONG b_energy = yw_CountVehicleEnergyInSector(ywd,g->sec);
+            LONG b_energy = yw_CountVehicleEnergyInSector(ywd,g->sec) * CREATE_ENERGY_FACTOR;
+            LONG act_energy = ywd->ActBeamEnergy * CREATE_ENERGY_FACTOR;
             UBYTE buf[32];
-            sprintf(buf,"%d/%d",b_energy*CREATE_ENERGY_FACTOR,ywd->ActBeamEnergy*CREATE_ENERGY_FACTOR);
-            str = yw_MapString(ywd,buf,FONTID_LTRACY,str,g->sec_x,g->sec_y);
+            ULONG show = TRUE;
+            LONG diff = act_energy - b_energy;
+            sprintf(buf,"%+d",diff);
+            if (diff <= 0) show = (ywd->TimeStamp / 300) & 1;
+            if (show) str = yw_MapString(ywd,buf,FONTID_LTRACY,str,g->sec_x,g->sec_y);
         };
     };
     

@@ -373,11 +373,13 @@ void yw_getAttrs(Object *o, struct ypaworld_data *ywd, struct TagItem *attrs)
                         *value = (ULONG) ywd->NumDestFX;
                         break;
 
-                    #ifdef __NETWORK__
                     case YWA_NetObject:
                         *value = (ULONG) ywd->nwo;
                         break;
-                    #endif
+
+                    case YWA_Invulnerable:
+                        *value = (ULONG) ywd->UserInvulnerable;
+                        break;
                 };
         };
     };

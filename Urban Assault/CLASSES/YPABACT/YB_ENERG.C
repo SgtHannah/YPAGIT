@@ -109,6 +109,12 @@ _dispatcher(void, yb_YBM_MODVEHICLEENERGY, struct modvehicleenergy_msg *mve)
     struct ypamessage_vehicleenergy re;
     struct sendmessage_msg sm;
 
+    // FIXME FLOH: Invulnerable Flag checken...
+    if (ybd->world && (ybd->flags & YBF_Viewer)) {
+        ULONG invul;
+        _get(ybd->world,YWA_Invulnerable,&invul);
+        if (invul && (mve->energy > -1000000)) return;
+    };  
 
     /*** Ein Netzwerkspiel? ***/
     ywd = INST_DATA( ((struct nucleusdata *)ybd->world)->o_Class, ybd->world);

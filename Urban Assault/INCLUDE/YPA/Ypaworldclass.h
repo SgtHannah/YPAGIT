@@ -1005,6 +1005,7 @@
 #define YWA_NetObject           (YWA_BASE+28)  /* (G) */
 #define YWA_Version             (YWA_BASE+29)  /* (I) */
 #define YWA_DontRender          (YWA_BASE+30)  /* (S) */
+#define YWA_Invulnerable        (YWA_BASE+31)  /* (G) */
 
 /*-------------------------------------------------------------------
 **  Default-Werte für Attribute
@@ -2056,6 +2057,7 @@ struct ypaworld_data {
     LONG WeaponHitTimeStamp;    // TimeStamp des letzten WeaponHit
     FLOAT WeaponHitPower;       // Power des letzten Weaponhit
     LONG PowerAttackTimeStamp;  // Powerstation under Attack Msg Timestamp
+    ULONG UserInvulnerable;     // TRUE, wenn User unverwundbar ist
 
     /*** Dynamic Layout-Stuff ***/
     LONG FontH;                 // Standard-Font-Höhe
