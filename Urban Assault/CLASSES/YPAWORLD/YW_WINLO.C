@@ -153,16 +153,8 @@ void yw_LaunchOnlineHelp(char *url)
 {
     if (win_HWnd) {
         HINSTANCE inst;
-        char cwd_buf[512];
-        char url_buf[512];
-        if (getcwd(cwd_buf,sizeof(cwd_buf))) {
-            strcpy(url_buf,"file://");
-            strcat(url_buf,cwd_buf);
-            strcat(url_buf,"\\");
-            strcat(url_buf,url);
-            ShowWindow(win_HWnd,SW_MINIMIZE);
-            inst = ShellExecute(win_HWnd,NULL,url_buf,NULL,NULL,SW_RESTORE);
-        };
+        ShowWindow(win_HWnd,SW_MINIMIZE);
+        inst = ShellExecute(win_HWnd,NULL,url,NULL,NULL,SW_RESTORE);
     };
 }
 

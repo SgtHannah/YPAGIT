@@ -712,7 +712,7 @@ void yw_RenderSuperItemStatus(struct ypaworld_data *ywd)
                 do_line = TRUE;
 
             }else if (item->status == SI_STATUS_TRIGGERED){
-                sprintf(line_buf,"%s: TRIGGERED.",name);
+                sprintf(line_buf,"%s: %s",name,ypa_GetStr(ywd->LocHandle,STR_SUPERITEM_TRIGGERED,"2471 == TRIGGERED"));
                 do_line = TRUE;
             };
 

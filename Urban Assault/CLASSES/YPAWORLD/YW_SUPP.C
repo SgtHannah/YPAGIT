@@ -1206,6 +1206,7 @@ _dispatcher(void, yw_YWM_ONLINEHELP, struct yw_onlinehelp_msg *msg)
     if (gfx && msg->url && (!ywd->playing_network)) {
         UBYTE buf[256];
         _ManglePath(msg->url,buf,sizeof(buf));
+        _LogMsg("Online help launched with path %s.\n",buf);
         yw_LaunchOnlineHelp(buf);
     };
 }

@@ -355,7 +355,7 @@ void yw_StartVoiceOver(struct ypaworld_data *ywd,
                 case LOGMSG_USERROBODANGER:
                     group=2; line=1; col1=2; col2=1; num_vars=1; break;
                 case LOGMSG_HOST_WELCOMEBACK:
-                    group=2; line=1; col1=2; col2=2; num_vars=1; break;
+                    group=3; line=0; col1=1; col2=7; num_vars=1; break;
                 case LOGMSG_HOST_ENERGY_CRITICAL:
                     group=2; line=1; col1=2; col2=3; num_vars=1; break;
                 case LOGMSG_HOST_ONLINE:
