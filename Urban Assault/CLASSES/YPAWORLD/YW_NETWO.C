@@ -1003,7 +1003,7 @@ void yw_HandleNetMessages( struct ypaworld_data *ywd )
         struct ypamessage_welcome wm;
         char   text[ 200 ], text2[ 100 ], error_sender[ 200 ];
         struct logmsg_msg log;
-        BOOL   player_found;
+        BOOL   player_found, own_player;
         char  *e = NULL;
 
         ywd->gsr->transfer_rcvcount += rm.size;
@@ -1110,9 +1110,12 @@ void yw_HandleNetMessages( struct ypaworld_data *ywd )
                 ** mit GETPLAYERDATA, weil ich schon tot bin!
                 ** -----------------------------------------------------*/
                 player_found = FALSE;
+                own_player   = FALSE;
 
-                if( stricmp( ywd->gsr->NPlayerName, (char *)(rm.data) ) == 0 )
+                if( stricmp( ywd->gsr->NPlayerName, (char *)(rm.data) ) == 0 ) {
                     ywd->Level->Status = LEVELSTAT_ABORTED;
+                    own_player = TRUE;
+                    }
 
                 /*** player2-Eintrag killen, weil Offsets sich ändern ***/
                 for( i=0; i < MAXNUM_PLAYERS; i++ ) {
@@ -1133,29 +1136,41 @@ void yw_HandleNetMessages( struct ypaworld_data *ywd )
                 yw_NetLog(">>> Received a destroy player for %s at %d\n",
                            (char *)(rm.data), ywd->TimeStamp/1000 );
 
-                /*** wenn  das Spiel schon gestartet wurde ... ***/
-                if( ywd->netgamestartet && player_found ) {
-
+                /* ------------------------------------------------------------
+                ** wenn  das Spiel schon gestartet wurde ... 
+                ** Es koennen aber DESTROY-Messages kommen, wenn netgamestartet
+                ** noch nicht gesetzt ist, weil einige noch laden. Ich muss
+                ** also mit Laden fertig sein.
+                ** ----------------------------------------------------------*/
+                if( (FALSE == ywd->gsr->ShellOpen) && player_found ) {
+                
+                    BOOL kick_off    = FALSE;
+                    
                     /*** Gegangen oder rausgeschmissen? ***/
                     for( i = 0; i < 8; i++ ) {
 
                         if( stricmp( ywd->gsr->player[ i ].name, (char *)(rm.data) ) == 0 ) {
-                            if( NWS_LEFTGAME != ywd->gsr->player[i].status)
+                            if( NWS_LEFTGAME != ywd->gsr->player[i].status) 
                                 ywd->gsr->player[i].status = NWS_REMOVED;
+                            if( FALSE == ywd->gsr->player[i].was_killed )
+                                kick_off = TRUE;
                             break;
                             }
                         }
-
-
-                    /*** Name "groß" machen ***/
-                    yw_StrUpper2( text2, rm.data );
-                    sprintf( text, "%s %s", text2,  ypa_GetStr( GlobalLocaleHandle,
-                             STR_NET_REMOVEPLAYER, " LEFT THE GAME") );
-                    log.pri  = 10;
-                    log.msg  = text;
-                    log.bact = NULL;
-                    log.code = 0;
-                    _methoda( ywd->world, YWM_LOGMSG, &log );
+                        
+                    /* ---------------------------------------------------------
+                    ** Wenn es ein Rausschmiss war, dann Fehlermeldung. Das wird
+                    ** eigentlich an anderen Stellen gemacht, aber es gibt eine
+                    ** Ausnahme, die ich nicht abfangen, kann: DESTROYPLAYER
+                    ** kommt vor netgametstartet
+                    ** -------------------------------------------------------*/
+                    if( (FALSE == ywd->netgamestartet) && 
+                        (FALSE == own_player) &&
+                        (NETWORKTROUBLE_KICKOFF_YOU != ywd->gsr->network_trouble) ) {
+                        
+                        ywd->gsr->network_trouble       = NETWORKTROUBLE_KICKOFF_PLAYER;
+                        ywd->gsr->network_trouble_count = KICKOFF_PLAYER_COUNT;
+                        }
 
                     yw_RemovePlayerStuff( ywd, rm.data, 0, 0 );
                     }
@@ -2792,12 +2807,15 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
                     struct logmsg_msg log;
 
                     /*** Der Spieler ist der letzte Lebendige ***/
-                    log.pri  = 10;
-                    log.msg  = ypa_GetStr( GlobalLocaleHandle,
-                               STR_LMSG_YOUWIN, "YOU WIN THE GAME");
-                    log.bact = NULL;
-                    log.code = 0;
-                    _methoda( ywd->world, YWM_LOGMSG, &log );
+                    //log.pri  = 10;
+                    //log.msg  = ypa_GetStr( GlobalLocaleHandle,
+                    //           STR_LMSG_YOUWIN, "YOU WIN THE GAME");
+                    //log.bact = NULL;
+                    //log.code = 0;
+                    //_methoda( ywd->world, YWM_LOGMSG, &log );
+                    
+                    ywd->netplayerstatus.kind = NPS_YOUWIN;
+                    ywd->netplayerstatus.time = ywd->TimeStamp;
                     }
                 else {
                 
@@ -2812,24 +2830,38 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
                     
                     if( rd->killerowner ) {
                         
-                        if( rd->killerowner == ywd->gsr->NPlayerOwner)
-                            sprintf( t, "%s  %s",
-                                 ypa_GetStr( GlobalLocaleHandle, 
-                                             STR_LMSG_YOUKILLED,
-                                             "YOU KILLED"),
-                                 rm->sender_id );               
-                        else    
-                            sprintf( t, "%s  %s  %s", rm->sender_id,
-                                 ypa_GetStr( GlobalLocaleHandle, 
-                                             STR_LMSG_WASKILLEDBY,
-                                             "WAS KILLED BY"),
-                                 ywd->gsr->player[ rd->killerowner ].name );
+                        if( rd->killerowner == ywd->gsr->NPlayerOwner) {
+                            //sprintf( t, "%s  %s",
+                            //     ypa_GetStr( GlobalLocaleHandle, 
+                            //                 STR_LMSG_YOUKILLED,
+                            //                 "YOU KILLED"),
+                            //     rm->sender_id );
+                            ywd->netplayerstatus.kind = NPS_YOUKILLED;
+                            ywd->netplayerstatus.time = ywd->TimeStamp;
+                            strcpy( ywd->netplayerstatus.name, rm->sender_id );
+                            }               
+                        else {   
+                            //sprintf( t, "%s  %s  %s", rm->sender_id,
+                            //     ypa_GetStr( GlobalLocaleHandle, 
+                            //                 STR_LMSG_WASKILLEDBY,
+                            //                 "WAS KILLED BY"),
+                            //     ywd->gsr->player[ rd->killerowner ].name );
+                            ywd->netplayerstatus.kind = NPS_WASKILLED;
+                            ywd->netplayerstatus.time = ywd->TimeStamp;
+                            strcpy( ywd->netplayerstatus.name, rm->sender_id );
+                            strcpy( ywd->netplayerstatus.data, ywd->gsr->player[ rd->killerowner ].name);
+                            }
                         }         
-                    else
-                        sprintf( t, "%s  %s", rm->sender_id,                   
-                                 ypa_GetStr( GlobalLocaleHandle, 
-                                             STR_LMSG_HASDIED,
-                                             "HAS DIED"));
+                    else {
+                        //sprintf( t, "%s  %s", rm->sender_id,                   
+                        //         ypa_GetStr( GlobalLocaleHandle, 
+                        //                     STR_LMSG_HASDIED,
+                        //                     "HAS DIED"));
+                        ywd->netplayerstatus.kind = NPS_HASDIED;
+                        ywd->netplayerstatus.time = ywd->TimeStamp;
+                        strcpy( ywd->netplayerstatus.name, rm->sender_id );
+                        }
+                        
                     log.pri  = 50;  // wie die normale ROBODEAD-message
                     log.msg  = t;
                     log.bact = NULL;
@@ -3017,7 +3049,7 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
                         log.pri  = 10;
                         log.msg  = text;
                         log.bact = NULL;
-                        log.code = 0;
+                        log.code = LOGMSG_CHAT;
                         _methoda( ywd->world, YWM_LOGMSG, &log );
                         }
                     else {
@@ -3951,6 +3983,10 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
 
             yw_NetLog(">>> received ANNOUNCEQUIT from %s at %d\n",
                        rm->sender_id, ywd->TimeStamp/1000 );
+                       
+            ywd->netplayerstatus.kind = NPS_HASLEFT;
+            ywd->netplayerstatus.time = ywd->TimeStamp;
+            strcpy( ywd->netplayerstatus.name, rm->sender_id );
 
             ywd->gsr->player[ owner ].status = NWS_LEFTGAME;
             break;
