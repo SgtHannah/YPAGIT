@@ -2132,7 +2132,10 @@ _dispatcher(ULONG, yw_YWM_ADVANCEDCREATELEVEL, struct createlevel_msg *msg)
         if (!retval) _LogMsg("Warning: in YWM_ADVANCEDCREATELEVEL: YWM_LOADGAME of %s failed!\n",name);
         
         /*** User-Robo-Energie auf MaxEnergie patchen ***/
-        ywd->URBact->Energy = ywd->URBact->Maximum;    
+        ywd->URBact->Energy = ywd->URBact->Maximum;
+        
+        /*** falls ein Tutorial-Level, die Eventloop abschalten ***/
+        if (ywd->EventCatcher) ywd->EventCatcher->event_loop_id = 0;    
     
     } else {
         retval = _methoda(o,YWM_CREATELEVEL,msg);

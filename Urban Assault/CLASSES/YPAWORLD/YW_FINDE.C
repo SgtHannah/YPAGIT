@@ -378,6 +378,15 @@ UBYTE *yw_FRBuildCmdrItem(struct ypaworld_data *ywd,
 
     /*** Cursor auf Start des str_buf-Strings ***/
     xpos_rel(str,-(FR.l.ActEntryWidth - 2*ywd->EdgeW + 1));
+    
+    /*** FIXME! ***/
+    //{
+    //    UBYTE buf[32];
+    //    new_font(str,FONTID_DEFAULT);
+    //    freeze_dbcs_pos(str);
+    //    sprintf(buf,"0x%lx",(cmdr->CommandID & 0x0fff));
+    //    put_dbcs(str,FR.l.ActEntryWidth,DBCSF_LEFTALIGN,buf);
+    //}
 
     /*** und das Geschwader (geclippt) ***/
     new_font(str,FONTID_TYPE_NS);

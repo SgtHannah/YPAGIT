@@ -1628,9 +1628,9 @@ UBYTE *yw_LayoutVsValues(struct ypaworld_data *ywd, UBYTE *str)
         ypos += ywd->FontH;
         str = yw_RenderVsLine(ywd,str,xpos,ypos,ypa_GetStr(ywd->LocHandle,STR_VSHELI,"2477 == VS HELI:"),vs_heli,w);
         ypos += ywd->FontH;
-        str = yw_RenderVsLine(ywd,str,xpos,ypos,ypa_GetStr(ywd->LocHandle,STR_VSCONQUER,"2478 == CAPTURE:"),vs_ground,w);
+        str = yw_RenderVsLine(ywd,str,xpos,ypos,ypa_GetStr(ywd->LocHandle,STR_VSCONQUER,"2479 == CAPTURE:"),vs_ground,w);
         ypos += ywd->FontH;
-        str = yw_RenderVsLine(ywd,str,xpos,ypos,ypa_GetStr(ywd->LocHandle,STR_VSRECON,"2479 == RECON:"),vs_recon,w);
+        str = yw_RenderVsLine(ywd,str,xpos,ypos,ypa_GetStr(ywd->LocHandle,STR_VSRECON,"2478 == RECON:"),vs_recon,w);
     };
     return(str);
 }

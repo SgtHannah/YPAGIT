@@ -1217,6 +1217,7 @@ UBYTE *yw_RenderMapCursors(struct ypaworld_data *ywd, UBYTE *str)
 **                            ausgewaehlten Geschwaders einen Orts-Cursor
 **                            zeichnen.
 **      13-Jun-98   floh    + Fahrzeug-Anzahl ueber offene Beamgates
+**      17-Jun-98   floh    + possibly selected ueber Robo war wieder broken
 */
 {
     /*** FontID und Size für Sector-Cursors ***/
@@ -1287,19 +1288,21 @@ UBYTE *yw_RenderMapCursors(struct ypaworld_data *ywd, UBYTE *str)
         case YW_ACTION_SELECT:
             /*** nur, wenn nicht DragSelecting ***/
             if (!(MR.flags & MAPF_DRAGGING)) {
-                if (ywd->SelBact && (ywd->SelBact != ywd->URBact)) {
-                    struct Bacterium *sel = yw_GetCommander(ywd->SelBact);
-                    if (sel) {
-                        /*** ein normales Squad... ***/
-                        str = yw_CursorsOverSquad(ywd, str,
-                              sel, vhc_fid, MAP_CURSOR_POSSEL,
-                              vhc_width, vhc_height);
-                    } else if (ywd->SelBact == ywd->URBact) {
+                if (ywd->SelBact) {
+                    if (ywd->SelBact == ywd->URBact) {
                         /*** Sonderfall Robo ***/
                         ULONG size = ywd->Fonts[MAP_FONT_ROBO]->height;
                         str = yw_MapFontChar(str,MAP_FONT_ROBO,
                                          ywd->SelBact->pos.x, ywd->SelBact->pos.z,
                                          robo_posselchar, size, size);
+                    } else {                    
+                        struct Bacterium *sel = yw_GetCommander(ywd->SelBact);
+                        if (sel) {
+                            /*** ein normales Squad... ***/
+                            str = yw_CursorsOverSquad(ywd, str,
+                                  sel, vhc_fid, MAP_CURSOR_POSSEL,
+                                  vhc_width, vhc_height);
+                        };
                     };
                 };
             };

@@ -124,6 +124,7 @@ void yw_DoLevelStatus(struct ypaworld_data *ywd)
 **                            gekennzeichnet, auch wenn er gewonnen
 **                            wurde. Die Target-Level werden aber
 **                            trotzdem aufgeschaltet...
+**      17-Jun-98   floh    + ... und wieder raus.
 */
 {
     switch(ywd->Level->Status) {
@@ -141,12 +142,8 @@ void yw_DoLevelStatus(struct ypaworld_data *ywd)
                 struct LevelNode *l = &(ywd->LevelNet->Levels[0]);
                 struct Gate *g = &(ywd->Level->Gate[ywd->Level->BeamGate]);
                 
-                if (ywd->EventCatcher && (ywd->EventCatcher->event_loop_id != 0)) {
-                    ywd->Level->Status = LEVELSTAT_ABORTED;
-                } else {
-                    /*** aktuellen Level als Finished markieren ***/
-                    l[ywd->Level->Num].status = LNSTAT_FINISHED;
-                };
+                /*** aktuellen Level als Finished markieren ***/
+                l[ywd->Level->Num].status = LNSTAT_FINISHED;
 
                 /*** Target-Levels aufschlieﬂen ***/
                 for (i=0; i<g->num_targets; i++) {

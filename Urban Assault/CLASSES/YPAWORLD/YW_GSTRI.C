@@ -1882,7 +1882,7 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                     gt.cancel_text  = ypa_GetStr( GlobalLocaleHandle, STR_CANCEL, "CANCEL");
                     gt.default_text = GSR->D_Name;
                     gt.timer_func   = NULL;
-                    gt.max_text_len = STANDARD_NAMELEN;
+                    gt.max_text_len = USERNAMELEN;
                     gt.flags        = WINDDF_GETTEXT_ISFILENAME;
                     _methoda( GSR->ywd->GfxObject, WINDDM_GetText, &gt );
                     if( gt.result ) {
@@ -1926,7 +1926,7 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                     gt.cancel_text  = ypa_GetStr( GlobalLocaleHandle, STR_CANCEL, "CANCEL");
                     gt.default_text = GSR->D_Name;
                     gt.timer_func   = NULL;
-                    gt.max_text_len = STANDARD_NAMELEN;
+                    gt.max_text_len = USERNAMELEN;
                     gt.flags        = WINDDF_GETTEXT_ISFILENAME;
                     _methoda( GSR->ywd->GfxObject, WINDDM_GetText, &gt );
                     if( gt.result ) {

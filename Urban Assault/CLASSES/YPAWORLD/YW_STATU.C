@@ -796,12 +796,14 @@ int yw_SRCmdrCompareHook(struct Bacterium **p_b1, struct Bacterium **p_b2)
 **
 **  CHANGED
 **      12-Jun-98   floh    created
+**      17-Jun-98   floh    der evtl. vorhandene Owner-Code in der
+**                          CommandID wird jetzt rausgefiltert.
 */
 {
     struct Bacterium *b1 = *p_b1;
     struct Bacterium *b2 = *p_b2;
-    LONG val1 = (LONG) b1->CommandID;
-    LONG val2 = (LONG) b2->CommandID;
+    LONG val1 = (LONG) (b1->CommandID & 0x0fff);
+    LONG val2 = (LONG) (b2->CommandID & 0x0fff);
     return(val1-val2);
 }
 
@@ -989,6 +991,9 @@ void yw_RemapCommanders(struct ypaworld_data *ywd)
 **      20-May-98   floh    + fuellt jetzt auch den LastMessageSender aus
 **      12-Jun-98   floh    + wird jetzt sortiert
 **                          + ACTION_BEAM wird rausgefiltert
+**      17-Jun-98   floh    + die Sortierung der Geschwader hat manchmal nicht
+**                            geklappt, weil manche CommandIDs den Owner-Code
+**                            draufgeodert haben, manche nicht.
 */
 {
     struct MinList *l;
