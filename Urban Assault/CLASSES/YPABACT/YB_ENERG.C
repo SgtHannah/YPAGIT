@@ -216,6 +216,10 @@ _dispatcher(void, yb_YBM_MODSECTORENERGY, struct energymod_msg *mse)
         msm.pos.z              = mse->pnt.z;
         msm.energy             = mse->energy;
         msm.sectorowner        = owner;
+        if( mse->hitman )
+            msm.hitman         = mse->hitman->ident;
+        else
+            msm.hitman         = 0L;  
 
         sm.receiver_id         = NULL;
         sm.receiver_kind       = MSG_ALL;
