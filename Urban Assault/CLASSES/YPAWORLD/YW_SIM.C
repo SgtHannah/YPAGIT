@@ -41,9 +41,7 @@
 #include "yw_gsprotos.h"
 #include "yw_netprotos.h"
 
-#ifdef __NETWORK__
 #include "network/networkclass.h"
-#endif
 
 /*-----------------------------------------------------------------*/
 _extern_use_nucleus
@@ -140,6 +138,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
 **      05-Dec-97   floh    + rechter Mausklick wird nicht mehr ueber Statusreq
 **                            akzeptiert, und nicht, wenn NEW,ADD,BUILD,BEAM oder
 **                            CONTROL aktiviert ist.
+**      15-May-98   floh    + Joystick-Handling umgeschrieben...
 */
 {
     struct ClickInfo *ci = &(ip->ClickInfo);
@@ -212,7 +211,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
         ip->Slider[0] += ip->Slider[10]; // Flugrichtung
         ip->Slider[1] += ip->Slider[11]; // Flughöhe
         ip->Slider[3] += ip->Slider[10]; // Fahrrichtung
-        ip->Slider[5] -= (ip->Slider[11]*3.0);  // -> Kanone hoch runter!!!
+        ip->Slider[5] -= (ip->Slider[11]*2.5);  // -> Kanone hoch runter!!!
         ip->Slider[4] += ip->Slider[2];  // Fahrspeed-Hack
 
         if (ci->flags & CIF_MOUSEHOLD)  ip->Buttons |= (1<<0);  // Fire
@@ -222,7 +221,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
     /*** Joystick-Control-Handling ***/
     if (!joy_disable) {
 
-        #define JOY_EQUAL(old,new) (fabs(old-new)<0.1)
+        #define JOY_EQUAL(old,new) (fabs(old-new)<0.2)
         ULONG joy_moved;
 
         /*** Sonderfall 1.Frame, definierten Anfangszustand herstellen ***/
@@ -262,10 +261,11 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
         };
 
         if (ywd->DoJoystick) {
-            ip->Slider[0] += ip->Slider[12];    // Flugrichtung
-            ip->Slider[1] += ip->Slider[13];    // Flughöhe
-            ip->Slider[3] += ip->Slider[12];    // Fahrrichtung
-            ip->Slider[5] += ip->Slider[16];    // Kanone hoch runter
+            ip->Slider[0] += ip->Slider[12];    // JoyX: Flugrichtung
+            ip->Slider[1] += ip->Slider[13];    // JoyY: Flughoehe
+            ip->Slider[3] += ip->Slider[12];    // JoyX: Fahrrichtung
+            ip->Slider[4] += ip->Slider[14];    // Throttle: Speed
+            ip->Slider[5] -= ip->Slider[13] * 2.5;    // JoyY: Kanone hoch runter
 
             /*** Joyenable Flag an ***/
             ip->Buttons |= (1<<31);
@@ -274,7 +274,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
             if ((ywd->UVBact->BactClassID == BCLID_YPATANK) ||
                 (ywd->UVBact->BactClassID == BCLID_YPACAR))
             {
-                if (JOY_EQUAL(ip->Slider[13],0.0)) {
+                if (JOY_EQUAL(ip->Slider[14],0.0)) {    // Throttle
                     /*** Brakes ***/
                     ip->Buttons |= (1<<3);
                 } else {
@@ -282,11 +282,11 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
                 };
             };
 
-            /*** Luftfahrzeug-Akzelleration per Throttle ***/
+            /*** Luftfahrzeug-Beschleunigung per Throttle ***/
             if ((ywd->UVBact->BactClassID != BCLID_YPATANK) &&
                 (ywd->UVBact->BactClassID != BCLID_YPACAR))
             {
-                if ((ip->Slider[14] < -0.5) || (ip->Slider[14] > 0.5)) {
+                if ((ip->Slider[14] < -0.3) || (ip->Slider[14] > 0.3)) {
                     ip->Slider[4] += ip->Slider[14];
                     ip->Slider[2] += ip->Slider[14];
                 };
@@ -311,10 +311,6 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
         if (ip->Buttons & (1<<19)) {
             /*** Brakes ***/
             ip->Buttons |= (1<<3);
-        };
-        if (ip->Buttons & (1<<18)) {
-            /*** Fire On Board ***/
-            ip->Buttons |= (1<<1);
         };
     };
 }
