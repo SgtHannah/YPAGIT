@@ -34,6 +34,8 @@
 
 WORD merke_scr_x, merke_scr_y;
 
+extern void yw_LoadSaveGameFromMap( struct GameShellReq *GSR );
+
 /*-----------------------------------------------------------------*/
 _extern_use_nucleus
 _extern_use_input_engine
