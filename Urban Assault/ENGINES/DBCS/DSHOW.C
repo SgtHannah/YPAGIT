@@ -20,6 +20,8 @@
 #include "misc/dshow.h"
 #include <ddraw.h>
 
+extern void nc_LogMsg(char *string, ...);
+
 /*-----------------------------------------------------------------**
 **                                                                 **
 **  dshow.c Interface Routinen                                     **
@@ -154,7 +156,7 @@ unsigned long dshow_PlayMovie(char *fname, HWND hwnd)
 							  &IID_IGraphBuilder,
 							  (void **)&pigb);
 		if (FAILED(hr)) {
-			MessageBox(hwnd,"Filtergraph creation failed.","dshow.c",MB_ICONERROR);
+			nc_Log("DShow ERROR: Filtergraph creation failed.\n");
 			return(FALSE);
 		};
 
@@ -177,7 +179,7 @@ unsigned long dshow_PlayMovie(char *fname, HWND hwnd)
 				{
 					hr = pigb->lpVtbl->RenderFile(pigb,path,NULL);
 					if (FAILED(hr)) {
-						MessageBox(hwnd,"RenderFile() failed.","dshow.c",MB_ICONERROR);
+						nc_Log("DShow ERROR: RenderFile() failed (File Not Found: %s)\n",fname);
 						dshow_Cleanup();
 						return(FALSE);
 					};
@@ -187,11 +189,6 @@ unsigned long dshow_PlayMovie(char *fname, HWND hwnd)
 					pivw->lpVtbl->put_WindowStyle(pivw, WS_CHILD|WS_CLIPCHILDREN|WS_CLIPSIBLINGS);
 					pivw->lpVtbl->put_WindowStyleEx(pivw, WS_EX_TOPMOST);
 					pivw->lpVtbl->put_AutoShow(pivw,-1);
-					// won't send WM_ messages when fullscreen activated
-					// pivw->lpVtbl->put_FullScreenMode(pivw,-1);
-			
-					//GetClientRect(hwnd,&rc);
-					//pivw->lpVtbl->SetWindowPosition(pivw,rc.left,rc.top,rc.right,rc.bottom);
 					pivw->lpVtbl->SetWindowPosition(pivw,0,0,640,480);
 					pivw->lpVtbl->HideCursor(pivw,OATRUE);
 					pivw->lpVtbl->put_MessageDrain(pivw,(OAHWND)hwnd);
