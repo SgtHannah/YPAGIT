@@ -2321,7 +2321,7 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
     ywd->GamePausedTimeStamp  = 0;
     ywd->JoyIgnoreX           = TRUE;
     ywd->JoyIgnoreY           = TRUE;
-    ywd->JoyIgnoreZ           = TRUE;
+    ywd->JoyIgnoreZ           = FALSE;
     ywd->Url                  = NULL;
     ywd->LastOccupiedID       = 0;
     ywd->FireDownStatus       = FALSE;

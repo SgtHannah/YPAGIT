@@ -614,6 +614,9 @@ void yw_MapZoom(struct ypaworld_data *ywd, ULONG control)
 **      30-Jul-96   floh    revised & updated (Dynamic Layout + Locale)
 **      15-Sep-96   floh    x_aspect und y_aspect getrennt
 **      03-Jun-97   floh    neue Zoom-Stufe
+**      03-Jul-98   floh    + kleinste Zoomstufe rausgenommen, weil es
+**                            in 1024x768 einen Buffer-Ueberlauf wegen
+**                            zuvielen Zeichen geben konnte
 */
 {
     /*** erstmal eine Hardcore-Modifikation ***/
@@ -623,12 +626,12 @@ void yw_MapZoom(struct ypaworld_data *ywd, ULONG control)
     };
 
     /*** Korrektur ***/
-    if      (MR.zoom < 0) MR.zoom = 0;
+    if      (MR.zoom < 1) MR.zoom = 1;
     else if (MR.zoom > 4) MR.zoom = 4;
 
     /*** Pixel-Aspekt setzen ***/
     switch (MR.zoom) {
-        case 0:
+        case 0: /*** OBSOLETE ***/
             /* (1 Sektor == 4 Pixel) -> 1200/4 */
             MR.x_aspect = 300.0;
             MR.y_aspect = 300.0;

@@ -125,6 +125,8 @@ void yw_setAttrs(Object *o, struct ypaworld_data *ywd, struct TagItem *attrs)
 **      14-Jan-98   floh    + YWA_DontRender
 **      24-Apr-98   floh    + LastOccupiedID wird beim Vehicle-Umschalten
 **                            ausgefuellt
+**      03-Jul-98   floh    + Joystick-Blanker nur noch aktiviert wenn
+**                            zurueck in Hoststation geschaltet wird
 */
 {
     register ULONG tag;
@@ -193,9 +195,11 @@ void yw_setAttrs(Object *o, struct ypaworld_data *ywd, struct TagItem *attrs)
                             ywd->UserVehicleTimeStamp = ywd->TimeStamp;
                             ywd->UserVehicleCmdId     = ywd->UVBact->CommandID;
                             ywd->DragLock             = FALSE;
-                            ywd->JoyIgnoreX           = TRUE;
-                            ywd->JoyIgnoreY           = TRUE;
-                            // ywd->JoyIgnoreZ           = FALSE;
+                            /*** wenn nach Robo geschaltet, Joyblanker aktivieren ***/
+                            if (BCLID_YPAROBO == ywd->UVBact->BactClassID) { 
+                                ywd->JoyIgnoreX           = TRUE;
+                                ywd->JoyIgnoreY           = TRUE;
+                            };
                             yw_FFVehicleChanged(ywd);
                             if (old_vhcl) yw_SRHandleVehicleSwitch(ywd,old_vhcl,ywd->UVBact);
                         };

@@ -250,7 +250,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
     /*** Joystick-Control-Handling ***/
     if (!joy_disable) {
 
-        #define JOY_EQUAL(old,new) (fabs(old-new)<0.3)
+        #define JOY_EQUAL(old,new,diff) (fabs(old-new)<diff)
         UWORD joy_x_moved;
         UWORD joy_y_moved;
         UWORD joy_z_moved;
@@ -261,6 +261,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
         FLOAT joy_speed;
         FLOAT joy_height;
         BOOL ground_vehicle = ((ywd->UVBact->BactClassID == BCLID_YPATANK) | (ywd->UVBact->BactClassID == BCLID_YPACAR));
+        BOOL host_station   = (ywd->UVBact->BactClassID == BCLID_YPAROBO);
 
         /*** Sonderfall 1.Frame, definierten Anfangszustand herstellen ***/
         if (ywd->FrameCount == 0) {
@@ -270,11 +271,11 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
             ywd->PrevJoyHatX = ip->Slider[15];
             ywd->PrevJoyHatY = ip->Slider[16]; 
         };
-        joy_x_moved    = (!JOY_EQUAL(ywd->PrevJoyX,ip->Slider[12]));
-        joy_y_moved    = (!JOY_EQUAL(ywd->PrevJoyY,ip->Slider[13]));
-        joy_z_moved    = (!JOY_EQUAL(ywd->PrevJoyZ,ip->Slider[14]));
-        joy_hatx_moved = (!JOY_EQUAL(ywd->PrevJoyHatX,ip->Slider[15]));
-        joy_haty_moved = (!JOY_EQUAL(ywd->PrevJoyHatY,ip->Slider[16]));
+        joy_x_moved    = (!JOY_EQUAL(ywd->PrevJoyX,ip->Slider[12],0.05));
+        joy_y_moved    = (!JOY_EQUAL(ywd->PrevJoyY,ip->Slider[13],0.05));
+        joy_z_moved    = (!JOY_EQUAL(ywd->PrevJoyZ,ip->Slider[14],0.05));
+        joy_hatx_moved = (!JOY_EQUAL(ywd->PrevJoyHatX,ip->Slider[15],0.05));
+        joy_haty_moved = (!JOY_EQUAL(ywd->PrevJoyHatY,ip->Slider[16],0.05));
         joy_moved = joy_x_moved | joy_y_moved | joy_z_moved | joy_hatx_moved | joy_haty_moved;        
         if (joy_moved) {
             ywd->PrevJoyX = ip->Slider[12];
@@ -314,7 +315,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
                 if (ywd->Prefs.Flags & YPA_PREFS_JOYMODEL2) {
                     if (ip->Slider[4] != 0.0) ywd->JoyIgnoreZ = TRUE;
                 };
-            } else {
+            } else if (!host_station) {
                 if (ip->Slider[2] != 0.0) ywd->JoyIgnoreZ = TRUE;
             };
         };
@@ -347,7 +348,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
                     ip->Slider[5] += joy_height;
                 } else {
                     joy_speed = -ip->Slider[13];         // JoyY: Groundspeed
-                    if (JOY_EQUAL(joy_speed,0.0)) {
+                    if (JOY_EQUAL(joy_speed,0.0,0.3)) {
                         /*** Bremse reinhauen ***/
                         joy_speed = 0.0;
                         ip->Buttons |= (1<<3);
@@ -370,7 +371,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
                     joy_speed = ip->Slider[14];         // Throttle: Speed
                     /*** Keyboard overrides Maus ***/                    
                     if (ip->Slider[4] != 0.0) joy_speed=0.0;
-                    else if (JOY_EQUAL(joy_speed,0.0)) {
+                    else if (JOY_EQUAL(joy_speed,0.0,0.3)) {
                         /*** Bremse reinhauen ***/
                         joy_speed = 0.0;
                         ip->Buttons |= (1<<3);
