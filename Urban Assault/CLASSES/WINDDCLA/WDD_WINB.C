@@ -623,6 +623,8 @@ long FAR PASCAL wdd_WinProc(HWND hWnd, UINT message,
         case WM_SYSCOMMAND:
             /*** KeyMenu schlucken ***/
             if (wParam == SC_KEYMENU) return(0);
+            /*** No ScreenSaver (MJL 6/4/98) ***/
+            if (wParam == SC_SCREENSAVE) return(0);
             break;
     };
 

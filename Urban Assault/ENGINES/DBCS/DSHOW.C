@@ -118,6 +118,13 @@ long FAR PASCAL dshow_WinProc(HWND hWnd, UINT message,
                     };
                 };
             };
+			break;
+
+        case WM_SYSCOMMAND:
+            if (wParam == SC_SCREENSAVE)
+				return(0);
+            break;
+
     };
 
     /*** den Default-Handler aufrufen ***/
