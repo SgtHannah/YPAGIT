@@ -423,11 +423,18 @@ ULONG yw_ParseUserData( struct ScriptParser *parser )
         if( stricmp( parser->keyword, "new_user") == 0 ) {
 
             /*** FIXME FLOH: lese Multiplayer Callsign ***/
-            if (!yw_GetStrEnv(ywd,"callsign.def",ywd->gsr->NPlayerName,
-                sizeof(ywd->gsr->NPlayerName)))
-            {
-                strcpy(ywd->gsr->NPlayerName,ypa_GetStr(ywd->LocHandle,STR_DGADGET_NEWUSER,"UNNAMED"));
-            };
+            if( !(ywd->gsr->remotestart) ) {
+            
+                /* ------------------------------------------------------------
+                ** Im Falle eines LobbyStartes sind die Namen schon ausgefuellt
+                ** un duerfen deshalb nicht ueberschrieben werden. 
+                ** ----------------------------------------------------------*/
+                if (!yw_GetStrEnv(ywd,"callsign.def",ywd->gsr->NPlayerName,
+                    sizeof(ywd->gsr->NPlayerName)))
+                {
+                    strcpy(ywd->gsr->NPlayerName,ypa_GetStr(ywd->LocHandle,STR_DGADGET_NEWUSER,"UNNAMED"));
+                };
+                }
 
             /*** Das ist etwas für uns ***/
             parser->status = PARSESTAT_RUNNING;
