@@ -262,7 +262,8 @@ unsigned long winp_InitMouse(void)
 
     dival = winp_DI.Mouse->lpVtbl->SetCooperativeLevel(winp_DI.Mouse,
             winp_DI.hwnd,
-            DISCL_NONEXCLUSIVE|DISCL_FOREGROUND);
+            DISCL_NONEXCLUSIVE|DISCL_BACKGROUND);
+//            DISCL_NONEXCLUSIVE|DISCL_FOREGROUND);
     if (dival != DI_OK) {
         winp_FailMsg("SetCooperativeLevel()","DirectInputDevice",dival);
         winp_KillDirectInput();
