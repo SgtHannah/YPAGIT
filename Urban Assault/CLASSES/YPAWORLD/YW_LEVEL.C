@@ -617,7 +617,7 @@ void yw_BeamGateCheck(struct ypaworld_data *ywd)
             if (b_energy > ywd->ActBeamEnergy) {
                 /*** Grenze ist ueberschritten ***/
                 LONG td = ywd->TimeStamp - ywd->GateFullMsgTimeStamp;
-                if (td > 20000) {
+                if (td > 40000) {
                     struct logmsg_msg lm;
                     lm.bact = NULL;
                     lm.pri  = 10;
@@ -628,7 +628,7 @@ void yw_BeamGateCheck(struct ypaworld_data *ywd)
                 };
             } else {
                 LONG td = ywd->TimeStamp - ywd->GateFullMsgTimeStamp;
-                if (td > 40000) {
+                if (td > 60000) {
                     struct logmsg_msg lm;
                     lm.bact = NULL;
                     lm.pri  = 49;

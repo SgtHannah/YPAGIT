@@ -302,7 +302,9 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
             if (joy_z_moved || joy_hatx_moved || joy_haty_moved) ywd->JoyIgnoreZ = FALSE;
         } else {
             if (ground_vehicle) {
-                if (ip->Slider[5] != 0.0) ywd->JoyIgnoreZ = TRUE;
+                if (ywd->Prefs.Flags & YPA_PREFS_JOYMODEL2) {
+                    if (ip->Slider[4] != 0.0) ywd->JoyIgnoreZ = TRUE;
+                };
             } else {
                 if (ip->Slider[2] != 0.0) ywd->JoyIgnoreZ = TRUE;
             };
@@ -342,8 +344,8 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
                         ip->Buttons |= (1<<3);
                     };
                     ip->Slider[4] += joy_speed; 
+                    ip->Buttons |= (1<<31);                   
                 };
-                ip->Buttons |= (1<<31);                   
             } else {
                 /*** Luftfahrzeuge ***/
                 joy_height = ip->Slider[13];
@@ -365,6 +367,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
                         ip->Buttons |= (1<<3);
                     };
                     ip->Slider[4] += joy_speed;                    
+                    ip->Buttons |= (1<<31);                   
                 } else {
                     joy_height = ip->Slider[16];  // Hatswitch: Visier
                     /*** Keyboard overrides Maus ***/

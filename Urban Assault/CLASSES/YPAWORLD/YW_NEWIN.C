@@ -1912,7 +1912,8 @@ _dispatcher(void, yw_YWM_KILLLEVEL, void *ignored)
 **      01-Jun-98   floh    + falls der Level eine Eventloop hatte, wird
 **                            er IMMER auf LEVELSTAT_ABORTED geschaltet
 **                            (passiert in yw_DoLevelStatus())
-**                                  
+**      30-Jun-98   floh    + falls Netzwerk-Session, wird der User
+**                            aufbewahrt                                  
 */                           
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
@@ -1975,8 +1976,10 @@ _dispatcher(void, yw_YWM_KILLLEVEL, void *ignored)
         yw_CleanupNetworkSession( ywd );
         ywd->DoDebriefing      = TRUE;
         ywd->WasNetworkSession = TRUE;
+        if (ywd->UVBact) ywd->NetworkUserOwner = ywd->UVBact->Owner;
     } else {
         ywd->WasNetworkSession = FALSE;
+        ywd->NetworkUserOwner  = 0;
     };
 
     /*** falls Seq-Recording noch aktiv, dieses abschlieﬂen ***/

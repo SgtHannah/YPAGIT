@@ -1930,8 +1930,8 @@ struct YPAGamePrefs {
 /*-------------------------------------------------------------------
 **  Default-Werte fuer Beamenergie
 */
-#define YPA_BEAMENERGY_START_DEF (5*95)        // 5 Foxes
-#define YPA_BEAMENERGY_ADD_DEF   (95)          // Energiezuwachs pro zerstoerten Robo
+#define YPA_BEAMENERGY_START_DEF (5*100)        // ca. 5 Foxes
+#define YPA_BEAMENERGY_ADD_DEF   (100)          // Energiezuwachs pro zerstoerten Robo
 
 /*-------------------------------------------------------------------
 **  Local Instance Data
@@ -2150,6 +2150,7 @@ struct ypaworld_data {
     ULONG SBombCenterVProto;    // VehicleProto für Zentrum-Visualisierung
     ULONG DoDebriefing;         // Debriefing anzeigen, wird in KILLLEVEL erledigt
     ULONG WasNetworkSession;    // Kopie von ywd->playing_network fuer Debriefing
+    ULONG NetworkUserOwner;     // Kopie des User-Owners falls Netzwerksession
 
     /*** Locale-Stuff ***/
     UBYTE LocaleLang[32];       // momentane Sprache (String, def = "default")

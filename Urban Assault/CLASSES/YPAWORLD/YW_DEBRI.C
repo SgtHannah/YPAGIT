@@ -203,8 +203,6 @@ void yw_KillDebriefing(struct ypaworld_data *ywd)
     /*** Struktur ungültig markieren ***/
     mb->Status = MBSTATUS_INVALID;
     ywd->Level->Status = LEVELSTAT_SHELL;
-    
-    _LogMsg("-> Debriefing left...\n");    
 }
 
 /*-----------------------------------------------------------------*/
@@ -237,8 +235,6 @@ BOOL yw_InitDebriefing(struct ypaworld_data *ywd)
     struct MissionBriefing *mb = &(ywd->Mission);
     memset(mb,0,sizeof(struct MissionBriefing));
     
-    _LogMsg("-> Debriefing entered...\n");
-        
     if (ywd->OwnerMapBU && ywd->TypeMapBU) {
 
         if (LEVELSTAT_FINISHED==ywd->Level->Status) mb->ZoomFromBeamGate=TRUE;
@@ -518,12 +514,10 @@ void yw_Score(struct ypaworld_data *ywd, UBYTE *inst,
                     /*** ein User hat eine AI gekillt ***/
                     stat[killer_owner].Score += SCORE_USERAIKILL;
                     stat[killer_owner].UserKills++;
-                    _LogMsg("-> User AI Kill scored for %d.\n",killer_owner);
                 } else if (code == 0xC0) {
                     /*** User hat einen User gekillt ***/
                     stat[killer_owner].Score += SCORE_USERUSERKILL;
                     stat[killer_owner].UserKills++;
-                    _LogMsg("-> User User Kill scored for %d.\n",killer_owner);
                 } else {
                     /*** AI/AI-, oder AI hat einen User gekillt ***/
                     stat[killer_owner].Score += SCORE_AIAIKILL;
@@ -531,7 +525,6 @@ void yw_Score(struct ypaworld_data *ywd, UBYTE *inst,
                 if (hvk_inst->vp & (1<<15)) {
                     /*** Opfer war ein Robo ***/
                     stat[killer_owner].Score += SCORE_HOSTKILL;
-                    _LogMsg("-> Host Station Kill scored for %d.\n",killer_owner);
                 };
             };
             break;
@@ -545,7 +538,6 @@ void yw_Score(struct ypaworld_data *ywd, UBYTE *inst,
                 ULONG owner = hcs_inst->new_owner;
                 stat[owner].Power++;
                 stat[owner].Score += SCORE_POWERSTATION;
-                _LogMsg("-> Power station scored for %d.\n",owner);
             };
             break;
 
@@ -555,7 +547,6 @@ void yw_Score(struct ypaworld_data *ywd, UBYTE *inst,
                 ULONG new_owner = hcs_inst->new_owner;
                 stat[new_owner].Techs++;
                 stat[new_owner].Score += SCORE_TECHUPGRADE;
-                _LogMsg("-> Tech upgrade scored for %d.\n",new_owner);
             };
             break;
     };
@@ -871,7 +862,14 @@ void yw_DBRegisterTechupgrade(struct ypaworld_data *ywd,
     ULONG bp_num = act_inst->bp_num;
     ULONG wp_num = act_inst->wp_num;
     ULONG exists = FALSE;
-    ULONG i;    
+    ULONG i; 
+    
+    /*** falls Netzwerk-Session und nicht der UserOwner, ignorieren ***/
+    if (ywd->WasNetworkSession && 
+        (act_inst->new_owner != ywd->NetworkUserOwner))
+    {
+        return;
+    };
     
     /*** existiert dieses Techupgrade schon? ***/
     for (i=0; i<mb->ActTechUpgrade; i++) {
@@ -1792,7 +1790,6 @@ void yw_DBDoGlobalScore(struct ypaworld_data *ywd)
         struct MinNode *nd;
 
         /*** alle HistoryBuffer parsen ***/
-        _LogMsg("-> DoGlobalScore() entered\n");
         ls = &(ywd->History->ls);
         for (nd=ls->mlh_Head; nd->mln_Succ; nd=nd->mln_Succ) {
 
@@ -1845,7 +1842,6 @@ void yw_DBDoGlobalScore(struct ypaworld_data *ywd)
             };
         };
         for (i=0; i<MAXNUM_ROBOS; i++) ywd->GlobalStats[i].Time += timer;
-        _LogMsg("-> DoGlobalScore() left\n");
     };
 }
 

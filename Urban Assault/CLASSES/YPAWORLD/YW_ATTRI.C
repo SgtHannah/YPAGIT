@@ -195,7 +195,7 @@ void yw_setAttrs(Object *o, struct ypaworld_data *ywd, struct TagItem *attrs)
                             ywd->DragLock             = FALSE;
                             ywd->JoyIgnoreX           = TRUE;
                             ywd->JoyIgnoreY           = TRUE;
-                            ywd->JoyIgnoreZ           = FALSE;  // kein Bug!
+                            // ywd->JoyIgnoreZ           = FALSE;
                             yw_FFVehicleChanged(ywd);
                             if (old_vhcl) yw_SRHandleVehicleSwitch(ywd,old_vhcl,ywd->UVBact);
                         };
