@@ -1918,6 +1918,7 @@ void yw_MBL5Running(struct ypaworld_data *ywd,
 **      03-Dec-97   floh    + Name lokalisiert
 **      16-Feb-98   floh    + unterschiedliche Symbole für unterschiedliche
 **                            Rassen
+**      20-May-98   floh    + Vehikel-Namen waren auf 32 begrenzt
 */
 {
     LONG dt;
@@ -1948,7 +1949,7 @@ void yw_MBL5Running(struct ypaworld_data *ywd,
             };
 
             if (s) {
-                UBYTE text[32];
+                UBYTE text[128];
                 UBYTE *name = ypa_GetStr(ywd->LocHandle,STR_NAME_VEHICLES+s->vproto,ywd->VP_Array[s->vproto].Name);
                 UBYTE chr;
                 sprintf(text,"%d %s",s->num,name);
@@ -2060,7 +2061,7 @@ void yw_MBL6Running(struct ypaworld_data *ywd,
             };
 
             if (s) {
-                UBYTE text[32];
+                UBYTE text[128];
                 UBYTE *name = ypa_GetStr(ywd->LocHandle,STR_NAME_VEHICLES+s->vproto,ywd->VP_Array[s->vproto].Name);
                 UBYTE chr;
                 sprintf(text,"%d %s",s->num,name);
