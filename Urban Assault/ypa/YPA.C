@@ -113,8 +113,8 @@ BOOL init(void)
         _ConfigOverride("input.slider[12] = winp:joyx winp:joyrudder");
         _ConfigOverride("input.slider[13] = winp:joyy");
         _ConfigOverride("input.slider[14] = winp:joythrottle");
-        _ConfigOverride("input.slider[15] = winp:joyhat_x");
-        _ConfigOverride("input.slider[16] = winp:joyhat_y");
+        _ConfigOverride("input.slider[15] = winp:joyhatx");
+        _ConfigOverride("input.slider[16] = winp:joyhaty");
 
         _ConfigOverride("input.button[16] = winp:joyb0");
         _ConfigOverride("input.button[17] = winp:joyb1");
