@@ -1310,42 +1310,8 @@ void yw_RealizeAction(Object *world, struct ypaworld_data *ywd, ULONG action)
 
         case YW_ACTION_CONTROL:
             {
-                /*** Kontrolle über Fahrzeuge macht direkt das Welt-Object ***/
-                Object *new_viewer, *act_viewer;
-
-                act_viewer = ywd->Viewer->BactObject;
-                _set(act_viewer, YBA_Viewer, FALSE);
-                _set(act_viewer, YBA_UserInput, FALSE);
-
-                new_viewer = ywd->SelBact->BactObject;
-                _set(new_viewer, YBA_Viewer, TRUE);
-                _set(new_viewer, YBA_UserInput, TRUE);
-
-                /*** Control-Modus abschalten / Order-Modus einschalten ***/
-                SR.ActiveMode = STAT_MODEF_ORDER;
-
-                /** HUD-Effects-Timer zurücksetzen ***/
-                ywd->Hud.change_vhcl_timer = ywd->TimeStamp;
-
-                /*** das neue Fahrzeug wird automatisch selected ***/
-                yw_ActionSelect(ywd);
-
-                /*** DragLock deaktivieren ***/
-                ywd->DragLock = FALSE;
-
-                /*** VoiceOver ***/
-                if (new_viewer == ywd->UserRobo) {
-                    /*** UserRobo: Welcome Back Meldung ***/
-                    yw_BackToRoboNotify(ywd);
-                } else {
-                    /*** normales Vehikel: In Vehikel-Meldung ***/
-                    struct logmsg_msg lm;
-                    lm.bact = ywd->UVBact;
-                    lm.pri  = 33;
-                    lm.msg  = NULL;
-                    lm.code = LOGMSG_CONTROL;
-                    _methoda(ywd->world,YWM_LOGMSG,&lm);
-                };
+                yw_ChangeViewer(ywd,ywd->SelBact->BactObject,ywd->Viewer->BactObject);
+                yw_ActionSelect(ywd);            
             };
             break;
 

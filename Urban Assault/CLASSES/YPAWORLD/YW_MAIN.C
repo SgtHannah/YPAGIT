@@ -491,7 +491,7 @@ _dispatcher(Object *, yw_OM_NEW, struct TagItem *attrs)
 
     /*** Backpointer ***/
     ywd->world = newo;
-
+    
     /*** Assigns initialisieren ***/
     _SetSysPath(SYSPATH_RESOURCES,"rsrc:");
     _SetAssign("rsrc","mc2res");

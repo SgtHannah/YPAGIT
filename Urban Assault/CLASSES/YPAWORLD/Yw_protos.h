@@ -101,6 +101,7 @@ void yw_RemapCommanders(struct ypaworld_data * );
 UBYTE *yw_MenuLayoutItem(struct ypaworld_data *, struct YPAListReq *, UBYTE *, UBYTE *, UBYTE);
 void yw_OpenReq(struct ypaworld_data *ywd, struct YPAReq *);
 void yw_CloseReq(struct ypaworld_data *ywd, struct YPAReq *);
+void yw_SRHandleVehicleSwitch(struct ypaworld_data *, struct Bacterium *, struct Bacterium *);
 
 /*** yw_mapreq.c,yw_maprnd.c,yw_mapvhcl.c ***/
 void yw_InitMapReq(unsigned long * , struct ypaworld_data * );
@@ -227,6 +228,7 @@ void yw_ClipFloatRect(struct rast_rect *);
 ULONG yw_WorldMiscParser(struct ScriptParser *);
 void yw_ParseAssignRegistryKeys(void);
 struct Bacterium *yw_GetLastMessageSender(struct ypaworld_data *);
+ULONG yw_CheckCD(ULONG, ULONG, char *, char *);
 
 /*** yw_record.c ***/
 void yw_FreeSequenceData(struct YPASeqData *);
@@ -250,6 +252,8 @@ UBYTE *yw_LocStrCpy(UBYTE *, UBYTE *);
 unsigned long yw_LoadLocaleDll(char *, char *, char *, char **, unsigned long);
 void yw_UnloadLocaleDll(void);
 unsigned long yw_ReadRegistryKeyString(char *, char *, long);
+unsigned long yw_RawCDCheck(unsigned long);
+unsigned long yw_RetryCancelMessageBox(char *, char *);
 
 /*** yw_level.c ***/
 BOOL yw_InitLevelNet(struct ypaworld_data *);

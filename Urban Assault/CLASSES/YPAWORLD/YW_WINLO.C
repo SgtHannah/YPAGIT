@@ -19,6 +19,8 @@
 extern HWND win_HWnd;
 extern HINSTANCE win_LangDllInst;
 
+extern void nc_LogMsg(char *string, ...);
+
 /*-----------------------------------------------------------------*/
 char *yw_LocStrCpyDll(char *to, char *from)
 /*
@@ -201,11 +203,113 @@ unsigned long yw_ReadRegistryKeyString(char *name, char *buf, long size_of_buf)
     return(retval);
 }        
 
-void yw_WinMessageBox( char *title, char *text )
+/*-----------------------------------------------------------------*/
+void yw_WinMessageBox(char *title, char *text)
+/*
+**  FUNCTION
+**      Zeigt eine Standard-Messagebox an. Ausserhalb muss
+**      EnableGDI/DisableGDI erledigt werden.
+**
+**  CHANGED
+**      23-May-98   floh    Standard-Funktions-Header rangehaengt.
+*/
 {
-    /* ------------------------------------------------
-    ** Screen flippen ausserhalb, und zwar in gslayout, 
-    ** geht hier in der WinBox nicht 
-    ** ----------------------------------------------*/
     MessageBox(win_HWnd,text,title,0);
 }
+
+/*-----------------------------------------------------------------*/
+unsigned long yw_RawCDCheck(unsigned long check_install_type)
+/*
+**  FUNCTION
+**      Testet, ob die YPA-CD im Laufwerk liegt. Der 
+**      Test passiert nur einmalig, irgendwelche
+**      Retry-Messageboxen muessen ausserhalb erledigt
+**      werden.
+**      Sind die Registy-Keys nicht vorhanden, wird kein
+**      Test vorgenommen. 
+**
+**      Registry-Keys sind folgendermassen:
+**
+**          drive_letter = "D:\"    
+**          install_type = "Compact", "Typical", "Complete" 
+**      
+**      Als Volume-Name wird "UAssault" erwartet. 
+**
+**  CHANGED
+**      23-May-98   floh    created
+*/
+{
+    char drive_letter[32];
+    char install_type[64];
+    unsigned long retval = TRUE;
+    
+    nc_LogMsg("-> yw_CDCheck() entered.\n");
+    if (yw_ReadRegistryKeyString("drive_letter",drive_letter,sizeof(drive_letter))) {
+        if (yw_ReadRegistryKeyString("install_type",install_type,sizeof(install_type))) {
+        
+            char vol_name[256];
+            DWORD vol_ser_num;
+            DWORD max_comp_len;
+            DWORD fs_flags;
+            char fs_name[256];
+            BOOL res; 
+            DWORD error;           
+            
+            nc_LogMsg("-> RegKeys read (drive_letter = %s, install_type = %s)\n",drive_letter, install_type);             
+            
+            /*** Full Install und <check_install_type>? ***/
+            if (check_install_type && (stricmp("Complete",install_type)==0)) return(TRUE);
+            
+            /*** ansonsten checken, ob die richtige CD im Laufwerk liegt ***/
+            SetErrorMode(SEM_FAILCRITICALERRORS);
+            res = GetVolumeInformation(drive_letter, vol_name, sizeof(vol_name),
+                                       &vol_ser_num, &max_comp_len, &fs_flags,
+                                       &fs_name, sizeof(fs_name));
+            if (!res) error = GetLastError();
+            SetErrorMode(0); 
+            if (res) {
+                nc_LogMsg("-> GetVolumeInformation() succeeded.\n");
+                nc_LogMsg("-> vol_name     = %s\n",vol_name);
+                nc_LogMsg("-> vol_ser_num  = %d\n",vol_ser_num);
+                nc_LogMsg("-> max_comp_len = %d\n",max_comp_len);
+                nc_LogMsg("-> fs_name      = %s\n",fs_name);
+                if (strcmp(vol_name,"UAssault")!=0) retval = FALSE;
+            } else {
+                nc_LogMsg("-> GetVolumeInformation() failed because %d.\n",error);
+                retval = FALSE;
+            };
+        };
+    };
+    return(retval);
+}
+
+/*-----------------------------------------------------------------*/
+unsigned long yw_RetryCancelMessageBox(char *title_text, char *body_text)
+/*
+**  FUNCTION
+**      Gibt eine OK/Cancel-Messagebox aus, EnableGDI/DisableGDI
+**      muss ausserhalb erledigt werden!
+**
+**  CHANGED
+**      24-May-98   floh    created
+*/
+{
+    int result;
+    result = MessageBox(win_HWnd,body_text,title_text,MB_OKCANCEL|MB_ICONWARNING|MB_APPLMODAL);
+    return((result == IDCANCEL) ? FALSE:TRUE);
+}
+ 
+ 
+
+
+    
+            
+            
+
+
+            
+                
+                
+        
+    
+

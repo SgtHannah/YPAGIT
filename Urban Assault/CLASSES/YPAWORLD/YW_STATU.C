@@ -2739,6 +2739,71 @@ void yw_SRMakeCommander(struct ypaworld_data *ywd)
 }
 
 /*-----------------------------------------------------------------*/
+void yw_ChangeViewer(struct ypaworld_data *ywd,
+                     Object *new_viewer,
+                     Object *act_viewer)
+/*
+**  FUNCTION
+**      Schaltet den User in ein neues Vehikel, mit allem,
+**      was so dazugehoert...
+**
+**  CHANGED
+**      22-May-98   floh    created
+*/
+{
+    if (new_viewer != act_viewer) {        
+
+        /*** ist neuer Viewer im Create- oder Beam-Zustand? ***/
+        struct Bacterium *new_vb;
+        struct Bacterium *act_vb;
+        _get(new_viewer,YBA_Bacterium, &new_vb);
+        _get(act_viewer,YBA_Bacterium, &act_vb);
+        if ((new_vb->MainState != ACTION_CREATE) &&
+            (new_vb->MainState != ACTION_DEAD)   &&
+            (new_vb->MainState != ACTION_BEAM))
+        {
+            /*** Viewer switchen ***/
+            ywd->Hud.change_vhcl_timer = ywd->TimeStamp;
+            _set(act_viewer, YBA_Viewer, FALSE);
+            _set(act_viewer, YBA_UserInput, FALSE);
+            _set(new_viewer, YBA_Viewer, TRUE);
+            _set(new_viewer, YBA_UserInput, TRUE);
+
+            /*** Window-Handling ***/
+            yw_SRHandleVehicleSwitch(ywd,act_vb,new_vb);
+
+            /*** falls Submenu auf -> schließen ***/
+            if (!(SubMenu.Req.flags & REQF_Closed)) yw_CloseReq(ywd,&(SubMenu.Req));
+
+            /*** falls gerade im Control-Modus -> ***/
+            /*** Order-Modus einschalten          ***/
+            if ((SR.EnabledModes & STAT_MODEF_ORDER) && (SR.ActiveMode == STAT_MODEF_CONTROL))
+            {
+                SR.ActiveMode = STAT_MODEF_ORDER;
+            };
+
+            if (new_viewer == ywd->UserRobo) {
+                /*** in User-Robo: Mauscontrol deaktivieren... ***/
+                ywd->ControlLock = FALSE;
+                /*** ... und LogMsg "Welcome Back User" ***/
+                yw_BackToRoboNotify(ywd);
+            } else {
+                /*** normales Vehikel: In Vehikel-Meldung ***/
+                struct logmsg_msg lm;
+                lm.bact = ywd->UVBact;
+                lm.pri  = 33;
+                lm.msg  = NULL;
+                lm.code = LOGMSG_CONTROL;
+                _methoda(ywd->world,YWM_LOGMSG,&lm);
+            };
+
+            /*** DragLock deaktivieren ***/
+            ywd->DragLock = FALSE;
+        };
+    };
+}
+
+/*-----------------------------------------------------------------*/
 void yw_HandleInputSR(struct ypaworld_data *ywd, struct VFMInput *ip)
 /*
 **  CHANGED
@@ -3098,56 +3163,7 @@ void yw_HandleInputSR(struct ypaworld_data *ywd, struct VFMInput *ip)
     };
 
     /*** neuer Viewer? ***/
-    if (new_viewer && (new_viewer != act_viewer)) {
-
-        /*** ist neuer Viewer im Create- oder Beam-Zustand? ***/
-        struct Bacterium *new_vb;
-        struct Bacterium *act_vb;
-        _get(new_viewer,YBA_Bacterium, &new_vb);
-        _get(act_viewer,YBA_Bacterium, &act_vb);
-        if ((new_vb->MainState != ACTION_CREATE) &&
-            (new_vb->MainState != ACTION_DEAD)   &&
-            (new_vb->MainState != ACTION_BEAM))
-        {
-            /*** Viewer switchen ***/
-            ywd->Hud.change_vhcl_timer = ywd->TimeStamp;
-            _set(act_viewer, YBA_Viewer, FALSE);
-            _set(act_viewer, YBA_UserInput, FALSE);
-            _set(new_viewer, YBA_Viewer, TRUE);
-            _set(new_viewer, YBA_UserInput, TRUE);
-
-            /*** Window-Handling ***/
-            yw_SRHandleVehicleSwitch(ywd,act_vb,new_vb);
-
-            /*** falls Submenu auf -> schließen ***/
-            if (!(SubMenu.Req.flags & REQF_Closed)) yw_CloseReq(ywd,&(SubMenu.Req));
-
-            /*** falls gerade im Control-Modus -> ***/
-            /*** Order-Modus einschalten          ***/
-            if ((SR.EnabledModes & STAT_MODEF_ORDER) && (SR.ActiveMode == STAT_MODEF_CONTROL))
-            {
-                SR.ActiveMode = STAT_MODEF_ORDER;
-            };
-
-            if (new_viewer == ywd->UserRobo) {
-                /*** in User-Robo: Mauscontrol deaktivieren... ***/
-                ywd->ControlLock = FALSE;
-                /*** ... und LogMsg "Welcome Back User" ***/
-                yw_BackToRoboNotify(ywd);
-            } else {
-                /*** normales Vehikel: In Vehikel-Meldung ***/
-                struct logmsg_msg lm;
-                lm.bact = ywd->UVBact;
-                lm.pri  = 33;
-                lm.msg  = NULL;
-                lm.code = LOGMSG_CONTROL;
-                _methoda(ywd->world,YWM_LOGMSG,&lm);
-            };
-
-            /*** DragLock deaktivieren ***/
-            ywd->DragLock = FALSE;
-        };
-    };
+    if (new_viewer && (new_viewer != act_viewer)) yw_ChangeViewer(ywd,new_viewer,act_viewer);
 
     /*** alles Layouten ***/
     yw_RemapThings(ywd);

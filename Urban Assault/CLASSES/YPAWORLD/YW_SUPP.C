@@ -1318,3 +1318,56 @@ struct Bacterium *yw_GetLastMessageSender(struct ypaworld_data *ywd)
     };
     return(sender_bact);
 }
+
+/*-----------------------------------------------------------------*/
+ULONG yw_CheckCD(ULONG check_install_type,
+                 ULONG retry,
+                 char *mbox_title,
+                 char *mbox_body)
+/*
+**  FUNCTION
+**      Macht einen Test, ob die YPA-CD im Laufwerk liegt.
+**      Falls <check_install_type> TRUE ist, kommt die
+**      Routine ohne CD-Test TRUE zurueck, wenn YPA
+**      vollstaendig installiert wurde. Falls <retry>
+**      TRUE ist, wird der User aufgeforfert, die CD
+**      einzulegen, und die Routine kommt erst zurueck,
+**      wenn dies passiert ist, oder der User Cancel
+**      drueckt. 
+**
+**      <mbox_title> und <mbox_body> duerfen NULL sein,
+**      wenn <retry> FALSE ist.
+**
+**  CHANGED
+**      24-May-98   floh    created
+*/
+{
+    ULONG res;
+    
+    /*** allererster Check ***/
+    res = yw_RawCDCheck(check_install_type);
+    if (!retry) {
+        /*** Retry ist ausgeschaltet, sofort zurueckkehren ***/
+        return(res);
+    } else if (!res) {
+        /*** Retry ist angeschaltet, also in eine Warteschleife gehen ***/
+        Object *gfxo;
+        ULONG mb_res,cd_res;        
+        
+        _OVE_GetAttrs(OVET_Object,&gfxo,TAG_DONE);
+        _methoda(gfxo,WINDDM_EnableGDI,NULL);
+        do {
+            cd_res = FALSE;
+            mb_res = yw_RetryCancelMessageBox(mbox_title,mbox_body);
+            if (mb_res) {
+                /*** Retry gedrueckt ***/
+                cd_res = yw_RawCDCheck(check_install_type);
+            };
+        } while (mb_res && (!cd_res));
+        _methoda(gfxo,WINDDM_DisableGDI,NULL);
+        if (cd_res) res = TRUE;
+        else        res = FALSE;
+    };
+    return(res);
+}
+
