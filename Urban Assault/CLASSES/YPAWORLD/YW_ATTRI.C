@@ -192,8 +192,10 @@ void yw_setAttrs(Object *o, struct ypaworld_data *ywd, struct TagItem *attrs)
                             _get(ywd->UserVehicle, YBA_Bacterium, &(ywd->UVBact));
                             ywd->UserVehicleTimeStamp = ywd->TimeStamp;
                             ywd->UserVehicleCmdId     = ywd->UVBact->CommandID;
-                            ywd->DoJoystick           = FALSE;
                             ywd->DragLock             = FALSE;
+                            ywd->JoyIgnoreX           = TRUE;
+                            ywd->JoyIgnoreY           = TRUE;
+                            ywd->JoyIgnoreZ           = FALSE;  // kein Bug!
                             yw_FFVehicleChanged(ywd);
                             if (old_vhcl) yw_SRHandleVehicleSwitch(ywd,old_vhcl,ywd->UVBact);
                         };

@@ -150,7 +150,6 @@ void yw_FFVehicleChanged(struct ypaworld_data *ywd)
                 break;
 
             case BCLID_YPAFLYER:
-            case BCLID_YPAUFO:
                 type = IDEV_FFTYPE_ENGINE_PLANE;
                 mass0 = 200.0;  mass1 = 500.0;
                 mrot0 = 1.0;    mrot1 = 2.0;

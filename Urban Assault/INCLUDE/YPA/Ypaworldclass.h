@@ -2235,7 +2235,9 @@ struct ypaworld_data {
     struct vo_VoiceOver *VoiceOver;
 
     /*** aktueller Joystick-Status ***/
-    ULONG DoJoystick;       // wird bei Joystick-Änderung angemacht
+    ULONG JoyIgnoreX;       // X-Achsen-Blanker
+    ULONG JoyIgnoreY;       // Y-Achsen-Blanker
+    ULONG JoyIgnoreZ;       // Z-Achsen-Blanker
     FLOAT PrevJoyX;         // alter Status von JoyX
     FLOAT PrevJoyY;         // alter Status von JoyY
     FLOAT PrevJoyZ;         // alter Status von JoyZ

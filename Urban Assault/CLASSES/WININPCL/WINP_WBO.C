@@ -429,13 +429,13 @@ BOOL FAR PASCAL winp_EnumJoystCallback(
             };
         };
 
-        /*** falls ForceFeedback-Device, Autocenter off ***/
+        /*** falls ForceFeedback-Device, Autocenter on ***/
         if (winp_DI.JCaps.dwFlags & DIDC_FORCEFEEDBACK) {
             dipdw.diph.dwSize       = sizeof(dipdw);
             dipdw.diph.dwHeaderSize = sizeof(dipdw.diph);
             dipdw.diph.dwObj  = 0;
             dipdw.diph.dwHow  = DIPH_DEVICE;
-            dipdw.dwData      = 0;
+            dipdw.dwData      = DIPROPAUTOCENTER_OFF;
             dival = winp_DI.Joyst2->lpVtbl->SetProperty(winp_DI.Joyst2,
                     DIPROP_AUTOCENTER, &dipdw.diph);
             if (dival != DI_OK) {

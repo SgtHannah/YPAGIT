@@ -144,6 +144,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
 **      16-May-98   floh    + alternatives Joystick-Handling
 **      22-May-98   floh    + FireDown Handling
 **      31-May-98   floh    + Extra Mouse Control Tooltip
+**      26-Jun-98   floh    + Joystick-Handling umgeschrieben
 */
 {
     struct ClickInfo *ci = &(ip->ClickInfo);
@@ -228,7 +229,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
         ip->Slider[1] += ip->Slider[11]; // Flughöhe
         ip->Slider[3] += ip->Slider[10]; // Fahrrichtung
         ip->Slider[5] -= (ip->Slider[11]*1.5);  // -> Kanone hoch runter!!!
-        ip->Slider[4] += ip->Slider[2];  // Fahrspeed-Hack
+        // ip->Slider[4] += ip->Slider[2];  // Fahrspeed-Hack
 
         if (ci->flags & CIF_MOUSEHOLD)  ip->Buttons |= (1<<0);  // Fire
         if (ci->flags & CIF_MMOUSEHOLD) ip->Buttons |= (1<<3);  // Brakes
@@ -241,7 +242,16 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
     if (!joy_disable) {
 
         #define JOY_EQUAL(old,new) (fabs(old-new)<0.3)
+        UWORD joy_x_moved;
+        UWORD joy_y_moved;
+        UWORD joy_z_moved;
+        UWORD joy_hatx_moved;
+        UWORD joy_haty_moved; 
         ULONG joy_moved;
+        FLOAT joy_dir;
+        FLOAT joy_speed;
+        FLOAT joy_height;
+        BOOL ground_vehicle = ((ywd->UVBact->BactClassID == BCLID_YPATANK) | (ywd->UVBact->BactClassID == BCLID_YPACAR));
 
         /*** Sonderfall 1.Frame, definierten Anfangszustand herstellen ***/
         if (ywd->FrameCount == 0) {
@@ -251,11 +261,12 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
             ywd->PrevJoyHatX = ip->Slider[15];
             ywd->PrevJoyHatY = ip->Slider[16]; 
         };
-        joy_moved = ((!JOY_EQUAL(ywd->PrevJoyX,ip->Slider[12]))||
-                     (!JOY_EQUAL(ywd->PrevJoyY,ip->Slider[13]))||
-                     (!JOY_EQUAL(ywd->PrevJoyZ,ip->Slider[14]))||
-                     (!JOY_EQUAL(ywd->PrevJoyHatX,ip->Slider[15]))||
-                     (!JOY_EQUAL(ywd->PrevJoyHatY,ip->Slider[16])));                   
+        joy_x_moved    = (!JOY_EQUAL(ywd->PrevJoyX,ip->Slider[12]));
+        joy_y_moved    = (!JOY_EQUAL(ywd->PrevJoyY,ip->Slider[13]));
+        joy_z_moved    = (!JOY_EQUAL(ywd->PrevJoyZ,ip->Slider[14]));
+        joy_hatx_moved = (!JOY_EQUAL(ywd->PrevJoyHatX,ip->Slider[15]));
+        joy_haty_moved = (!JOY_EQUAL(ywd->PrevJoyHatY,ip->Slider[16]));
+        joy_moved = joy_x_moved | joy_y_moved | joy_z_moved | joy_hatx_moved | joy_haty_moved;        
         if (joy_moved) {
             ywd->PrevJoyX = ip->Slider[12];
             ywd->PrevJoyY = ip->Slider[13];
@@ -263,86 +274,112 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
             ywd->PrevJoyHatX = ip->Slider[15];
             ywd->PrevJoyHatY = ip->Slider[16]; 
         };
-
-        /*** Joystick deaktivieren? ***/
-        if (ywd->DoJoystick) {
-            /*** eine wichtige Taste gedrückt? ***/
-            if (((ip->Slider[0] != 0.0)||
-                 (ip->Slider[1] != 0.0)||
-                 (ip->Slider[3] != 0.0)) &&
-                 (!joy_moved))
-            {
-                ywd->DoJoystick = FALSE;
-            };
+        
+        /*** die einzelnen Joystick-Achsen-Blanker ***/
+        if (ywd->JoyIgnoreX) {
+            if (joy_x_moved) ywd->JoyIgnoreX = FALSE;
         } else {
-            /*** Joystick aktivieren? ***/
-            if ((ip->Slider[0] == 0.0) &&
-                (ip->Slider[1] == 0.0) &&
-                (ip->Slider[3] == 0.0) &&
-                (joy_moved))
-            {
-                ywd->DoJoystick = TRUE;
+            if (ground_vehicle) {
+                if (ip->Slider[3] != 0.0) ywd->JoyIgnoreX = TRUE;
+            } else {
+                if (ip->Slider[0] != 0.0) ywd->JoyIgnoreX = TRUE;
             };
         };
-
-        if (ywd->DoJoystick) {
-
-            ip->Slider[0] += ip->Slider[12];    // JoyX: Flugrichtung
-            ip->Slider[1] += ip->Slider[13];    // JoyY: Flughoehe
-            ip->Slider[3] += ip->Slider[12];    // JoyX: Fahrrichtung
-            ip->Slider[5] += ip->Slider[16];    // Hatswitch: ebenfalls Gun Up/Down 
-
-            // Throttle == Speed
-            if ((ywd->UVBact->BactClassID == BCLID_YPATANK) ||
-                (ywd->UVBact->BactClassID == BCLID_YPACAR))
-            {
+        if (ywd->JoyIgnoreY) {
+            if (joy_y_moved || joy_hatx_moved || joy_haty_moved) ywd->JoyIgnoreY = FALSE;
+        } else {
+            if (ground_vehicle) {
                 if (ywd->Prefs.Flags & YPA_PREFS_JOYMODEL2) {
-                    ip->Slider[4] += ip->Slider[14];    // Throttle: Speed
-                    ip->Slider[5] = ip->Slider[13]*2.0;     // JoyY: Kanone hoch runter
+                    if (ip->Slider[5] != 0.0) ywd->JoyIgnoreY = TRUE;
                 } else {
-                    ip->Slider[4] -= ip->Slider[13];    // JoyY: Speed
+                    if (ip->Slider[4] != 0.0) ywd->JoyIgnoreY = TRUE;
                 };
-            };       
-
-            /*** Joyenable Flag an ***/
-            ip->Buttons |= (1<<31);
-
-            /*** Bodenfahrzeug: Joystick zentriert, Bremse ***/
-            if ((ywd->UVBact->BactClassID == BCLID_YPATANK) ||
-                (ywd->UVBact->BactClassID == BCLID_YPACAR))
-            {
-                ULONG brake_slider;
-                if (ywd->Prefs.Flags & YPA_PREFS_JOYMODEL2) brake_slider=14;    // Throttle
-                else                                        brake_slider=13;    // JoyY                
-                if (JOY_EQUAL(ip->Slider[brake_slider],0.0)) {    // Throttle
-                    /*** Brakes ***/
-                    ip->Buttons |= (1<<3);
-                } else {
-                    ip->Buttons &= ~(1<<3);
-                };
-            };
-
-            /*** Luftfahrzeug-Beschleunigung per Throttle ***/
-            if ((ywd->UVBact->BactClassID != BCLID_YPATANK) &&
-                (ywd->UVBact->BactClassID != BCLID_YPACAR))
-            {
-                if ((ip->Slider[14] < -0.3) || (ip->Slider[14] > 0.3)) {
-                    ip->Slider[4] += ip->Slider[14];
-                    ip->Slider[2] += ip->Slider[14];
-                } else {
-                    /*** Bremse ***/
-                    ip->Buttons |= (1<<3);
-                };
+            } else {
+                if (ip->Slider[1] != 0.0) ywd->JoyIgnoreY = TRUE;
+            };         
+        };
+        if (ywd->JoyIgnoreZ) {
+            if (joy_z_moved || joy_hatx_moved || joy_haty_moved) ywd->JoyIgnoreZ = FALSE;
+        } else {
+            if (ground_vehicle) {
+                if (ip->Slider[5] != 0.0) ywd->JoyIgnoreZ = TRUE;
+            } else {
+                if (ip->Slider[2] != 0.0) ywd->JoyIgnoreZ = TRUE;
             };
         };
-        /*** Luftfahrzeug: Hatview beschleunigt ***/
-        if ((ywd->UVBact->BactClassID != BCLID_YPATANK) &&
-            (ywd->UVBact->BactClassID != BCLID_YPACAR))
+        if (((ip->ClickInfo.flags & CIF_BUTTONDOWN)) &&
+             (!joy_moved))
         {
-            ip->Slider[4] += ip->Slider[16];    // Beschl. per HatView
-            ip->Slider[2] += ip->Slider[16];
+            ywd->JoyIgnoreX = TRUE;
+            ywd->JoyIgnoreY = TRUE;
         };
+        
+        /*** JoystickBlanker-Auswirkung ***/
+        if (ywd->JoyIgnoreX) ip->Slider[12] = 0.0;
+        if (ywd->JoyIgnoreY) ip->Slider[13] = 0.0;
+        if (ywd->JoyIgnoreZ) ip->Slider[14] = 0.0;
 
+        /*** JoyX ***/
+        if (!ywd->JoyIgnoreX) {
+            joy_dir = ip->Slider[12];   // JoyX
+            if (ground_vehicle) ip->Slider[3] += joy_dir;
+            else                ip->Slider[0] += joy_dir;
+        };
+        
+        /*** JoyY ***/        
+        if (!ywd->JoyIgnoreY) {
+            if (ground_vehicle) {
+                /*** Bodenfahrzeuge ***/
+                if (ywd->Prefs.Flags & YPA_PREFS_JOYMODEL2) {
+                    if (ip->Slider[16] != 0.0) joy_height = ip->Slider[16];      
+                    else                       joy_height = (ip->Slider[13]*2.0);
+                    ip->Slider[5] += joy_height;
+                } else {
+                    joy_speed = -ip->Slider[13];         // JoyY: Groundspeed
+                    if (JOY_EQUAL(joy_speed,0.0)) {
+                        /*** Bremse reinhauen ***/
+                        joy_speed = 0.0;
+                        ip->Buttons |= (1<<3);
+                    };
+                    ip->Slider[4] += joy_speed; 
+                };
+                ip->Buttons |= (1<<31);                   
+            } else {
+                /*** Luftfahrzeuge ***/
+                joy_height = ip->Slider[13];
+                ip->Slider[1] += joy_height;
+            };    
+        };
+        
+        /*** JoyZ ***/
+        if (!ywd->JoyIgnoreZ) {
+            if (ground_vehicle) {
+                /*** Bodenfahrzeuge ***/
+                if (ywd->Prefs.Flags & YPA_PREFS_JOYMODEL2) {
+                    joy_speed = ip->Slider[14];         // Throttle: Speed
+                    /*** Keyboard overrides Maus ***/                    
+                    if (ip->Slider[4] != 0.0) joy_speed=0.0;
+                    else if (JOY_EQUAL(joy_speed,0.0)) {
+                        /*** Bremse reinhauen ***/
+                        joy_speed = 0.0;
+                        ip->Buttons |= (1<<3);
+                    };
+                    ip->Slider[4] += joy_speed;                    
+                } else {
+                    joy_height = ip->Slider[16];  // Hatswitch: Visier
+                    /*** Keyboard overrides Maus ***/
+                    if (ip->Slider[5] != 0.0) joy_height = 0.0;
+                    ip->Slider[5] += joy_height;
+                };
+            } else {
+                /*** Luftfahrzeuge ***/
+                joy_speed = ip->Slider[14];     // Throttle: Speed
+                /*** Keyboard overrides Maus ***/
+                if (ip->Slider[2] != 0.0) joy_speed = 0.0;
+                ip->Slider[2] += joy_speed;
+            };
+        };
+        
         if (ip->Buttons & (1<<16)) {
             /*** Fire ***/
             ip->Buttons |= (1<<0);

@@ -2282,7 +2282,9 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
     ywd->WayPointMode         = FALSE;
     ywd->GamePaused           = FALSE;
     ywd->GamePausedTimeStamp  = 0;
-    ywd->DoJoystick           = FALSE;
+    ywd->JoyIgnoreX           = TRUE;
+    ywd->JoyIgnoreY           = TRUE;
+    ywd->JoyIgnoreZ           = TRUE;
     ywd->Url                  = NULL;
     ywd->LastOccupiedID       = 0;
     ywd->FireDownStatus       = FALSE;

@@ -583,7 +583,7 @@ void yw_BeamGateCheck(struct ypaworld_data *ywd)
             if (b_count >= ywd->Level->MaxNumBuddies) {
                 /*** Grenze ist überschritten ***/
                 LONG td = ywd->TimeStamp - ywd->GateFullMsgTimeStamp;
-                if (td > 7500) {
+                if (td > 20000) {
                     struct logmsg_msg lm;
                     lm.bact = NULL;
                     lm.pri  = 10;
@@ -594,7 +594,7 @@ void yw_BeamGateCheck(struct ypaworld_data *ywd)
                 };
             } else {
                 LONG td = ywd->TimeStamp - ywd->GateFullMsgTimeStamp;
-                if (td > 20000) {
+                if (td > 40000) {
                     struct logmsg_msg lm;
                     lm.bact = NULL;
                     lm.pri  = 49;
