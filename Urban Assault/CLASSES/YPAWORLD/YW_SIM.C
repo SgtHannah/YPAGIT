@@ -1379,6 +1379,7 @@ _dispatcher(void, yw_BSM_TRIGGER, struct trigger_msg *msg)
         ywd->Url = NULL;
         _methoda(ywd->world,YWM_ONLINEHELP,&ohm);
     };
+        
 }
 
 

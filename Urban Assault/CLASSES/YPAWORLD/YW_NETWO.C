@@ -49,6 +49,10 @@ extern UBYTE  **GlobalLocaleHandle;
 BOOL   REDUCE_DATA_RATE = FALSE;
 ULONG  MSG[ 102 ];
 
+/*** der enormen Groesse wegen nicht aufm stack (was lokale Var. ja sind ***/ 
+struct ypamessage_vehicledata_i vdm_i;
+struct ypamessage_vehicledata_e vdm_e;
+
 void yw_Organize( struct ypamessage_organize *om, struct Bacterium *robo,
                   struct ypaworld_data *ywd)
 {
@@ -251,6 +255,21 @@ void yw_RemoveAllShadows( struct ypaworld_data *ywd, struct OBNode *robo )
         /*** Wech dat Zeugs ***/
         com->bact->MainState = ACTION_DEAD;
         _methoda( ywd->world, YWM_RELEASEVEHICLE, com->o );
+        } 
+        
+    /* ---------------------------------------------------
+    ** Wie auch immer, deine Guns sind weg! Zur Sicherheit
+    ** GunArray aufraeumen.
+    ** -------------------------------------------------*/
+    if( BCLID_YPAROBO == robo->bact->BactClassID ) { 
+    
+        struct gun_data *g_array;
+        int    i;
+
+        _get( robo->o, YRA_GunArray, &g_array );
+
+        for( i = 0; i < NUMBER_OF_GUNS; i++ )
+            g_array[ i ].go = NULL;
         }
 
     /*** Robo hat keine Waffen ***/
@@ -925,8 +944,7 @@ void yw_HandleNetMessages( struct ypaworld_data *ywd )
         (NETWORKTROUBLE_LATENCY != GSR->network_trouble) ) {
 
         struct sendmessage_msg sm;
-        struct ypamessage_vehicledata_i vdm_i, *vdm;
-        struct ypamessage_vehicledata_e vdm_e;
+        struct ypamessage_vehicledata_i *vdm;
 
         if( ywd->interpolate ) {
             
@@ -1763,7 +1781,10 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
                     struct OBNode *waffe;
                     waffe = (struct OBNode *)_RemHead( (struct List *) &( dv->auto_list) );
                     waffe->bact->master = NULL;
-                    _methoda( ywd->world, YWM_RELEASEVEHICLE, waffe->o );
+                    
+                    /*** Gibt alle Waffen frei ***/
+                    yw_ReleaseWeapon( ywd, dv );
+
                     yw_NetLog("+++ DV: Released vehicle with weapons! (%ds)\n" ,
                              ywd->TimeStamp/1000);
                     strcpy( trouble_maker, rm->sender_id );
@@ -2222,19 +2243,7 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
                 else {
 
                     /*** Wir haben keinen Chef mehr und lassen die Raketen explodieren ***/
-                    while( waffe = (struct OBNode *)
-                           _RemHead((struct List *)&dv->auto_list)) {
-
-                        struct setstate_msg state;
-
-                        state.main_state = ACTION_DEAD;
-                        state.extra_on = state.extra_off = 0;
-                        _methoda( waffe->o, YBM_SETSTATE_I, &state );
-
-                        /*** auch gleich freigeben ***/
-                        waffe->bact->master = NULL;
-                        _methoda( ywd->world, YWM_RELEASEVEHICLE, waffe->o);
-                        }
+                    yw_ReleaseWeapon( ywd, dv );
                     }
 
                 /*** Status setzen ***/
@@ -4014,7 +4023,7 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
             size = 0;
             break;
         }
-
+        
     return( size );
 }
 
