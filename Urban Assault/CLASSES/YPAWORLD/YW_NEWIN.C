@@ -1891,7 +1891,9 @@ _dispatcher(void, yw_YWM_KILLLEVEL, void *ignored)
 **                            Position 0 zurückgesetzt.
 **      09-Apr-98   floh    + DoDebriefing wird initialisiert
 **      18-Apr-98   floh    + yw_KillEventCatcher()
-*/
+**      18-May-98   floh    + Bug: Zugriff auf Robo, der aber gar
+**                            existieren musste...
+*/                           
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
     UBYTE   user_owner;
@@ -1942,7 +1944,8 @@ _dispatcher(void, yw_YWM_KILLLEVEL, void *ignored)
     };
 
     /*** alle Objects im Deathcache killen ***/
-    user_owner = ywd->URBact->Owner;    // merken bevor er freigegeben wird
+    if (ywd->URBact) user_owner = ywd->URBact->Owner;    // merken bevor er freigegeben wird
+    else             user_owner = 0;
     while (ywd->DeathCache.mlh_Head->mln_Succ) {
     
         struct OBNode *robo = (struct OBNode *) ywd->DeathCache.mlh_Head;

@@ -359,6 +359,7 @@ BOOL yw_InitMissionBriefing(struct ypaworld_data *ywd, ULONG lnum)
 **                          + initialisiert Text-Listview
 **      07-May-98   floh    + Listview wurde im Fehlerfall nicht
 **                            korrekt aufgeraeumt
+**      18-May-98   floh    + loescht jetzt zuerst den Screen.
 */
 {
     struct MissionBriefing *mb = &(ywd->Mission);
@@ -371,6 +372,9 @@ BOOL yw_InitMissionBriefing(struct ypaworld_data *ywd, ULONG lnum)
     
     /*** Texturcache flushen ***/    
     _methoda(ywd->GfxObject,DISPM_BeginSession,NULL);
+    _methoda(ywd->GfxObject,RASTM_Begin2D,NULL);
+    _methoda(ywd->GfxObject,RASTM_Clear,NULL);
+    _methoda(ywd->GfxObject,RASTM_End2D,NULL);
 
     /*** aktuelle Level-Info-Struktur sichern ***/
     mb->LevelBackup   = *ywd->Level;
