@@ -142,8 +142,8 @@ void wdd_ClipText(char *str, long num_bytes)
 {
     char *p = str;
     long i = 0;
-    while ((p = CharNext(p)) && (*p) && ((i=p-str)<num_bytes));
-    if (p && (*p)) {
+    while ((p = CharNext(p)) && ((i=p-str)<num_bytes) && (*p));
+    if (p && (i>=num_bytes)) {
         p = CharPrev(str,p);
         if (p) *p=0;
     };
@@ -175,7 +175,7 @@ void wdd_FilterPathName(char *str)
                 case '>':
                 case '|':
                 case ',':
-                    *p = ' ';
+                    *p = '_';
                     break;
             };
         };

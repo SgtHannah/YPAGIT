@@ -23,7 +23,7 @@
 #endif
 
 /*-----------------------------------------------------------------*/
-#define LW_NumChars     (64)    // Anzahl Zeichen pro Zeile
+#define LW_NumChars     (128)    // Anzahl Zeichen pro Zeile
 #define LW_NumLines     (64)    // Anzahl Zeilen im Buffer
 #define LW_Countdown	(7000)	// jede Zeile wird solang angezeigt
 
