@@ -435,9 +435,9 @@ BOOL yw_LaunchChatSample( struct ypaworld_data *ywd, WORD number )
 
     /*** Filenamen basteln ***/
     if( ywd->gsr->lsel )
-        sprintf( filename, "sounds/speech/%s/3%d.wav", ywd->gsr->lsel->language,number );
+        sprintf( filename, "sounds/speech/%s/9%d.wav", ywd->gsr->lsel->language,number );
     else
-        sprintf( filename, "sounds/speech/language/3%d.wav", number );
+        sprintf( filename, "sounds/speech/language/9%d.wav", number );
 
     /*** altes Sample freigeben ***/
     if( ywd->gsr->ChatObject ) {
