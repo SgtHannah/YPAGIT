@@ -153,11 +153,9 @@
 **          Schaltet zwischen Hard- und Software-Cursor um,
 **          (WINDD_CURSORMODE_HW, WINDD_CURSORMODE_SOFT).
 **
-**      WINDDA_TextureFilter    (S)
-**          Schaltet Texturefiltering an oder aus.
-**
+**      WINDDA_TextureFilter (S)
 **      WINDDA_ForceAlphaTextures (S)
-**
+**      WINDDA_DisableLowres (S)
 **-----------------------------------------------------------------*/
 
 #define WINDD_PAINTMODE_FLIP    (0)
@@ -180,6 +178,7 @@
     #define WINDDA_BASE             (DISPA_BASE+ATTRIB_DISTANCE)
     #define WINDDA_CursorMode       (WINDDA_BASE)
     #define WINDDA_TextureFilter    (WINDDA_BASE+1)
+    #define WINDDA_DisableLowres    (WINDDA_BASE+2)
 
     #define WINDD_CLASSID "drivers/gfx/windd.class"
 
@@ -206,6 +205,7 @@
         ULONG paintmode;
         ULONG forcealphatextures;
         ULONG usedrawprimitive;
+        ULONG disablelowres;
 
         ULONG id;
         ULONG flags;
@@ -381,6 +381,7 @@
         unsigned long paintmode;
         unsigned long forcealphatextures;
         unsigned long usedrawprimitive;
+        unsigned long disablelowres;
 
         unsigned long id;                   // momentan eingestellte "Display-ID"
         unsigned long flags;                // siehe unten
