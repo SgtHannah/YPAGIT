@@ -368,30 +368,31 @@ void yw_FadeOut(struct ypaworld_data *ywd)
 **      11-Dec-96   floh    zeitlich kürzer
 **      04-Mar-98   floh    + wird nur noch unter DirectDraw
 **                            ausgeführt
+**      17-May-98   floh    + disabled...
 */
 {
-    if (!wdd_DoDirect3D) {
-        Object *gfxo;
-        ULONG i;
-        ULONG num_steps = 16;
-        struct snd_cdcontrol_msg cd;
-
-        _OVE_GetAttrs(OVET_Object,&gfxo,TAG_DONE);
-        for (i=0; i<num_steps; i++) {
-
-            struct disp_mixpal_msg dsm;
-            ULONG slot[1];
-            ULONG weight[1];
-
-            dsm.num    = 1;
-            dsm.slot   = slot;
-            dsm.weight = weight;
-            slot[0]    = 0;
-            weight[0]  = 256 - ((i*256)/num_steps);
-            _methoda(gfxo,DISPM_MixPalette,&dsm);
-            delay(20);
-        };
-    };
+//    if (!wdd_DoDirect3D) {
+//        Object *gfxo;
+//        ULONG i;
+//        ULONG num_steps = 16;
+//        struct snd_cdcontrol_msg cd;
+//
+//        _OVE_GetAttrs(OVET_Object,&gfxo,TAG_DONE);
+//        for (i=0; i<num_steps; i++) {
+//
+//            struct disp_mixpal_msg dsm;
+//            ULONG slot[1];
+//            ULONG weight[1];
+//
+//            dsm.num    = 1;
+//            dsm.slot   = slot;
+//            dsm.weight = weight;
+//            slot[0]    = 0;
+//            weight[0]  = 256 - ((i*256)/num_steps);
+//           _methoda(gfxo,DISPM_MixPalette,&dsm);
+//            delay(20);
+//        };
+//    };
 }
 
 /*-----------------------------------------------------------------*/
@@ -404,29 +405,30 @@ void yw_FadeIn(struct ypaworld_data *ywd)
 **      13-Dec-96   floh    created
 **      04-Mar-98   floh    + wird nur noch unter DirectDraw
 **                            ausgeführt
+**      17-May-98   floh    + ...disabled
 */
 {
-    if (!wdd_DoDirect3D) {
-        Object *gfxo;
-        ULONG i;
-        ULONG num_steps = 16;
-
-        _OVE_GetAttrs(OVET_Object,&gfxo,TAG_DONE);
-        for (i=0; i<num_steps; i++) {
-
-            struct disp_mixpal_msg dsm;
-            ULONG slot[1];
-            ULONG weight[1];
-
-            dsm.num    = 1;
-            dsm.slot   = slot;
-            dsm.weight = weight;
-            slot[0]    = 0;
-            weight[0]  = (i*256)/num_steps;
-            _methoda(gfxo,DISPM_MixPalette,&dsm);
-            delay(20);
-        };
-    };
+//    if (!wdd_DoDirect3D) {
+//        Object *gfxo;
+//        ULONG i;
+//        ULONG num_steps = 16;
+//
+//        _OVE_GetAttrs(OVET_Object,&gfxo,TAG_DONE);
+//        for (i=0; i<num_steps; i++) {
+//
+//            struct disp_mixpal_msg dsm;
+//            ULONG slot[1];
+//            ULONG weight[1];
+//
+//            dsm.num    = 1;
+//            dsm.slot   = slot;
+//            dsm.weight = weight;
+//            slot[0]    = 0;
+//            weight[0]  = (i*256)/num_steps;
+//            _methoda(gfxo,DISPM_MixPalette,&dsm);
+//            delay(20);
+//        };
+//    };
 }
 
 /*-----------------------------------------------------------------*/
@@ -439,22 +441,23 @@ void yw_BlackOut(struct ypaworld_data *ywd)
 **      13-Dec-96   floh    created
 **      04-Mar-98   floh    + wird nur noch unter DirectDraw
 **                            ausgeführt
+**      17-May-98   floh    + disabled...
 */
 {
-    if (!wdd_DoDirect3D) {
-        Object *gfxo;
-        struct disp_mixpal_msg dsm;
-        ULONG slot[1];
-        ULONG weight[1];
-
-        _OVE_GetAttrs(OVET_Object,&gfxo,TAG_DONE);
-        dsm.num    = 1;
-        dsm.slot   = slot;
-        dsm.weight = weight;
-        slot[0]    = 0;
-        weight[0]  = 0;
-        _methoda(gfxo,DISPM_MixPalette,&dsm);
-    };
+//    if (!wdd_DoDirect3D) {
+//       Object *gfxo;
+//        struct disp_mixpal_msg dsm;
+//        ULONG slot[1];
+//        ULONG weight[1];
+//
+//        _OVE_GetAttrs(OVET_Object,&gfxo,TAG_DONE);
+//        dsm.num    = 1;
+//        dsm.slot   = slot;
+//        dsm.weight = weight;
+//        slot[0]    = 0;
+//        weight[0]  = 0;
+//        _methoda(gfxo,DISPM_MixPalette,&dsm);
+//    };
 }
 
 /*-----------------------------------------------------------------*/

@@ -578,7 +578,7 @@ long FAR PASCAL wdd_WinProc(HWND hWnd, UINT message,
             break;
 
         case WM_PALETTECHANGED:
-            // if ((HWND)wParam == wdd->hWnd) break;
+            if ((HWND)wParam == wdd->hWnd) break;
             // Fall Through to WM_QUERYNEWPALETTE
         case WM_QUERYNEWPALETTE:
             /*** Palette muß neu installiert werden ***/
@@ -2517,6 +2517,7 @@ void wdd_SetPalette(struct windd_data *wdd, char *cm)
             pal[i].peFlags = 0;
         };
         wdd->lpDDPal->lpVtbl->SetEntries(wdd->lpDDPal,0,0,256,pal);
+        wdd->lpDDSPrim->lpVtbl->SetPalette(wdd->lpDDSPrim,wdd->lpDDPal);
     };
 }
 
@@ -2709,7 +2710,6 @@ void wdd_DisableGDI(struct windd_data *wdd, unsigned long mode)
 **      04-Feb-98   floh    + more hacks für Movieplayer
 **      26-Feb-98   floh    + im Movie-Mode Auflösung zurückschalten
 **      13-Mar-98   floh    + Cursor wird jetzt sicherer restauriert
-**      12-May-98   floh    + initialisiert Palette neu
 */
 {
     if (wdd->hWnd) {
@@ -2754,10 +2754,6 @@ void wdd_DisableGDI(struct windd_data *wdd, unsigned long mode)
                              GetSystemMetrics(SM_CYSCREEN),
                              SWP_SHOWWINDOW);
             };
-            if (wdd && wdd->lpDDPal) {
-                wdd->lpDDSPrim->lpVtbl->SetPalette(wdd->lpDDSPrim,wdd->lpDDPal);
-            };
-
         };
         /*** Mousepointer mit Flush neu setzen ***/
         wdd_SetMouseImage(wdd,1,TRUE);
