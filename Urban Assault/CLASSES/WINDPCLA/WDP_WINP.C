@@ -1752,10 +1752,14 @@ unsigned long wdp_CheckRemoteStart( struct windp_win_data *wdata, char *name,
     *remote = 1;
 
     /*** Host ***/
-    if( conn->dwFlags & DPLCONNECTION_CREATESESSION )
+    if( conn->dwFlags & DPLCONNECTION_CREATESESSION ) {
+        wdata->session_created = 1;
         *is_host = 1;
-    else
+        }
+    else {
+        wdata->session_joined = 1;
         *is_host = 0;
+        }
 
     /* ------------------------------------------------------------------
     ** Name, muﬂ da sein! Und muss auch in jedem Falle zurueckgegeben
