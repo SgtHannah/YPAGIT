@@ -101,7 +101,7 @@ struct VehicleProto {
     BYTE  Weapons[6];       // bis zu 6 Weapon-Types, (-1) für leerer Slot
     BYTE  MG_Shot;          // Einschuss des MG's
     UBYTE TypeIcon;         // Type-Icon in finder.font
-    UBYTE Name[63];         // Typen-Bezeichnung
+    UBYTE Name[127];         // Typen-Bezeichnung
 
     /*** visuelle Information (VisProto IDs) ***/
     UWORD TypeNormal;
@@ -188,7 +188,7 @@ struct WeaponProto {
     UBYTE FootPrint;    // wer darf dieses Vehicle bauen
     UWORD Flags;        // siehe unten...
     UBYTE TypeIcon;     // Type-Icon in finder.font(?)
-    UBYTE Name[63];     // Typen-Bezeichnung
+    UBYTE Name[127];     // Typen-Bezeichnung
 
     /*** visuelle Information (VisProto IDs) ***/
     UWORD TypeNormal;
@@ -277,7 +277,7 @@ struct BuildProto {
     UBYTE BaseType;     // Basis-Typ des Bauwerks (siehe unten)
     UBYTE Power;        // "Stärke" des Bauwerks
     UBYTE TypeIcon;     // Type-Icon in finder.font(?)
-    UBYTE Name[63];
+    UBYTE Name[127];
 
     LONG  CEnergy;      // die zur Erschaffung benötigte Gesamt-Energie
 
