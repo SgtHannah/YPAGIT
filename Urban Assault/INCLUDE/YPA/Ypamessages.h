@@ -242,6 +242,7 @@ struct ypamessage_die {
     //+++++++++++++++++++++++++++++++++++
     ULONG   ident;              // wen trifft es?
     ULONG   new_master;         // wer bekommt meine Slaves?
+    ULONG   killer;             // ident des killers, wenn es denn einen gibt.
     UBYTE   landed;             // 1, wenn megadeth eingeschalten werden soll
     UBYTE   class;              // welcher Art ist der Sterbende
     UBYTE   killerowner;        // vorerst brauchen wir den gesamten Killer nicht

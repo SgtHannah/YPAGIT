@@ -546,6 +546,7 @@ struct GameShellReq {
     char    fn[ 32 ][ 256 ];    // Puffer für Filenamen
     WORD    fn_number;          // Anzahl derzeitiger Filenamen im Puffer
     UBYTE   cd;                 // Kopie fuer schnellen Zugriff von player2
+    LONG    last_cdcheck;       // wann wurde das letzte mal nachgesehen?
     ULONG   last_input_event;   // TimeStamp für das letzte Eingabeereignis
     ULONG   wait_til_demo;      // solange warten, bis Blanker startet
 
@@ -611,6 +612,7 @@ struct GameShellReq {
 #define CONFIRM_LOADFROMMAP     1   // wirklich das Savegame von der Map laden?
 #define CONFIRM_NETSTARTALONE   2   // Netzspiel allein starten
 #define CONFIRM_SAVEANDOVERWRITE 3  // Savegame in DiskReq ueberschreiben
+#define CONFIRM_MORECDS         4   // CDs reichen nicht
 
 
 /* ---------------------------------------------------------------------
