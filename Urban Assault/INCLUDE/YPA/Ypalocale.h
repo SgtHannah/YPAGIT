@@ -110,12 +110,6 @@ static UBYTE *ypa_GetStr(UBYTE **loc, ULONG id, UBYTE *def)
 #define STR_TITLE_HELP      (87)
 #define STR_TITLE_QUIT      (88)
 
-/*** Confirm-Req-Inhalt ***/
-#define STR_CONFIRM_EXIT        (120)
-#define STR_CONFIRM_SAVE        (121)
-#define STR_CONFIRM_LOAD        (122)
-#define STR_CONFIRM_RESTART     (123)
-
 /*** Missionbriefing/Debriefing-Texte ***/
 #define STR_MB_YOUAREHERE               (150)
 #define STR_MB_PRIMARY                  (151)
@@ -787,6 +781,12 @@ static UBYTE *ypa_GetStr(UBYTE **loc, ULONG id, UBYTE *def)
 #define STR_DEBRIEF_TU_RADAR            (2463)
 #define STR_DEBRIEF_TU_BUILDANDVEHICLE  (2464)
 #define STR_DEBRIEF_TU_GENERIC          (2465)
+
+/*** Confirm-Req-Inhalt ***/
+#define STR_CONFIRM_EXIT                (2480)
+#define STR_CONFIRM_SAVE                (2481)
+#define STR_CONFIRM_LOAD                (2482)
+#define STR_CONFIRM_RESTART             (2483)
 
 /*** Anpassen! ***/
 #define STR_LAST_ITEM           (2600) 
