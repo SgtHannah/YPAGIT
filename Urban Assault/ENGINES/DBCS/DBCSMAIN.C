@@ -287,9 +287,9 @@ void dbcs_DrawText(char *text, long x, long y, long w, long h, long flags)
 
             /*** String rendern ***/
             SetTextColor(DBCS->hDC,0);
-            ExtTextOut(DBCS->hDC,x+1,y+1,ETO_CLIPPED,&r,text,lstrlen(text),NULL);
+            ExtTextOut(DBCS->hDC,x+2,y+1,ETO_CLIPPED,&r,text,lstrlen(text),NULL);
             SetTextColor(DBCS->hDC,DBCS->ActRGB);
-            ExtTextOut(DBCS->hDC,x,y,ETO_CLIPPED,&r,text,lstrlen(text),NULL);
+            ExtTextOut(DBCS->hDC,x+1,y,ETO_CLIPPED,&r,text,lstrlen(text),NULL);
         };
     };
 }
