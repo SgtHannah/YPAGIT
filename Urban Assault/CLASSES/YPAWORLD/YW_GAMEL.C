@@ -325,6 +325,7 @@ _dispatcher( BOOL, yw_YWM_SAVEGAME, struct saveloadgame_msg *slg )
     char   filename[ 300 ];
     BOOL   all_ok = TRUE, buildinfo = TRUE, levelstatus;
     BOOL   history = TRUE;
+    BOOL   userdata = TRUE;
     int    i;
 
     ywd = INST_DATA( cl, o );
@@ -346,6 +347,7 @@ _dispatcher( BOOL, yw_YWM_SAVEGAME, struct saveloadgame_msg *slg )
 
         levelstatus = FALSE;
         buildinfo   = FALSE;
+        userdata    = FALSE;
 
         /*** FIN? --> Durch ein Beamgate raus --> MAxRoboEnergy akt. ***/
         ywd->MaxRoboEnergy  = ywd->URBact->Maximum;
@@ -355,6 +357,7 @@ _dispatcher( BOOL, yw_YWM_SAVEGAME, struct saveloadgame_msg *slg )
 
         levelstatus = TRUE;
         buildinfo   = TRUE;
+        userdata    = TRUE;
         }
 
     if( strstr( slg->name, ".fin" ) ||
@@ -385,7 +388,13 @@ _dispatcher( BOOL, yw_YWM_SAVEGAME, struct saveloadgame_msg *slg )
 
         if( !yw_SaveBuildInfo( ywd, SGF ) ) all_ok = FALSE;
         }
+        
+    /*** Userdaten nicht im Final savegame ***/
+    if( userdata ) {
 
+         if( !yw_WriteUserData(SGF,"blabla",ywd->gsr )) all_ok = FALSE;
+         }
+         
     /* ---------------------------------------------------------
     ** Abspeichern. Die Maps zuerst! Damit beim Laden (und damit
     ** verbundenen gebäudebauen) noch keine Robos da sind!
@@ -393,15 +402,14 @@ _dispatcher( BOOL, yw_YWM_SAVEGAME, struct saveloadgame_msg *slg )
     if( all_ok ) {
 
         // FIXME FLOH
-        if (yw_WriteUserData(SGF,"blabla",ywd->gsr ))
-            if( yw_SaveLevelNum( ywd, SGF ) )
-                if( yw_SaveWorld( ywd, SGF ) )
-                    if( yw_SaveVehicles( ywd, SGF ) )
-                        if( yw_SaveWunderInfo( ywd, SGF ) )
-                            if( yw_SaveKWFactor( ywd, SGF ) )
-                                if( yw_SaveGlobals( ywd, SGF ) )
-                                    if( yw_SaveSuperBombs( ywd, SGF ) )
-                                        all_ok = TRUE;
+        if( yw_SaveLevelNum( ywd, SGF ) )
+            if( yw_SaveWorld( ywd, SGF ) )
+                if( yw_SaveVehicles( ywd, SGF ) )
+                    if( yw_SaveWunderInfo( ywd, SGF ) )
+                        if( yw_SaveKWFactor( ywd, SGF ) )
+                            if( yw_SaveGlobals( ywd, SGF ) )
+                                if( yw_SaveSuperBombs( ywd, SGF ) )
+                                    all_ok = TRUE;
         }
 
     /*** Sachen, die nicht immer abgespeichert werden ***/
