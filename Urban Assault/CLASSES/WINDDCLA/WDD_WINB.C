@@ -2629,6 +2629,8 @@ void wdd_EnableGDI(struct windd_data *wdd, unsigned long mode)
 **                            640x480x16 geschaltet
 **      25-May-98   floh    + im Movieplayer-Modus wird Bildschirm
 **                            vorher geloescht.
+**      03-Jun-98   floh    + oops, im Software-Mouse-Modus wurde die
+**                            Mouse weggeloescht!
 */
 {
     if (wdd->hWnd) {
@@ -2638,7 +2640,7 @@ void wdd_EnableGDI(struct windd_data *wdd, unsigned long mode)
         HCURSOR hCursor = NULL;
 
         wdd_DuringEnableGDI = TRUE;
-
+        
         /*** im DirectDraw Modus zuerst Backsurface unlocken ***/
         if (!wdd_DoDirect3D) {
             ddrval = wdd->lpDDSBack->lpVtbl->Unlock(wdd->lpDDSBack,NULL);
@@ -2703,7 +2705,10 @@ void wdd_EnableGDI(struct windd_data *wdd, unsigned long mode)
             };
 
         };
-        wdd_SetMouseImage(wdd,1,TRUE);
+        /*** Systemcursor laden ***/
+        while (ShowCursor(TRUE)<0);
+        hCursor=LoadCursor(wdd->hInstance,"Pointer");
+        if (hCursor) SetCursor(hCursor);
     };
 }
 
