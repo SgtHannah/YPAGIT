@@ -1807,12 +1807,10 @@ void yr_InitForce( struct yparobo_data *yrd, struct OBNode *Commander )
     ULONG                      BC;
     struct setstate_msg        state;
     LONG                       max_energy;
-
-    #ifdef __NETWORK__
-    struct sendmessage_msg sm;
+    struct settarget_msg       target;
+    struct sendmessage_msg     sm;
     struct ypamessage_newvehicle nvm;
     struct ypaworld_data *ywd;
-    #endif
 
 
 
@@ -1883,6 +1881,13 @@ void yr_InitForce( struct yparobo_data *yrd, struct OBNode *Commander )
 
         /*** Anketten ***/
         _methoda( Commander->o, YBM_ADDSLAVE, slave );
+
+        /*** Ziel geben, weil das nicht mehr automatisch passiert ***/
+        target.target_type = TARTYPE_SECTOR;
+        target.pos.x       = yrd->bact->pos.x + yrd->bact->dir.m31 * SECTOR_SIZE / 2;
+        target.pos.z       = yrd->bact->pos.z + yrd->bact->dir.m33 * SECTOR_SIZE / 2;
+        target.priority    = 0;
+        _methoda( slave, YBM_SETTARGET, &target );
 
         #ifdef __NETWORK__
         /*** Id aktualisieren und Message losschicken ***/
@@ -2640,8 +2645,8 @@ switch( af->job ) {
 
         /*** trotzdem Target, nämlich vor Robo, weil Commander ***/
         target.target_type = TARTYPE_SECTOR;
-        target.pos.x       = yrd->bact->pos.x + yrd->bact->dir.m31 * 400;
-        target.pos.z       = yrd->bact->pos.z + yrd->bact->dir.m33 * 400;
+        target.pos.x       = yrd->bact->pos.x + yrd->bact->dir.m31 * SECTOR_SIZE / 2;
+        target.pos.z       = yrd->bact->pos.z + yrd->bact->dir.m33 * SECTOR_SIZE / 2;
         target.priority    = 0;
         _methoda( com, YBM_SETTARGET, &target );
 
