@@ -478,7 +478,7 @@ typedef interface IDvdGraphBuilder IDvdGraphBuilder;
 /* header files for imported files */
 #include "unknwn.h"
 #include "objidl.h"
-//#include "ocidl.h"
+#include "ocidl.h"
 
 void __RPC_FAR * __RPC_USER MIDL_user_allocate(size_t);
 void __RPC_USER MIDL_user_free( void __RPC_FAR * ); 
