@@ -1254,17 +1254,3 @@ _dispatcher( void, ym_YMM_ALIGNMISSILE_V, struct alignmissile_msg *am )
 }   
 
 
-void ym_HistoryKill( Object *world, struct Bacterium *killer, struct Bacterium *corpse )
-{
-    struct ypa_HistVhclKill vkill;
-
-    /*** Todesmeldung für die History ***/
-    vkill.cmd    = YPAHIST_VHCLKILL;
-    vkill.owners = ( (killer->Owner<<3) |
-                     (corpse->Owner) );
-    vkill.vp     = corpse->TypeID;
-    vkill.pos_x  = (UBYTE)((corpse->pos.x*256)/corpse->WorldX);
-    vkill.pos_z  = (UBYTE)((corpse->pos.z*256)/corpse->WorldZ);
-    _methoda( world, YWM_NOTIFYHISTORYEVENT, &vkill );
-}
-
