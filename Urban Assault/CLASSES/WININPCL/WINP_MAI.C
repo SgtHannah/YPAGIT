@@ -161,26 +161,26 @@ struct idev_remap winp_RemapTable[] = {
     {"mmb",    IDEVTYPE_BUTTON, WINP_CODE_MMB, 0},
 
     /*** Mouse-Sliders ***/
-    {"mouse_x", IDEVTYPE_SLIDER, WINP_CODE_MX, 0},
-    {"mouse_y", IDEVTYPE_SLIDER, WINP_CODE_MY, 0},
+    {"mousex", IDEVTYPE_SLIDER, WINP_CODE_MX, 0},
+    {"mousey", IDEVTYPE_SLIDER, WINP_CODE_MY, 0},
 
     /*** Joystick-Buttons ***/
-    {"joy_b0", IDEVTYPE_BUTTON, WINP_CODE_JB0, 0},
-    {"joy_b1", IDEVTYPE_BUTTON, WINP_CODE_JB1, 0},
-    {"joy_b2", IDEVTYPE_BUTTON, WINP_CODE_JB2, 0},
-    {"joy_b3", IDEVTYPE_BUTTON, WINP_CODE_JB3, 0},
-    {"joy_b4", IDEVTYPE_BUTTON, WINP_CODE_JB4, 0},
-    {"joy_b5", IDEVTYPE_BUTTON, WINP_CODE_JB5, 0},
-    {"joy_b6", IDEVTYPE_BUTTON, WINP_CODE_JB6, 0},
-    {"joy_b7", IDEVTYPE_BUTTON, WINP_CODE_JB7, 0},
+    {"joyb0", IDEVTYPE_BUTTON, WINP_CODE_JB0, 0},
+    {"joyb1", IDEVTYPE_BUTTON, WINP_CODE_JB1, 0},
+    {"joyb2", IDEVTYPE_BUTTON, WINP_CODE_JB2, 0},
+    {"joyb3", IDEVTYPE_BUTTON, WINP_CODE_JB3, 0},
+    {"joyb4", IDEVTYPE_BUTTON, WINP_CODE_JB4, 0},
+    {"joyb5", IDEVTYPE_BUTTON, WINP_CODE_JB5, 0},
+    {"joyb6", IDEVTYPE_BUTTON, WINP_CODE_JB6, 0},
+    {"joyb7", IDEVTYPE_BUTTON, WINP_CODE_JB7, 0},
 
     /*** Mouse-Achsen ***/
-    {"joy_x",        IDEVTYPE_SLIDER, WINP_CODE_JX,       0},
-    {"joy_y",        IDEVTYPE_SLIDER, WINP_CODE_JY,       0},
-    {"joy_throttle", IDEVTYPE_SLIDER, WINP_CODE_THROTTLE, 0},
-    {"joy_hat_x",    IDEVTYPE_SLIDER, WINP_CODE_HATX,     0},
-    {"joy_hat_y",    IDEVTYPE_SLIDER, WINP_CODE_HATY,     0},
-    {"joy_rudder",   IDEVTYPE_SLIDER, WINP_CODE_RUDDER,   0},
+    {"joyx",        IDEVTYPE_SLIDER, WINP_CODE_JX,       0},
+    {"joyy",        IDEVTYPE_SLIDER, WINP_CODE_JY,       0},
+    {"joythrottle", IDEVTYPE_SLIDER, WINP_CODE_THROTTLE, 0},
+    {"joyhatx",     IDEVTYPE_SLIDER, WINP_CODE_HATX,     0},
+    {"joyhaty",     IDEVTYPE_SLIDER, WINP_CODE_HATY,     0},
+    {"joyrudder",   IDEVTYPE_SLIDER, WINP_CODE_RUDDER,   0},
 
     /*** Terminator ***/
     {NULL, IDEVTYPE_NONE, -1, 0, },
@@ -580,6 +580,23 @@ _dispatcher(void, winp_IDEVM_GETBUTTON, struct idev_status_msg *msg)
 }
 
 /*-----------------------------------------------------------------*/
+LONG winp_GetSlider(LONG act_slider, LONG new_slider)
+/*
+**  CHANGED
+**      15-May-98   floh    created
+*/
+{
+    if (act_slider > new_slider) {
+        act_slider -= WINP_MAX_SLIDER/8;
+        if (act_slider < new_slider) act_slider=new_slider;
+    } else if (act_slider < new_slider) {
+        act_slider += WINP_MAX_SLIDER/8;
+        if (act_slider > new_slider) act_slider=new_slider;
+    };
+    return(act_slider);
+};
+
+/*-----------------------------------------------------------------*/
 _dispatcher(void, winp_IDEVM_GETSLIDER, struct idev_status_msg *msg)
 /*
 **  FUNCTION
@@ -591,6 +608,8 @@ _dispatcher(void, winp_IDEVM_GETSLIDER, struct idev_status_msg *msg)
 **      15-Nov-96   floh    created
 **      13-May-97   floh    + Joystick-Achsen
 **      03-Jun-97   floh    + Joystick-Rudder-Achse
+**      15-May-98   floh    + Joystick-Sliders haben jetzt einen
+**                            Gummiband-Effekt
 */
 {
     struct winp_data *wid = INST_DATA(cl,o);
@@ -601,10 +620,8 @@ _dispatcher(void, winp_IDEVM_GETSLIDER, struct idev_status_msg *msg)
 
         LONG delta;
         BOOL mouse_changed = FALSE;
-
-        /*** Gummiband-Effekt ***/
-        wid->mouse_slider = (wid->mouse_slider*7)/10;
-
+        ULONG rubber_band = TRUE;
+        
         switch(winp_RemapTable[ix].code) {
 
             case WINP_CODE_MX:
@@ -612,6 +629,7 @@ _dispatcher(void, winp_IDEVM_GETSLIDER, struct idev_status_msg *msg)
                 wid->mouse_store   = winp_ScreenMousePos.x;
                 wid->mouse_slider += delta;
                 mouse_changed = TRUE;
+                if (delta != 0) rubber_band = FALSE; 
                 break;
 
             case WINP_CODE_MY:
@@ -619,40 +637,53 @@ _dispatcher(void, winp_IDEVM_GETSLIDER, struct idev_status_msg *msg)
                 wid->mouse_store   = winp_ScreenMousePos.y;
                 wid->mouse_slider += delta;
                 mouse_changed = TRUE;
+                if (delta != 0) rubber_band = FALSE;
                 break;
 
             case WINP_CODE_JX:
-                wid->mouse_slider = winp_JoyPrimAxes.x;
+                wid->mouse_slider = winp_GetSlider(wid->mouse_slider,winp_JoyPrimAxes.x);
+                rubber_band = FALSE;
                 break;
 
             case WINP_CODE_JY:
-                wid->mouse_slider = winp_JoyPrimAxes.y;
+                wid->mouse_slider = winp_GetSlider(wid->mouse_slider,winp_JoyPrimAxes.y);
+                rubber_band = FALSE;
                 break;
 
             case WINP_CODE_THROTTLE:
-                wid->mouse_slider = -winp_JoySecAxes.x;
+                wid->mouse_slider = winp_GetSlider(wid->mouse_slider,-winp_JoySecAxes.x);
+                rubber_band = FALSE;
                 break;
 
             case WINP_CODE_RUDDER:
-                wid->mouse_slider = winp_JoySecAxes.y;
+                wid->mouse_slider = winp_GetSlider(wid->mouse_slider,winp_JoySecAxes.y);
+                rubber_band = FALSE;
                 break;
 
             case WINP_CODE_HATX:
-                wid->mouse_slider = winp_JoyHatAxes.x;
+                wid->mouse_slider = winp_GetSlider(wid->mouse_slider,winp_JoyHatAxes.x);
+                rubber_band = FALSE;
                 break;
 
             case WINP_CODE_HATY:
-                wid->mouse_slider = winp_JoyHatAxes.y;
+                wid->mouse_slider = winp_GetSlider(wid->mouse_slider,winp_JoyHatAxes.y);
+                rubber_band = FALSE;
                 break;
 
             /*** ein Button? ***/
             default:
                 {
                     BOOL down = winp_RemapTable[ix].status;
-                    if (down) wid->mouse_slider += (WINP_MAX_SLIDER/4);
+                    if (down) {
+                        wid->mouse_slider += (WINP_MAX_SLIDER/8);
+                        rubber_band = FALSE;
+                    };
                 };
                 break;
         };
+        
+        /*** Gummiband-Effekt ***/
+        if (rubber_band) wid->mouse_slider = (wid->mouse_slider*8)/10;
 
         /*** Range-Check ***/
         if (wid->mouse_slider < (-WINP_MAX_SLIDER)) {

@@ -1220,7 +1220,7 @@ _dispatcher(void, yt_YBM_HANDLEINPUT, struct trigger_logic_msg *msg)
     struct fireyourguns_msg fyg;
     struct visier_msg visier;
     struct flt_triple fdir;
-
+    FLOAT force_mul, abs_force_mul, max_force;
 
     /*
     ** Wie fährt ein Panzer?
@@ -1321,28 +1321,26 @@ _dispatcher(void, yt_YBM_HANDLEINPUT, struct trigger_logic_msg *msg)
                     }
                 }
 
-            /*** FIXME_FLOH: spezieller Joystick-"Gaspedal"-Hack ***/
+            /*** FIXME_FLOH: spezielles Joystick-Handling ***/
+            force_mul     = msg->input->Slider[SL_DRV_SPEED];
+            abs_force_mul = fabs(force_mul);
+            if (force_mul > 1.0)       force_mul =  1.0;
+            else if (force_mul < -1.0) force_mul = -1.0;
+            ytd->bact->act_force += 0.75 * time * ytd->bact->max_force * force_mul;
             if (msg->input->Buttons & (1<<31)) {
-                /*** Joystick-Control an, Special Hack ***/
-                ytd->bact->act_force = ytd->bact->max_force * -msg->input->Slider[13];
-                if (fabs(msg->input->Slider[13]) > 0.1) {
-                    ytd->bact->ExtraState |= EXTRA_MOVE;
-                };
+                /*** Joystick ist aktiviert, funktioniert bissel anders ***/
+                max_force = ytd->bact->max_force * abs_force_mul;
             } else {
-                ytd->bact->act_force += 0.75 * time * ytd->bact->max_force *
-                                        msg->input->Slider[ SL_DRV_SPEED ];
+                max_force = ytd->bact->max_force;
+            };              
+            if (ytd->bact->act_force > max_force) {
+                ytd->bact->act_force = max_force;
             };
-
-            if( ytd->bact->act_force > ytd->bact->max_force )
-                ytd->bact->act_force = ytd->bact->max_force;
-
-            if( ytd->bact->act_force < -ytd->bact->max_force )
-                ytd->bact->act_force = -ytd->bact->max_force;
-
-            if( fabs(msg->input->Slider[ SL_DRV_SPEED ]) > 0.001 )
-                ytd->bact->ExtraState |= EXTRA_MOVE;
-
-
+            if (ytd->bact->act_force < -max_force) {
+                ytd->bact->act_force = -max_force;
+            };
+            if (fabs(force_mul) > 0.001) ytd->bact->ExtraState |= EXTRA_MOVE;
+                       
             /*** Kanone nach oben/unten ***/
             ytd->bact->gun_angle_user += (time * msg->input->Slider[ SL_GUN_HEIGHT ]);
             if( ytd->bact->gun_angle_user < -0.3)
