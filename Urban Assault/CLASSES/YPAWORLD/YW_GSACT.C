@@ -226,10 +226,6 @@ _dispatcher( BOOL, yw_YWM_SETGAMEVIDEO, struct setgamevideo_msg *sgv)
 
     /*** Etwas Nacharbeit ***/
     _OVE_GetAttrs( OVET_Object, &dobj, TAG_DONE );
-    if( GSR->video_flags & VF_FILTERING )
-        _set(dobj,WINDDA_TextureFilter,TRUE);
-    else
-        _set(dobj,WINDDA_TextureFilter,FALSE);
     if( GSR->video_flags & VF_SOFTMOUSE )
         _set(dobj,WINDDA_CursorMode,WINDD_CURSORMODE_SOFT);
     else

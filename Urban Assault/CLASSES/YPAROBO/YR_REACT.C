@@ -142,6 +142,9 @@ void yr_CheckCommander( struct yparobo_data *yrd, struct trigger_logic_msg *msg,
     ** Hier überwche ich alle Commander.
     ** Wenn es ihnen schlecht geht, kann ich sie zu anderen oder zum Robo 
     ** fliehen lassen oder sie verstärken.
+    **
+    ** Achtung, auto_only ist aus CompGruenden noch drin, bitte nicht mehr
+    ** nutzen, weil ein UserRobo auch aus AI3 heraus aufrufen kann.
     */
     
     struct MinList *CommList, *SlaveList;
@@ -477,7 +480,7 @@ void yr_CheckCommander( struct yparobo_data *yrd, struct trigger_logic_msg *msg,
         ** handelt.)  Das passiert dann aber im AUTO-ONLY-Zweig!
         ** ----------------------------------------------------------------*/
 
-        if( auto_only ) {
+        if( FALSE == USER_ROBO ) {
 
             /* ---------------------------------------------------------------
             ** Bis hierher wurde alles von allen gemacht. Was jetzt kommt, ist

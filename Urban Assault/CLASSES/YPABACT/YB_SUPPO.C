@@ -56,6 +56,9 @@ FLOAT yb_delta[8][2] = { { -SECTOR_SIZE, -SECTOR_SIZE}, {0.0, -SECTOR_SIZE},
                          { SECTOR_SIZE, 0.0}, {-SECTOR_SIZE, SECTOR_SIZE},
                          { 0.0, SECTOR_SIZE}, {SECTOR_SIZE, SECTOR_SIZE} };
 
+/*** Wegen StackProblemen global jetzt ***/
+struct ypamessage_neworg no;
+ 
 _dispatcher( BOOL, yb_YBM_CRASHTEST, struct flt_triple *Plane)
 {
 /*
@@ -546,7 +549,6 @@ void yb_SendCommand( struct ypabact_data *ybd, struct Bacterium *bact, ULONG mod
     ywd = INST_DATA( ((struct nucleusdata *)ybd->world)->o_Class, ybd->world);
     if( ywd->playing_network ) {
 
-        struct ypamessage_neworg no;
         struct sendmessage_msg sm;
         struct OBNode *s;
 

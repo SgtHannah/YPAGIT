@@ -1175,6 +1175,13 @@ void yw_ActualizeInputRequester( struct GameShellReq *GSR )
     sbs.who = GSID_JOYSTICK;
     _methoda( GSR->binput, BTM_SETSTATE, &sbs );
 
+    if( GSR->altjoystick )
+        sbs.state = SBS_PRESSED;
+    else
+        sbs.state = SBS_UNPRESSED;
+    sbs.who = GSID_ALTJOYSTICK;
+    _methoda( GSR->binput, BTM_SETSTATE, &sbs );
+
     if( GSR->ywd->Prefs.Flags & YPA_PREFS_FFDISABLE )
         sbs.state = SBS_UNPRESSED;
     else
@@ -1200,11 +1207,6 @@ void yw_GameShellToolTips( struct GameShellReq *GSR, ULONG who )
         case GSID_GAME:
 
             yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_PLAY );
-            break;
-
-        case GSID_TUTORIAL:
-
-            yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_TUTORIAL );
             break;
 
         case GSID_DISK:
@@ -1284,7 +1286,7 @@ void yw_GameShellToolTips( struct GameShellReq *GSR, ULONG who )
  
         case GSID_PL_GOTOLOADSAVE:
 
-            yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_PL_GOTOLOADSAVE );
+            //yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_PL_GOTOLOADSAVE );
             break;
             
 
@@ -1504,11 +1506,6 @@ void yw_GameShellToolTips( struct GameShellReq *GSR, ULONG who )
             yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_RESOLUTION );
             break;
 
-        case GSID_SOUND_SWITCH:
-
-            yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_SOUNDSWITCH );
-            break;
-
         case GSID_SOUND_LR:
 
             yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_SOUNDLR );
@@ -1529,12 +1526,7 @@ void yw_GameShellToolTips( struct GameShellReq *GSR, ULONG who )
             yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_CDSOUND );
             break;
 
-        case GSID_FILTERING:
-
-            yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_FILTERING );
-            break;
-
-        case GSID_SOFTMOUSE:
+       case GSID_SOFTMOUSE:
 
             yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_SOFTMOUSE );
             break;

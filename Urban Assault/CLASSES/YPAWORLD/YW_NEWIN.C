@@ -1967,7 +1967,20 @@ _dispatcher(void, yw_YWM_KILLLEVEL, void *ignored)
 
     /*** alle Commanders metzeln ***/
     while (ywd->CmdList.mlh_Head->mln_Succ) {
+    
+        struct OBNode *robo = (struct OBNode *) ywd->CmdList.mlh_Head;
         Object *cmd = ((struct OBNode *)ywd->CmdList.mlh_Head)->o;
+
+        if( (ywd->WasNetworkSession) &&
+            (robo->bact->Owner       != user_owner) &&
+            (robo->bact->BactClassID == BCLID_YPAROBO) ) {
+                    
+            /*** Freigabe ohne DIE, weil ein Schatten ***/
+            yw_RemoveAllShadows( ywd, robo );
+            
+            /*** Flags sind gesetzt, nun erfolgt dispose Aufruf ohne DIE ***/
+        }
+
         _dispose(cmd);
     };
 

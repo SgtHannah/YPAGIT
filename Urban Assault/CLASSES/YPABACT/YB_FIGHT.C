@@ -100,10 +100,6 @@ _dispatcher(void, yb_YBM_FIGHTBACT, struct fight_msg *fight)
         }
     else {
 
-        /*** Position merken ***/
-        if( ACTION_DEAD != ybd->bact.PrimaryTarget.Bact->MainState )
-            ybd->bact.PrimPos = ybd->bact.PrimaryTarget.Bact->pos;
-
         tarpos      = ybd->bact.PrimaryTarget.Bact->pos;
         PRIMTARGET  = TRUE;
         at.priority = 0;

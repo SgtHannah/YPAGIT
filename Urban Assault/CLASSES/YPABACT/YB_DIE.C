@@ -635,6 +635,7 @@ _dispatcher( void, yb_YBM_REINCARNATE, void *nix )
     ybd->bact.fe_time        = -FE_TIME; // denn feindkontakt sofort sein
     ybd->bact.salve_count    = 0;
     ybd->bact.kill_after_shot= FALSE;
+    ybd->bact.vpactive       = 0;
 
     /*** Defaultmäßig sind's erstmal alles Lander ***/
     ybd->flags |= YBF_LandWhileWait;

@@ -640,10 +640,29 @@ ULONG yw_ParseInputData( struct ScriptParser *parser )
               if( stricmp( parser->keyword, "joystick") == 0 ) {
 
                   if( (stricmp( parser->data, "yes") == 0) ||
-                      (stricmp( parser->data, "on" ) == 0) )
+                      (stricmp( parser->data, "on" ) == 0) ) {
+                      GSR->joystick          =  TRUE;
                       GSR->ywd->Prefs.Flags &= ~YPA_PREFS_JOYDISABLE;
-                  else
+                      }
+                  else {
+                      GSR->joystick          =  FALSE;  
                       GSR->ywd->Prefs.Flags |=  YPA_PREFS_JOYDISABLE;
+                      }
+
+                  return( PARSE_ALL_OK );
+                  }
+
+              if( stricmp( parser->keyword, "altjoystick") == 0 ) {
+
+                  if( (stricmp( parser->data, "yes") == 0) ||
+                      (stricmp( parser->data, "on" ) == 0) ) {
+                      GSR->altjoystick = TRUE;
+                      GSR->ywd->Prefs.Flags |=  YPA_PREFS_JOYMODEL2;
+                      }
+                  else {
+                      GSR->altjoystick = FALSE;
+                      GSR->ywd->Prefs.Flags &= ~YPA_PREFS_JOYMODEL2;
+                      }
 
                   return( PARSE_ALL_OK );
                   }
@@ -1048,23 +1067,41 @@ ULONG yw_ParseVideoData( struct ScriptParser *parser )
                         }
 
                 } else {
-
+                
                 if( stricmp( parser->keyword, "filtering") == 0 ) {
+                
+                    /*** aus Kompatibilitaetsgruenden noch drin ***/
+                
+                } else {
+
+                if( stricmp( parser->keyword, "drawprimitive") == 0 ) {
 
                     /*** Weitsicht erwünscht? ***/
                     if( stricmp( parser->data, "yes" ) == 0 ) {
 
-                        GSR->video_flags      |= VF_FILTERING;
-                        GSR->ywd->Prefs.Flags |= YPA_PREFS_FILTERING;
-                        _set(GSR->ywd->GfxObject,WINDDA_TextureFilter,TRUE);
+                        GSR->video_flags      |= VF_DRAWPRIMITIVE;
+                        //GSR->ywd->Prefs.Flags |= YPA_PREFS_FILTERING;
+                        //_set(GSR->ywd->GfxObject,WINDDA_TextureFilter,TRUE);
                         }
                     else {
 
-                        GSR->video_flags      &= ~VF_FILTERING;
-                        GSR->ywd->Prefs.Flags &= ~YPA_PREFS_FILTERING;
-                        _set(GSR->ywd->GfxObject,WINDDA_TextureFilter,FALSE);
+                        GSR->video_flags      &= ~VF_DRAWPRIMITIVE;
+                        //GSR->ywd->Prefs.Flags &= ~YPA_PREFS_FILTERING;
+                        //_set(GSR->ywd->GfxObject,WINDDA_TextureFilter,FALSE);
                         }
 
+                } else {
+
+                if( stricmp( parser->keyword, "16bittexture") == 0 ) {
+
+                    if( stricmp( parser->data, "yes" ) == 0 ) {
+                        GSR->video_flags      |=  VF_16BITTEXTURE;
+                        //GSR->ywd->Prefs.Flags |= YPA_PREFS_SOUNDENABLE;
+                    } else {
+                        GSR->video_flags      &= ~VF_16BITTEXTURE;
+                        //GSR->ywd->Prefs.Flags &= ~YPA_PREFS_SOUNDENABLE;
+                    }
+                
                 } else {
 
                 if( stricmp( parser->keyword, "softmouse") == 0 ) {
@@ -1136,7 +1173,7 @@ ULONG yw_ParseVideoData( struct ScriptParser *parser )
 
                     /*** Unbekannt ***/
                     return( PARSE_UNKNOWN_KEYWORD );
-                    } } } } } } } }
+                    } } } } } } } } } }
                 }
 
             return( PARSE_ALL_OK );
@@ -1505,15 +1542,9 @@ ULONG yw_ParseSoundData( struct ScriptParser *parser )
                 } else {
 
                 if( stricmp( parser->keyword, "sound") == 0 ) {
-
-                    if( stricmp( parser->data, "yes" ) == 0 ) {
-                        GSR->sound_flags      |=  SF_SOUND;
-                        GSR->ywd->Prefs.Flags |= YPA_PREFS_SOUNDENABLE;
-                    } else {
-                        GSR->sound_flags      &= ~SF_SOUND;
-                        GSR->ywd->Prefs.Flags &= ~YPA_PREFS_SOUNDENABLE;
-                    }
                 
+                    /*** Aus Kompatibitaetsgruenden noch drin ***/
+
                 } else {
 
                 if( stricmp( parser->keyword, "cdsound") == 0 ) {
@@ -1727,6 +1758,13 @@ BOOL yw_WriteInputData( FILE *ifile, struct GameShellReq *GSR )
         sprintf( str, "    joystick = yes\n\0");
     _FWrite( str, strlen( str ), 1, ifile );
 
+    /*** alt. Joystick Modell ***/
+    if( GSR->altjoystick )
+        sprintf( str, "    altjoystick = yes\n\0");
+    else
+        sprintf( str, "    altjoystick = no\n\0");
+    _FWrite( str, strlen( str ), 1, ifile );
+
     /*** ForceFeedback ***/
     if( GSR->ywd->Prefs.Flags & YPA_PREFS_FFDISABLE )
         sprintf( str, "    forcefeedback = no\n\0");
@@ -1868,6 +1906,20 @@ BOOL yw_WriteVideoData( FILE *ifile, struct GameShellReq *GSR )
         sprintf( str,"    farview = no\n\0");
     _FWrite( str, strlen( str ), 1, ifile );
 
+    /*** 16 bit texturen ***/
+    if( GSR->video_flags & VF_16BITTEXTURE )
+        sprintf( str,"    16bittexture = yes\n\0");
+    else
+        sprintf( str,"    16bittexture = no\n\0");
+    _FWrite( str, strlen( str ), 1, ifile );
+
+    /*** OpenGL aehnliches Modell ***/
+    if( GSR->video_flags & VF_DRAWPRIMITIVE )
+        sprintf( str,"    drawprimitive = yes\n\0");
+    else
+        sprintf( str,"    drawprimitive = no\n\0");
+    _FWrite( str, strlen( str ), 1, ifile );
+
     /*** Himmel ***/
     if( GSR->video_flags & VF_HEAVEN )
         sprintf( str,"    heaven = yes\n\0");
@@ -1880,13 +1932,6 @@ BOOL yw_WriteVideoData( FILE *ifile, struct GameShellReq *GSR )
         sprintf( str,"    softmouse = yes\n\0");
     else
         sprintf( str,"    softmouse = no\n\0");
-    _FWrite( str, strlen( str ), 1, ifile );
-
-    /*** Filtering ***/
-    if( GSR->video_flags & VF_FILTERING )
-        sprintf( str,"    filtering = yes\n\0");
-    else
-        sprintf( str,"    filtering = no\n\0");
     _FWrite( str, strlen( str ), 1, ifile );
 
     /*** Indikatoren ***/
@@ -1923,13 +1968,6 @@ BOOL yw_WriteSoundData( FILE *ifile, struct GameShellReq *GSR )
 
     /*** Lautstärke für CD-Tracks***/
     sprintf( str, "    cdvolume = %d\n\0", GSR->cdvolume );
-    _FWrite( str, strlen( str ), 1, ifile );
-
-    /*** Überhaupt Sound? ***/
-    if( GSR->sound_flags & SF_SOUND )
-        sprintf( str,"    sound = yes\n\0");
-    else
-        sprintf( str,"    sound = no\n\0");
     _FWrite( str, strlen( str ), 1, ifile );
 
     /*** Links-rechts-Umkehrung ***/

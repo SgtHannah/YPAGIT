@@ -195,6 +195,13 @@ _dispatcher(void, yb_YBM_AI_LEVEL1, struct trigger_logic_msg *msg)
                     vc->x = ybd->bact.PrimaryTarget.Bact->pos.x-ybd->bact.pos.x;
                     vc->y = ybd->bact.PrimaryTarget.Bact->pos.y-ybd->bact.pos.y;
                     vc->z = ybd->bact.PrimaryTarget.Bact->pos.z-ybd->bact.pos.z;
+
+                    /* ------------------------------------------------------
+                    ** Position merken, um bei Verlust/Tod des bactZieles die
+                    ** derzeitige Position als hauptziel nehmen zu koennen
+                    ** ----------------------------------------------------*/
+                    if( ACTION_DEAD != ybd->bact.PrimaryTarget.Bact->MainState )
+                        ybd->bact.PrimPos = ybd->bact.PrimaryTarget.Bact->pos;
                     }
                 else {
                     

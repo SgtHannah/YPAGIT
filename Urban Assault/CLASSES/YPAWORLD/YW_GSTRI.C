@@ -229,7 +229,12 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
     struct getsessionname_msg   gsn;
     struct getplayerdata_msg    gpd;
     #endif
-
+    
+    
+    /*** Buttonsounds sind allgemein ***/
+    if( GSR->input->ClickInfo.flags & CIF_BUTTONDOWN )
+        _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
+    
     #ifdef __NETWORK__
     /* -----------------------------------------------------------------
     ** Wenn schon ein Provider gewählt wurde. Messages müssen hier immer
@@ -283,8 +288,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
     swb.number = GSID_LOCALE;
     _methoda( GSR->Titel, BTM_DISABLEBUTTON, &swb );
     swb.number = GSID_QUIT;
-    _methoda( GSR->Titel, BTM_DISABLEBUTTON, &swb );
-    swb.number = GSID_TUTORIAL;
     _methoda( GSR->Titel, BTM_DISABLEBUTTON, &swb );
     swb.number = GSID_GAME;
     _methoda( GSR->Titel, BTM_DISABLEBUTTON, &swb );
@@ -396,8 +399,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
             _methoda( GSR->Titel, BTM_ENABLEBUTTON, &swb );
             swb.number = GSID_GAME;
             _methoda( GSR->Titel, BTM_ENABLEBUTTON, &swb );
-            swb.number = GSID_TUTORIAL;
-            _methoda( GSR->Titel, BTM_ENABLEBUTTON, &swb );
 
             #ifdef __NETWORK__
             swb.number = GSID_NET;
@@ -479,12 +480,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
 
         switch( ret ) {
 
-            case GS_BUTTONDOWN:
-
-                /*** Click ohne Funktionalität ***/
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
-                break;
-
             case GS_QUIT:
 
                 /* ------------------------------------------------
@@ -507,16 +502,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 sp.modus = SP_NOPUBLISH;
                 _methoda( GSR->Titel, BTM_SWITCHPUBLISH, &sp );
                 GSR->shell_mode = SHELLMODE_PLAY;
-                break;
-
-            case GS_TUTORIAL_OPEN:
-
-                /*** Inputrequester öffnen ***/
-                sp.modus = SP_PUBLISH;
-                _methoda( GSR->UBalken, BTM_SWITCHPUBLISH, &sp );
-                sp.modus = SP_NOPUBLISH;
-                _methoda( GSR->Titel, BTM_SWITCHPUBLISH, &sp );
-                GSR->shell_mode = SHELLMODE_TUTORIAL;
                 break;
 
             case GS_INPUT_OPEN:
@@ -617,12 +602,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
         ret = ((ret << 16) >> 16);
 
         switch( ret ) {
-
-            case GS_BUTTONDOWN:
-
-                /*** Click ohne Funktionalität ***/
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
-                break;
 
             case GS_QUIT:
 
@@ -729,7 +708,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                     yw_MBPause( ywd );
                 else
                     yw_MBForward( ywd );
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
                 
             case GS_PL_GOTOLOADSAVE:
@@ -890,38 +868,40 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 yw_CancelInput( GSR );
                 break;
 
-            case GS_BUTTONDOWN:
-
-                /*** Click ohne Funktionalität ***/
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
-                break;
-
             case GS_USEJOYSTICK:
 
                 GSR->new_joystick   = TRUE;
                 GSR->input_changed |= ICF_JOYSTICK;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
             case GS_NOJOYSTICK:
 
                 GSR->new_joystick   = FALSE;
                 GSR->input_changed |= ICF_JOYSTICK;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
+                break;
+
+            case GS_ALTJOYSTICK_YES:
+
+                GSR->new_altjoystick   = TRUE;
+                GSR->input_changed    |= ICF_ALTJOYSTICK;
+                break;
+
+            case GS_ALTJOYSTICK_NO:
+
+                GSR->new_altjoystick   = FALSE;
+                GSR->input_changed    |= ICF_ALTJOYSTICK;
                 break;
 
             case GS_USEFORCEFEEDBACK:
 
                 GSR->new_forcefeedback = TRUE;
                 GSR->input_changed    |= ICF_FORCEFEEDBACK;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
             case GS_NOFORCEFEEDBACK:
 
                 GSR->new_forcefeedback = FALSE;
                 GSR->input_changed    |= ICF_FORCEFEEDBACK;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
             case GS_INPUTOK:
@@ -934,6 +914,15 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                         GSR->ywd->Prefs.Flags &= ~YPA_PREFS_JOYDISABLE;
                     else
                         GSR->ywd->Prefs.Flags |=  YPA_PREFS_JOYDISABLE;
+                    }
+
+                if( GSR->input_changed & ICF_ALTJOYSTICK ) {
+
+                    GSR->altjoystick = GSR->new_altjoystick;
+                    if( GSR->new_altjoystick )
+                        GSR->ywd->Prefs.Flags |=  YPA_PREFS_JOYMODEL2;
+                    else
+                        GSR->ywd->Prefs.Flags &= ~YPA_PREFS_JOYMODEL2;
                     }
 
                 if( GSR->input_changed & ICF_FORCEFEEDBACK ) {
@@ -1097,46 +1086,22 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 yw_OKSettings( GSR );
                 break;
 
-            case GS_BUTTONDOWN:
-
-                /*** Click ohne Funktionalität ***/
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
-                break;
-
-            // Soundspezifische Sachen
-            case GS_SOUND_YES:
-
-                GSR->new_sound_flags  |=  SF_SOUND;
-                GSR->settings_changed |=  SCF_SOUND;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
-                break;
-
-            case GS_SOUND_NO:
-
-                GSR->new_sound_flags  &= ~SF_SOUND;
-                GSR->settings_changed |=  SCF_SOUND;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
-                break;
-
             case GS_CDSOUND_YES:
 
                 GSR->new_sound_flags  |=  SF_CDSOUND;
                 GSR->settings_changed |=  SCF_CDSOUND;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
             case GS_CDSOUND_NO:
 
                 GSR->new_sound_flags  &= ~SF_CDSOUND;
                 GSR->settings_changed |=  SCF_CDSOUND;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
             case GS_SOUND_LR:
 
                 GSR->settings_changed |=  SCF_INVERT;
                 GSR->new_sound_flags  &= ~SF_INVERTLR;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
 
                 break;
 
@@ -1144,7 +1109,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
 
                 GSR->new_sound_flags  |=  SF_INVERTLR;
                 GSR->settings_changed |=  SCF_INVERT;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
 
                 break;
 
@@ -1194,7 +1158,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
             case GS_VMENU_CLOSE:
 
                 yw_CloseReq(GSR->ywd, &(GSR->vmenu.Req) );
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
             case GS_3DMENU_OPEN:
@@ -1208,50 +1171,56 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
             case GS_3DMENU_CLOSE:
 
                 yw_CloseReq(GSR->ywd, &(GSR->d3dmenu.Req) );
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
             case GS_FARVIEW:
 
                 GSR->new_video_flags  |=  VF_FARVIEW;
                 GSR->settings_changed |=  SCF_FARVIEW;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
             case GS_NOFARVIEW:
 
                 GSR->new_video_flags  &= ~VF_FARVIEW;
                 GSR->settings_changed |=  SCF_FARVIEW;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
             case GS_HEAVEN:
 
                 GSR->new_video_flags  |=  VF_HEAVEN;
                 GSR->settings_changed |=  SCF_HEAVEN;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
             case GS_NOHEAVEN:
 
                 GSR->new_video_flags  &= ~VF_HEAVEN;
                 GSR->settings_changed |=  SCF_HEAVEN;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
 
-            case GS_FILTERING:
+            case GS_16BITTEXTURE_YES:
 
-                GSR->new_video_flags  |=  VF_FILTERING;
-                GSR->settings_changed |=  SCF_FILTERING;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
+                GSR->new_video_flags  |=  VF_16BITTEXTURE;
+                GSR->settings_changed |=  SCF_16BITTEXTURE;
                 break;
 
-            case GS_NOFILTERING:
+            case GS_16BITTEXTURE_NO:
 
-                GSR->new_video_flags  &= ~VF_FILTERING;
-                GSR->settings_changed |=  SCF_FILTERING;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
+                GSR->new_video_flags  &= ~VF_16BITTEXTURE;
+                GSR->settings_changed |=  SCF_16BITTEXTURE;
+                break;
+
+
+            case GS_DRAWPRIMITIVE_YES:
+
+                GSR->new_video_flags  |=  VF_DRAWPRIMITIVE;
+                GSR->settings_changed |=  SCF_DRAWPRIMITIVE;
+                break;
+
+            case GS_DRAWPRIMITIVE_NO:
+
+                GSR->new_video_flags  &= ~VF_DRAWPRIMITIVE;
+                GSR->settings_changed |=  SCF_DRAWPRIMITIVE;
                 break;
 
 
@@ -1259,19 +1228,16 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
 
                 GSR->new_video_flags  |=  VF_SOFTMOUSE;
                 GSR->settings_changed |=  SCF_SOFTMOUSE;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
             case GS_NOSOFTMOUSE:
 
                 GSR->new_video_flags  &= ~VF_SOFTMOUSE;
                 GSR->settings_changed |=  SCF_SOFTMOUSE;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
             case GS_FXSLIDERHIT:
 
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 GSR->settings_changed |= SCF_FXNUMBER;
                 break;
 
@@ -1279,14 +1245,12 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
 
                 GSR->new_enemyindicator = TRUE;
                 GSR->settings_changed  |= SCF_ENEMYINDICATOR;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
             case GS_ENEMY_NO:
 
                 GSR->new_enemyindicator = FALSE;
                 GSR->settings_changed  |= SCF_ENEMYINDICATOR;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
             case GS_HELP:
@@ -1626,12 +1590,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
             case PRA_RQ_CLOSE:
 
                 yw_CancelDisk( GSR );
-                break;
-
-            case GS_BUTTONDOWN:
-
-                /*** Click ohne Funktionalität ***/
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
             case GS_DISKCANCEL:
@@ -2027,11 +1985,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                            "help\\111.html");
                 break;
 
-            case GS_BUTTONDOWN:
-
-                /*** Click ohne Funktionalität ***/
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
-                break;
             }
         }
 ///
@@ -2085,12 +2038,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 sp.modus = SP_NOPUBLISH;
                 _methoda( GSR->babout, BTM_SWITCHPUBLISH, &sp );
 
-                break;
-
-            case GS_BUTTONDOWN:
-
-                /*** Click ohne Funktionalität ***/
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
             }
         }
@@ -2266,12 +2213,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 yw_CloseNetRequester( GSR );
                 break;
 
-            case GS_BUTTONDOWN:
-
-                /*** Click ohne Funktionalität ***/
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
-                break;
-
             /* -----------------------------------------------------
             ** Die Rassengadgets können ebenfalls global abgehandelt
             ** werden, da sie nur im Messagemodus aktiv sind. Vor-
@@ -2287,7 +2228,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 GSR->SelRace    =  FREERACE_USER;
                 GSR->FreeRaces &= ~FREERACE_USER;
                 _methoda( GSR->ywd->world, YWM_SENDMESSAGE, &sm );
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
             case GS_KYTERNESER:
@@ -2299,7 +2239,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 GSR->SelRace    =  FREERACE_KYTERNESER;
                 GSR->FreeRaces &= ~FREERACE_KYTERNESER;
                 _methoda( GSR->ywd->world, YWM_SENDMESSAGE, &sm );
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
             case GS_MYKONIER:
@@ -2311,7 +2250,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 GSR->SelRace    =  FREERACE_MYKONIER;
                 GSR->FreeRaces &= ~FREERACE_MYKONIER;
                 _methoda( GSR->ywd->world, YWM_SENDMESSAGE, &sm );
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
 
             case GS_TAERKASTEN:
@@ -2323,7 +2261,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 GSR->SelRace    =  FREERACE_TAERKASTEN;
                 GSR->FreeRaces &= ~FREERACE_TAERKASTEN;
                 _methoda( GSR->ywd->world, YWM_SENDMESSAGE, &sm );
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_BUTTON );
                 break;
             }
 
@@ -3894,13 +3831,6 @@ void yw_CancelSettings( struct GameShellReq *GSR )
     GSR->new_d3dname  = GSR->d3dname;
     GSR->new_d3dguid  = GSR->d3dguid;
 
-    /*** Sound ***/
-    if( GSR->sound_flags & SF_SOUND )
-        sbs.state = SBS_PRESSED;
-    else
-        sbs.state = SBS_UNPRESSED;
-    sbs.who = GSID_SOUND_SWITCH;
-    _methoda( GSR->bvideo, BTM_SETSTATE, &sbs );
 
     /*** Kanalvertauschung ***/
     if( GSR->sound_flags & SF_INVERTLR )
@@ -3934,12 +3864,20 @@ void yw_CancelSettings( struct GameShellReq *GSR )
     sbs.who = GSID_HEAVEN;
     _methoda( GSR->bvideo, BTM_SETSTATE, &sbs );
 
-    /*** Filtering ***/
-    if( GSR->video_flags & VF_FILTERING )
+    /*** 16Bit Texture Schalter ***/
+    if( GSR->video_flags & VF_16BITTEXTURE )
         sbs.state = SBS_PRESSED;
     else
         sbs.state = SBS_UNPRESSED;
-    sbs.who = GSID_FILTERING;
+    sbs.who = GSID_16BITTEXTURE;
+    _methoda( GSR->bvideo, BTM_SETSTATE, &sbs );
+
+    /*** OpenGL? ***/
+    if( GSR->video_flags & VF_DRAWPRIMITIVE )
+        sbs.state = SBS_PRESSED;
+    else
+        sbs.state = SBS_UNPRESSED;
+    sbs.who = GSID_DRAWPRIMITIVE;
     _methoda( GSR->bvideo, BTM_SETSTATE, &sbs );
 
     /*** Softmouse ***/
@@ -4051,6 +3989,13 @@ void yw_CancelInput( struct GameShellReq *GSR )
     sbs.who = GSID_JOYSTICK;
     _methoda( GSR->binput, BTM_SETSTATE, &sbs );
 
+    if( GSR->altjoystick )
+        sbs.state = SBS_PRESSED;
+    else
+        sbs.state = SBS_UNPRESSED;
+    sbs.who = GSID_ALTJOYSTICK;
+    _methoda( GSR->binput, BTM_SETSTATE, &sbs );
+
     if( GSR->ywd->Prefs.Flags & YPA_PREFS_FFDISABLE )
         sbs.state = SBS_UNPRESSED;
     else
@@ -4160,19 +4105,6 @@ void yw_OKSettings( struct GameShellReq *GSR )
         _methoda( GSR->ywd->world, YWM_SETGAMEVIDEO, &sgv );
         }
 
-    /*** Sound ***/
-    if( GSR->settings_changed & SCF_SOUND ) {
-
-        if( GSR->new_sound_flags & SF_SOUND ) {
-            GSR->sound_flags |= SF_SOUND;
-            ywd->Prefs.Flags |= YPA_PREFS_SOUNDENABLE;
-            }
-        else {
-            GSR->sound_flags &= ~SF_SOUND;
-            ywd->Prefs.Flags &= ~YPA_PREFS_SOUNDENABLE;
-            }
-        }
-
     /*** CD Sound ***/
     if( GSR->settings_changed & SCF_CDSOUND ) {
 
@@ -4251,20 +4183,37 @@ void yw_OKSettings( struct GameShellReq *GSR )
             }
         }
 
-    /*** Filtering ***/
-    if( GSR->settings_changed & SCF_FILTERING ) {
+    /*** 16BitTexture ***/
+    if( GSR->settings_changed & SCF_16BITTEXTURE ) {
 
-        if( GSR->new_video_flags & VF_FILTERING ) {
-            GSR->video_flags      |=  VF_FILTERING;
-            GSR->ywd->Prefs.Flags |=  YPA_PREFS_FILTERING;
+        if( GSR->new_video_flags & VF_16BITTEXTURE ) {
+            GSR->video_flags      |=  VF_16BITTEXTURE;
+            //GSR->ywd->Prefs.Flags |=  YPA_PREFS_FILTERING;
             // FIXME_FLOH
-            _set(GSR->ywd->GfxObject,WINDDA_TextureFilter,TRUE);
+            //_set(GSR->ywd->GfxObject,WINDDA_TextureFilter,TRUE);
             }
         else {
-            GSR->video_flags      &= ~VF_FILTERING;
-            GSR->ywd->Prefs.Flags &= ~YPA_PREFS_FILTERING;
+            GSR->video_flags      &= ~VF_16BITTEXTURE;
+            //GSR->ywd->Prefs.Flags &= ~YPA_PREFS_FILTERING;
             // FIXME_FLOH
-            _set(GSR->ywd->GfxObject,WINDDA_TextureFilter,FALSE);
+            //_set(GSR->ywd->GfxObject,WINDDA_TextureFilter,FALSE);
+            }
+        }
+
+    /*** DrawPrimitive ***/
+    if( GSR->settings_changed & SCF_DRAWPRIMITIVE ) {
+
+        if( GSR->new_video_flags & VF_DRAWPRIMITIVE ) {
+            GSR->video_flags      |=  VF_DRAWPRIMITIVE;
+            //GSR->ywd->Prefs.Flags |=  YPA_PREFS_FILTERING;
+            // FIXME_FLOH
+            //_set(GSR->ywd->GfxObject,WINDDA_TextureFilter,TRUE);
+            }
+        else {
+            GSR->video_flags      &= ~VF_DRAWPRIMITIVE;
+            //GSR->ywd->Prefs.Flags &= ~YPA_PREFS_FILTERING;
+            // FIXME_FLOH
+            //_set(GSR->ywd->GfxObject,WINDDA_TextureFilter,FALSE);
             }
         }
 

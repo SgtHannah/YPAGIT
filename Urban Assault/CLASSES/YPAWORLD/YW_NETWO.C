@@ -272,8 +272,9 @@ void yw_RemoveAllShadows( struct ypaworld_data *ywd, struct OBNode *robo )
             g_array[ i ].go = NULL;
         }
 
-    /*** Robo hat keine Waffen ***/
+    /***  ***/
     yw_RemoveAttacker( robo->bact );
+    yw_ReleaseWeapon( ywd, robo->bact );
     robo->bact->MainState = ACTION_DEAD;
     _methoda( ywd->world, YWM_RELEASEVEHICLE, robo->o );
     
@@ -829,9 +830,9 @@ void yw_HandleNetworkTrouble( struct ypaworld_data *ywd )
             /*** Schon fertig? ***/
             if( ywd->gsr->network_trouble_count < 0 ) {
             
-                /*** nun alles freigeben ***/
-                yw_RemovePlayerStuff( ywd, NULL, ywd->gsr->network_trouble_owner, 1 );
-                yw_DestroyPlayer( ywd, ywd->gsr->network_trouble_name );
+                /*** ganz normaler Abbruch ***/
+                //yw_RemovePlayerStuff( ywd, NULL, ywd->gsr->network_trouble_owner, 1 );
+                //yw_DestroyPlayer( ywd, ywd->gsr->network_trouble_name );
                 ywd->Level->Status = LEVELSTAT_ABORTED;
                 ywd->gsr->network_trouble = NETWORKTROUBLE_NONE;
                 }

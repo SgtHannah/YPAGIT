@@ -469,9 +469,6 @@ void yw_RemoveAttacker( struct Bacterium *bact )
 
             /*** Wir waren sein Hauptziel ***/
             attacker->bact->PrimaryTarget.Bact = NULL;
-            attacker->bact->PrimPos.x      = 0.0;
-            attacker->bact->PrimPos.y      = 0.0;
-            attacker->bact->PrimPos.z      = 0.0;
             attacker->bact->PrimTargetType = TARTYPE_NONE;
             attacker->bact->assess_time    = 0;
             }
@@ -484,9 +481,6 @@ void yw_RemoveAttacker( struct Bacterium *bact )
 
                 /* Wir waren (auch) sein Nebenziel. Da ist alles  egal */
                 attacker->bact->SecondaryTarget.Bact = NULL;
-                attacker->bact->SecPos.x      = 0.0;
-                attacker->bact->SecPos.y      = 0.0;
-                attacker->bact->SecPos.z      = 0.0;
                 attacker->bact->SecTargetType = TARTYPE_NONE;
                 attacker->bact->assess_time   = 0;
                 }

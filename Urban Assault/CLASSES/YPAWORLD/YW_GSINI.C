@@ -728,10 +728,6 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
         } while( wdm.name );
 
     /*** Filtering und Softmouse neu setzen ***/
-    if( GSR->video_flags & VF_FILTERING )
-        _set(GSR->ywd->GfxObject,WINDDA_TextureFilter,TRUE);
-    else
-        _set(GSR->ywd->GfxObject,WINDDA_TextureFilter,FALSE);
     if( GSR->video_flags & VF_SOFTMOUSE )
         _set(GSR->ywd->GfxObject,WINDDA_CursorMode,WINDD_CURSORMODE_SOFT);
     else
@@ -999,93 +995,79 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
     
      if( _methoda( GSR->Titel, BTM_NEWBUTTON, &nb ) ) {
 
-      nb.x             = GET_X_COORD(500);      // FIXME FLOH
-      nb.y             = GET_Y_COORD(460);      // FIXME FLOH
-      nb.w             = GET_X_COORD(64);       // FIXME FLOH
+      nb.x             = GET_X_COORD(213);     // FIXME FLOH
+      nb.y             = GET_Y_COORD(208);
+      nb.w             = ywd->DspXRes/3;       // FIXME FLOH
       nb.shortcut      = 0;
-      nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_TITLE_TUTORIAL,"TUTORIAL");
+      nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_TITLE_INPUT,"INPUT");
       nb.pressed_text  = NULL;
       nb.user_pressed  = GS_BUTTONDOWN;
-      nb.user_released = GS_TUTORIAL_OPEN;
+      nb.user_released = GS_INPUT_OPEN;
       nb.user_hold     = 0;
-      nb.ID            = GSID_TUTORIAL;
-      
+      nb.ID            = GSID_INPUT;
+       
       if( _methoda( GSR->Titel, BTM_NEWBUTTON, &nb ) ) {
 
-       nb.x             = GET_X_COORD(213);     // FIXME FLOH
-       nb.y             = GET_Y_COORD(208);
-       nb.w             = ywd->DspXRes/3;       // FIXME FLOH
+       nb.y             = GET_Y_COORD(246);
        nb.shortcut      = 0;
-       nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_TITLE_INPUT,"INPUT");
+       nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_TITLE_SETTINGS, "SETTINGS");
        nb.pressed_text  = NULL;
        nb.user_pressed  = GS_BUTTONDOWN;
-       nb.user_released = GS_INPUT_OPEN;
+       nb.user_released = GS_VIDEO_OPEN;
        nb.user_hold     = 0;
-       nb.ID            = GSID_INPUT;
-       
+       nb.ID            = GSID_VIDEO;
+        
        if( _methoda( GSR->Titel, BTM_NEWBUTTON, &nb ) ) {
 
-        nb.y             = GET_Y_COORD(246);
+        nb.y             = GET_Y_COORD(284);
         nb.shortcut      = 0;
-        nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_TITLE_SETTINGS, "SETTINGS");
+        nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_TITLE_DISK, "PLAYER");
         nb.pressed_text  = NULL;
         nb.user_pressed  = GS_BUTTONDOWN;
-        nb.user_released = GS_VIDEO_OPEN;
+        nb.user_released = GS_DISK_OPEN;
         nb.user_hold     = 0;
-        nb.ID            = GSID_VIDEO;
+        nb.ID            = GSID_DISK;
         
         if( _methoda( GSR->Titel, BTM_NEWBUTTON, &nb ) ) {
 
-         nb.y             = GET_Y_COORD(284);
+         nb.x             = GET_X_COORD(570);      // FIXME FLOH
+         nb.y             = GET_Y_COORD(460);      // FIXME FLOH
+         nb.w             = GET_X_COORD(64);       // FIXME FLOH
          nb.shortcut      = 0;
-         nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_TITLE_DISK, "PLAYER");
+         nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_TITLE_LOCALE, "LOCALE");
          nb.pressed_text  = NULL;
          nb.user_pressed  = GS_BUTTONDOWN;
-         nb.user_released = GS_DISK_OPEN;
+         nb.user_released = GS_LOCALE_OPEN;
          nb.user_hold     = 0;
-         nb.ID            = GSID_DISK;
+         nb.ID            = GSID_LOCALE;
          
          if( _methoda( GSR->Titel, BTM_NEWBUTTON, &nb ) ) {
 
-          nb.x             = GET_X_COORD(570);      // FIXME FLOH
-          nb.y             = GET_Y_COORD(460);      // FIXME FLOH
-          nb.w             = GET_X_COORD(64);       // FIXME FLOH
+          nb.x             = GET_X_COORD(213);     // FIXME FLOH
+          nb.y             = GET_Y_COORD(344);
+          nb.w             = ywd->DspXRes/3;       // FIXME FLOH
           nb.shortcut      = 0;
-          nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_TITLE_LOCALE, "LOCALE");
+          nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_TITLE_HELP, "HELP");
           nb.pressed_text  = NULL;
           nb.user_pressed  = GS_BUTTONDOWN;
-          nb.user_released = GS_LOCALE_OPEN;
+          nb.user_released = GS_HELP_OPEN;
           nb.user_hold     = 0;
-          nb.ID            = GSID_LOCALE;
+          nb.ID            = GSID_HELP;
           
           if( _methoda( GSR->Titel, BTM_NEWBUTTON, &nb ) ) {
 
-           nb.x             = GET_X_COORD(213);     // FIXME FLOH
-           nb.y             = GET_Y_COORD(344);
-           nb.w             = ywd->DspXRes/3;       // FIXME FLOH
+           nb.y             = GET_Y_COORD(382);
            nb.shortcut      = 0;
-           nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_TITLE_HELP, "HELP");
+           nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_TITLE_QUIT, "QUIT");
            nb.pressed_text  = NULL;
            nb.user_pressed  = GS_BUTTONDOWN;
-           nb.user_released = GS_HELP_OPEN;
+           nb.user_released = GS_QUIT;
            nb.user_hold     = 0;
-           nb.ID            = GSID_HELP;
+           nb.ID            = GSID_QUIT;
            
            if( _methoda( GSR->Titel, BTM_NEWBUTTON, &nb ) ) {
 
-            nb.y             = GET_Y_COORD(382);
-            nb.shortcut      = 0;
-            nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_TITLE_QUIT, "QUIT");
-            nb.pressed_text  = NULL;
-            nb.user_pressed  = GS_BUTTONDOWN;
-            nb.user_released = GS_QUIT;
-            nb.user_hold     = 0;
-            nb.ID            = GSID_QUIT;
-            
-            if( _methoda( GSR->Titel, BTM_NEWBUTTON, &nb ) ) {
-
-             button_ok = TRUE;
-             }
+            button_ok = TRUE;
             }
            }
           }
@@ -1359,7 +1341,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
         nb.unpressed_font= FONTID_MAPCUR_16;
         nb.disabled_font = FONTID_ENERGY;
         nb.modus         = BM_SWITCH;
-        nb.x             = (WORD)(bwidth/3);
+        nb.x             = bwidth/6;
         nb.y             = (NUM_INPUT_SHOWN + 6) * ywd->FontH + 6 * ReqDeltaY;
         nb.w             = checkmarkwidth;
         nb.unpressed_text= "g";
@@ -1377,8 +1359,8 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
          nb.unpressed_font= FONTID_MAPCUR_4;
          nb.disabled_font = FONTID_MAPCUR_4;
          nb.modus         = BM_STRING;
-         nb.x             = (WORD)( bwidth/3 + ReqDeltaX + checkmarkwidth );
-         nb.w             = (WORD)( bwidth/2 );
+         nb.x             = (WORD)( bwidth/6 + ReqDeltaX + checkmarkwidth );
+         nb.w             = (WORD)( bwidth/2 - ReqDeltaX);
          nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_IGADGET_JOYSTICK,"JOYSTICK");
          nb.pressed_text  = NULL;
          nb.shortcut      = 0;
@@ -1397,27 +1379,26 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
           nb.unpressed_font= FONTID_MAPCUR_16;
           nb.disabled_font = FONTID_ENERGY;
           nb.modus         = BM_SWITCH;
-          nb.x             = (WORD)(bwidth/3);
-          nb.y             = (NUM_INPUT_SHOWN + 7) * ywd->FontH + 7 * ReqDeltaY;
+          nb.x             = (WORD)(bwidth/2) + ReqDeltaX;
           nb.w             = checkmarkwidth;
           nb.unpressed_text= "g";
           nb.pressed_text  = "g";
           nb.shortcut      = 0;
-          nb.user_pressed  = GS_USEFORCEFEEDBACK;
-          nb.user_released = GS_NOFORCEFEEDBACK;
+          nb.user_pressed  = GS_ALTJOYSTICK_YES;
+          nb.user_released = GS_ALTJOYSTICK_NO;
           nb.user_hold     = 0;
-          nb.ID            = GSID_FORCEFEEDBACK;
+          nb.ID            = GSID_ALTJOYSTICK;
           nb.flags         = 0;    // kein Rand, nicht zentriert
-          
+         
           if( _methoda(GSR->binput, BTM_NEWBUTTON, &nb ) ) {
 
            nb.pressed_font  = FONTID_MAPCUR_4;
            nb.unpressed_font= FONTID_MAPCUR_4;
            nb.disabled_font = FONTID_MAPCUR_4;
            nb.modus         = BM_STRING;
-           nb.x             = (WORD)( bwidth/3 + ReqDeltaX + checkmarkwidth );
-           nb.w             = (WORD)( bwidth/2 );
-           nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_IGADGET_FORCEFEEDBACK,"DISABLE FORCE FEEDBACK");
+           nb.x             = (WORD)( bwidth/2 + 2 * ReqDeltaX + checkmarkwidth );
+           nb.w             = (WORD)( bwidth/2 - ReqDeltaX);
+           nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_IGADGET_ALTJOYSTICK,"ALTERNATE JOYSTICK MODEL");
            nb.pressed_text  = NULL;
            nb.shortcut      = 0;
            nb.user_pressed  = 0;
@@ -1425,82 +1406,122 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
            nb.user_hold     = 0;
            nb.ID            = 2;
            nb.flags         = BT_TEXT;
-           
+           nb.red           = yw_Red(ywd,YPACOLOR_TEXT_DEFAULT);
+           nb.green         = yw_Green(ywd,YPACOLOR_TEXT_DEFAULT);
+           nb.blue          = yw_Blue(ywd,YPACOLOR_TEXT_DEFAULT);
+         
            if( _methoda(GSR->binput, BTM_NEWBUTTON, &nb ) ) {
-
-            /*** neue zeile erfordert neue "Restbreite" ***/
-            restbreite = IListWidth - 2 * ReqDeltaX + ywd->PropW;
 
             nb.pressed_font  = FONTID_MAPCUR_32;
             nb.unpressed_font= FONTID_MAPCUR_16;
             nb.disabled_font = FONTID_ENERGY;
-            nb.modus         = BM_GADGET;
-            nb.x             = bwidth/6;
-            nb.y             = (NUM_INPUT_SHOWN + 5) * ywd->FontH + 5 * ReqDeltaY;
-            nb.w             = (WORD)( bwidth/3 - ReqDeltaX );
-            nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_IGADGET_SWITCHOFF,"SWITCH OFF");                           ;
-            nb.pressed_text  = NULL;
+            nb.modus         = BM_SWITCH;
+            nb.x             = (WORD)(bwidth/3);
+            nb.y             = (NUM_INPUT_SHOWN + 7) * ywd->FontH + 7 * ReqDeltaY;
+            nb.w             = checkmarkwidth;
+            nb.unpressed_text= "g";
+            nb.pressed_text  = "g";
             nb.shortcut      = 0;
-            nb.user_pressed  = GS_BUTTONDOWN;
-            nb.user_released = GS_SWITCHOFF;
+            nb.user_pressed  = GS_USEFORCEFEEDBACK;
+            nb.user_released = GS_NOFORCEFEEDBACK;
             nb.user_hold     = 0;
-            nb.ID            = GSID_SWITCHOFF;
-            nb.flags         = BT_BORDER | BT_CENTRE | BT_TEXT;
-            nb.red           = yw_Red(ywd,YPACOLOR_TEXT_BUTTON);
-            nb.green         = yw_Green(ywd,YPACOLOR_TEXT_BUTTON);
-            nb.blue          = yw_Blue(ywd,YPACOLOR_TEXT_BUTTON);
-
+            nb.ID            = GSID_FORCEFEEDBACK;
+            nb.flags         = 0;    // kein Rand, nicht zentriert
+          
             if( _methoda(GSR->binput, BTM_NEWBUTTON, &nb ) ) {
 
-             nb.x             = (WORD)(bwidth/2) + ReqDeltaX;
-             nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_RESET,"RESET");                           ;
+             nb.pressed_font  = FONTID_MAPCUR_4;
+             nb.unpressed_font= FONTID_MAPCUR_4;
+             nb.disabled_font = FONTID_MAPCUR_4;
+             nb.modus         = BM_STRING;
+             nb.x             = (WORD)( bwidth/3 + ReqDeltaX + checkmarkwidth );
+             nb.w             = (WORD)( bwidth/2 );
+             nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_IGADGET_FORCEFEEDBACK,"DISABLE FORCE FEEDBACK");
              nb.pressed_text  = NULL;
              nb.shortcut      = 0;
-             nb.user_released = GS_INPUTRESET;
+             nb.user_pressed  = 0;
+             nb.user_released = 0;
              nb.user_hold     = 0;
-             nb.ID            = GSID_INPUTRESET;
+             nb.ID            = 2;
+             nb.flags         = BT_TEXT;
            
              if( _methoda(GSR->binput, BTM_NEWBUTTON, &nb ) ) {
 
+              /*** neue zeile erfordert neue "Restbreite" ***/
+              restbreite = IListWidth - 2 * ReqDeltaX + ywd->PropW;
+
+              nb.pressed_font  = FONTID_MAPCUR_32;
+              nb.unpressed_font= FONTID_MAPCUR_16;
+              nb.disabled_font = FONTID_ENERGY;
               nb.modus         = BM_GADGET;
-              nb.x             = ok_x;
-              nb.y             = ok_y;
-              nb.w             = ok_w;
-              nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_OK,"OK");                           ;
+              nb.x             = bwidth/6;
+              nb.y             = (NUM_INPUT_SHOWN + 5) * ywd->FontH + 5 * ReqDeltaY;
+              nb.w             = (WORD)( bwidth/3 - ReqDeltaX );
+              nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_IGADGET_SWITCHOFF,"SWITCH OFF");                           ;
               nb.pressed_text  = NULL;
               nb.shortcut      = 0;
               nb.user_pressed  = GS_BUTTONDOWN;
-              nb.user_released = GS_INPUTOK;
+              nb.user_released = GS_SWITCHOFF;
               nb.user_hold     = 0;
-              nb.ID            = GSID_INPUTOK;
-             
+              nb.ID            = GSID_SWITCHOFF;
+              nb.flags         = BT_BORDER | BT_CENTRE | BT_TEXT;
+              nb.red           = yw_Red(ywd,YPACOLOR_TEXT_BUTTON);
+              nb.green         = yw_Green(ywd,YPACOLOR_TEXT_BUTTON);
+              nb.blue          = yw_Blue(ywd,YPACOLOR_TEXT_BUTTON);
+
               if( _methoda(GSR->binput, BTM_NEWBUTTON, &nb ) ) {
 
-               nb.x             = help_x;
-               nb.y             = help_y;
-               nb.w             = help_w;
-               nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_HELP,"HELP");                           ;
+               nb.x             = (WORD)(bwidth/2) + ReqDeltaX;
+               nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_RESET,"RESET");                           ;
                nb.pressed_text  = NULL;
                nb.shortcut      = 0;
-               nb.user_released = GS_HELP;
+               nb.user_released = GS_INPUTRESET;
                nb.user_hold     = 0;
-               nb.ID            = GSID_INPUTHELP;
-             
+               nb.ID            = GSID_INPUTRESET;
+           
                if( _methoda(GSR->binput, BTM_NEWBUTTON, &nb ) ) {
 
-                nb.x             = cancel_x;
-                nb.y             = cancel_y;
-                nb.w             = cancel_w;
-                nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_CANCEL,"CANCEL");                           ;
+                nb.modus         = BM_GADGET;
+                nb.x             = ok_x;
+                nb.y             = ok_y;
+                nb.w             = ok_w;
+                nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_OK,"OK");                           ;
                 nb.pressed_text  = NULL;
                 nb.shortcut      = 0;
-                nb.user_released = GS_INPUTCANCEL;
+                nb.user_pressed  = GS_BUTTONDOWN;
+                nb.user_released = GS_INPUTOK;
                 nb.user_hold     = 0;
-                nb.ID            = GSID_INPUTCANCEL;
+                nb.ID            = GSID_INPUTOK;
               
                 if( _methoda(GSR->binput, BTM_NEWBUTTON, &nb ) ) {
 
-                 button_ok = TRUE;
+                 nb.x             = help_x;
+                 nb.y             = help_y;
+                 nb.w             = help_w;
+                 nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_HELP,"HELP");                           ;
+                 nb.pressed_text  = NULL;
+                 nb.shortcut      = 0;
+                 nb.user_released = GS_HELP;
+                 nb.user_hold     = 0;
+                 nb.ID            = GSID_INPUTHELP;
+               
+                 if( _methoda(GSR->binput, BTM_NEWBUTTON, &nb ) ) {
+
+                  nb.x             = cancel_x;
+                  nb.y             = cancel_y;
+                  nb.w             = cancel_w;
+                  nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_CANCEL,"CANCEL");                           ;
+                  nb.pressed_text  = NULL;
+                  nb.shortcut      = 0;
+                  nb.user_released = GS_INPUTCANCEL;
+                  nb.user_hold     = 0;
+                  nb.ID            = GSID_INPUTCANCEL;
+              
+                  if( _methoda(GSR->binput, BTM_NEWBUTTON, &nb ) ) {
+
+                   button_ok = TRUE;
+                   }
+                  }
                  }
                 }
                }
@@ -1860,10 +1881,10 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
                   nb.unpressed_text= "g";
                   nb.pressed_text  = "g";
                   nb.shortcut      = 0;
-                  nb.user_pressed  = GS_FILTERING;
-                  nb.user_released = GS_NOFILTERING;
+                  nb.user_pressed  = GS_DRAWPRIMITIVE_YES;
+                  nb.user_released = GS_DRAWPRIMITIVE_NO;
                   nb.user_hold     = 0;
-                  nb.ID            = GSID_FILTERING;
+                  nb.ID            = GSID_DRAWPRIMITIVE;
                   nb.flags         = 0;
                  
                   if( _methoda(GSR->bvideo, BTM_NEWBUTTON, &nb ) ) {
@@ -1874,7 +1895,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
                    nb.modus         = BM_STRING;
                    nb.x             = 2*checkmarkwidth + restbreite/2 + 4 * ReqDeltaX;
                    nb.w             = restbreite / 2;
-                   nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_VGADGET_FILTERING, "FILTERING");
+                   nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_VGADGET_DRAWPRIMITIVE, "OPENGL LIKE (:-)");
                    nb.pressed_text  = NULL;
                    nb.shortcut      = 0;
                    nb.user_pressed  = 0;
@@ -1890,7 +1911,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
                     nb.x             = checkmarkwidth + ReqDeltaX;
                     nb.y             = 9 * (ywd->FontH + ReqDeltaY);
                     nb.w             = restbreite/2;
-                    nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_SGADGET_USESOUND,"USE GAME SOUND");
+                    nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_VGADGET_16BITTEXTURE,"USE 16BIT TEXTURE");
                     nb.pressed_text  = NULL;
                     nb.shortcut      = 0;
                     nb.user_pressed  = 0;
@@ -1910,10 +1931,10 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
                      nb.unpressed_text= "g";
                      nb.pressed_text  = "g";
                      nb.shortcut      = 0;
-                     nb.user_pressed  = GS_SOUND_YES;
-                     nb.user_released = GS_SOUND_NO;
+                     nb.user_pressed  = GS_16BITTEXTURE_YES;
+                     nb.user_released = GS_16BITTEXTURE_NO;
                      nb.user_hold     = 0;
-                     nb.ID            = GSID_SOUND_SWITCH;
+                     nb.ID            = GSID_16BITTEXTURE;
                      nb.flags         = 0;
 
                       if( _methoda(GSR->bvideo, BTM_NEWBUTTON, &nb ) ) {
@@ -2289,13 +2310,6 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
         }
 
     /*** Soundflags schalten ***/
-    sbs.who = GSID_SOUND_SWITCH;
-    if( GSR->sound_flags & SF_SOUND )
-        sbs.state = SBS_PRESSED;
-    else
-        sbs.state = SBS_UNPRESSED;
-    _methoda( GSR->bvideo, BTM_SETSTATE, &sbs );
-
     sbs.who = GSID_SOUND_LR;
     if( GSR->sound_flags & SF_INVERTLR )
         sbs.state = SBS_PRESSED;
@@ -3591,11 +3605,11 @@ _dispatcher( void, yw_YWM_REFRESHGAMESHELL, struct GameShellReq *GSR )
     sbs.who = GSID_SOUND_LR;
     _methoda( GSR->bvideo, BTM_SETSTATE, &sbs );
     
-    if( GSR->sound_flags & SF_SOUND )
+    if( GSR->sound_flags & VF_16BITTEXTURE )
         sbs.state = SBS_PRESSED;
     else
         sbs.state = SBS_UNPRESSED;
-    sbs.who = GSID_SOUND_SWITCH;
+    sbs.who = GSID_16BITTEXTURE;
     _methoda( GSR->bvideo, BTM_SETSTATE, &sbs );
     
     if( GSR->sound_flags & SF_CDSOUND )
@@ -3643,11 +3657,11 @@ _dispatcher( void, yw_YWM_REFRESHGAMESHELL, struct GameShellReq *GSR )
     sbs.who = GSID_SOFTMOUSE;
     _methoda( GSR->bvideo, BTM_SETSTATE, &sbs );
 
-    if( GSR->video_flags & VF_FILTERING )
+    if( GSR->video_flags & VF_DRAWPRIMITIVE )
         sbs.state = SBS_PRESSED;
     else
         sbs.state = SBS_UNPRESSED;
-    sbs.who = GSID_FILTERING;
+    sbs.who = GSID_DRAWPRIMITIVE;
     _methoda( GSR->bvideo, BTM_SETSTATE, &sbs );
 
     vn = (struct video_node *) GSR->videolist.mlh_Head;
