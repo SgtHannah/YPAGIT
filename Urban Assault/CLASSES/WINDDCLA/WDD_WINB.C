@@ -2361,12 +2361,18 @@ void wdd_KillDDrawStuff(struct windd_data *wdd)
         /*** lösche Primary und Backsurface ***/
         ddbltfx.dwSize      = sizeof(ddbltfx);
         ddbltfx.dwFillColor = 0;
-        ddrval = wdd->lpDDSPrim->lpVtbl->Blt(wdd->lpDDSPrim,
-                    NULL, NULL, NULL, DDBLT_COLORFILL|DDBLT_WAIT,
-                    &ddbltfx);
-        ddrval = wdd->lpDDSBack->lpVtbl->Blt(wdd->lpDDSBack,
-                    NULL, NULL, NULL, DDBLT_COLORFILL|DDBLT_WAIT,
-                    &ddbltfx);
+		if (wdd->lpDDSPrim)
+		{
+			ddrval = wdd->lpDDSPrim->lpVtbl->Blt(wdd->lpDDSPrim,
+						NULL, NULL, NULL, DDBLT_COLORFILL|DDBLT_WAIT,
+						&ddbltfx);
+		}
+		if (wdd->lpDDSBack)
+		{
+			ddrval = wdd->lpDDSBack->lpVtbl->Blt(wdd->lpDDSBack,
+						NULL, NULL, NULL, DDBLT_COLORFILL|DDBLT_WAIT,
+						&ddbltfx);
+		}
 
         /*** damit die WinProc nicht Amok läuft... ***/
         SetClassLong(wdd->hWnd,0,NULL);
