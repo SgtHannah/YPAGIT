@@ -189,7 +189,7 @@ struct input_info {
 #define GS_MAKECOMMANDERTEXT "MAKE CURRENT VEHICLE COMMANDER"
 #define GS_ANALYZERTEXT     "SITUATION ANALYZER"
 
-#define USERNAMELEN         256     // so lang darf ein Username sein
+#define USERNAMELEN         32      // so lang darf ein Username sein
 #define NUM_INPUTEVENTS     45      // soviele Einträge hat das Input-Menü
 #define MESSAGE_TIME        1500    // solange bleibt eine Meldung da
 #define MAX_LANGUAGELEN     32      // soviele Zeichen darf die Sprache enthalten
