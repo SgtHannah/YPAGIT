@@ -96,6 +96,8 @@ struct SegInfo audio_miles_engine_seg = {
 **                                                                 **
 **=================================================================*/
 
+void nc_LogMsg(STRPTR string, ...);
+
 /*-----------------------------------------------------------------*/
 void audio_EOS_CallBack(snd_Channel *sample)
 /*
@@ -425,11 +427,13 @@ void audio_InsertSoundSource(struct SoundSource *src)
 **  CHANGED
 **      15-Apr-96   floh    created
 **      05-Aug-96   floh    Abbruch, wenn AIL nicht initialisiert
+**      06-Jul-98   floh    + min_i konnte offensichtlich uninitialisiert
+**                            als Array-Index genommen werden.
 */
 {
     ULONG i;
-    LONG min_pri = 10000;   // BigNum
-    LONG min_i;
+    LONG min_pri = 1000000;   // BigNum
+    LONG min_i   = -1;
 
     if (NULL == MilesBase.driver) return;
 
@@ -449,7 +453,8 @@ void audio_InsertSoundSource(struct SoundSource *src)
     };
 
     /*** kleinste Pri klein genug? ***/
-    if (min_pri < src->pri) MilesBase.top_n[min_i] = src;
+    if (min_i == -1) nc_LogMsg("-> audio_InsertSoundSource(): <min_i> not initialized.\n");
+    if ((min_i != -1) && (min_pri < src->pri)) MilesBase.top_n[min_i] = src;
 }
 
 /*-----------------------------------------------------------------*/
@@ -469,11 +474,13 @@ void audio_InsertPalFX(struct SoundSource *src)
 **                          lesenderweise auf das top_n[] Array
 **                          referenziert, anstatt auf das top_shakefx[],
 **                          dürfte aber kaum aufgefallen sein...
+**      06-Jul-98   floh    + min_i konnte offensichtlich uninitialisiert
+**                            als Array-Index genommen werden.
 */
 {
     ULONG i;
-    LONG min_mag = 1000.0;   // BigNum
-    LONG min_i;
+    LONG min_mag = 1000000.0;   // BigNum
+    LONG min_i   = -1;
 
     /*** suche die kleinste top_palfx-Magnitude ***/
     for (i=0; i<MilesBase.num_palfx; i++) {
@@ -491,7 +498,8 @@ void audio_InsertPalFX(struct SoundSource *src)
     };
 
     /*** kleinste Magnitude klein genug? ***/
-    if (min_mag < src->pfx_actmag) MilesBase.top_palfx[min_i] = src;
+    if (min_i == -1) nc_LogMsg("-> audio_InsertPalFX(): <min_i> not initialized.\n");
+    if ((min_i != -1) && (min_mag < src->pfx_actmag)) MilesBase.top_palfx[min_i] = src;
 }
 
 /*-----------------------------------------------------------------*/
@@ -507,11 +515,13 @@ void audio_InsertShakeFX(struct SoundSource *src)
 **
 **  CHANGED
 **      25-Sep-96   floh    created
+**      06-Jul-98   floh    + min_i konnte offensichtlich uninitialisiert
+**                            als Array-Index genommen werden.
 */
 {
     ULONG i;
     LONG min_mag = 1000.0;   // BigNum
-    LONG min_i;
+    LONG min_i   = -1;
 
     /*** suche die kleinste top_shakefx-Magnitude ***/
     for (i=0; i < MilesBase.num_shakefx; i++) {
@@ -529,7 +539,8 @@ void audio_InsertShakeFX(struct SoundSource *src)
     };
 
     /*** kleinste Magnitude klein genug? ***/
-    if (min_mag < src->shk_actmag) MilesBase.top_shakefx[min_i] = src;
+    if (min_i == -1) nc_LogMsg("-> audio_InsertShakeFX(): <min_i> not initialized.\n");
+    if ((min_i != -1) && (min_mag < src->shk_actmag)) MilesBase.top_shakefx[min_i] = src;
 }
 
 /*-----------------------------------------------------------------*/
