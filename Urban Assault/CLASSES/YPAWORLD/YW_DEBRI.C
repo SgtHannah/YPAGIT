@@ -745,7 +745,17 @@ void yw_DBHandleVhclKill(struct ypaworld_data *ywd,
     /*** Explosion visualisieren ***/
     if (dt < (4*MBFXTIME_VHCLKILL)) {
         struct Skeleton *sklt;
-        if (sklt = mb->WireSkeleton[MBWIRE_VHCLKILL]) {
+        ULONG vp_num;        
+        struct VehicleProto *vp;        
+        
+        /*** Wireframe ermitteln ***/
+        //vp_num = act_inst->vp & ~(1<<15);
+        //vp = &(ywd->VP_Array[vp_num]);
+        //if (vp->wireframe_object) _get(vp->wireframe_object,SKLA_Skeleton,&sklt);
+        //else sklt = mb->WireSkeleton[MBWIRE_VHCLKILL];
+        
+        sklt = mb->WireSkeleton[MBWIRE_VHCLKILL];
+        if (sklt) {
 
             ULONG color;
             FLOAT scale;
@@ -1642,6 +1652,11 @@ void yw_DBL1RunningDone(struct ypaworld_data *ywd,
 **      19-May-98   floh    + YPAHIST_TECHUPGRADE neu
 **      11-Jun-98   floh    + fuer Multiplayersessions sollte der
 **                            End-Score jetzt korrekt angepasst werden 
+**      28-Jun-98   floh    + ooops, die Wireframe-Effekt-Linien wurden 
+**                            ausserhalb RASTM_Begin2D/RASTM_End2D
+**                            gezeichnet, dass hat sich erst durch den
+**                            strikteren RASTM_End2D Code gezeigt, der
+**                            den Display-Pointer loescht...  
 */
 {
     LONG real_time = mb->TimeStamp - mb->StartTime;
@@ -1665,7 +1680,6 @@ void yw_DBL1RunningDone(struct ypaworld_data *ywd,
     rt.clips  = NULL;
     _methoda(ywd->GfxObject,RASTM_Begin2D,NULL);
     _methoda(ywd->GfxObject,RASTM_Text,&rt);
-    _methoda(ywd->GfxObject,RASTM_End2D,NULL);
 
     /*** History-Auswertung nur, wenn noch running ***/
     if (mb->Status == MBSTATUS_L1_RUNNING) {
@@ -1751,7 +1765,6 @@ void yw_DBL1RunningDone(struct ypaworld_data *ywd,
     };
     
     /*** Level Titel ueber alles drueber rendern ***/
-    _methoda(ywd->GfxObject,RASTM_Begin2D,NULL);
     yw_DBPutTitles(ywd,mb);
     _methoda(ywd->GfxObject,RASTM_End2D,NULL);
 }

@@ -1402,6 +1402,22 @@ _dispatcher( BOOL, yw_YWM_LOADGAME, struct saveloadgame_msg *slg )
     /*** muss vor dem Laden initialisieren ***/
     yw_InitSuperItems(ywd);
 
+    /*** Backup von originaler Owner und TypeMap ***/
+    if (ywd->TypeMapBU) {
+        _dispose(ywd->TypeMapBU);
+        ywd->TypeMapBU = NULL;
+    };
+    if (ywd->OwnerMapBU) {
+        _dispose(ywd->OwnerMapBU);
+        ywd->OwnerMapBU = NULL;
+    };
+    if (ywd->TypeMap) {
+        ywd->TypeMapBU = yw_CopyBmpObject(ywd->TypeMap,"copyof_typemap");
+    };
+    if (ywd->OwnerMap) {
+        ywd->OwnerMapBU = yw_CopyBmpObject(ywd->OwnerMap,"copyof_ownermap");
+    };
+
     /*** Vehicle reinholen und Wunderinfos lesen ***/
     if( !yw_ParseVehicles( ywd, filename ) ) return( FALSE );
 
@@ -1444,22 +1460,6 @@ _dispatcher( BOOL, yw_YWM_LOADGAME, struct saveloadgame_msg *slg )
 
     /*** GUI-Modul initialisieren ***/
     if( !yw_InitGUIModule( o, ywd )) return( FALSE );
-
-    /*** Backup von Owner und TypeMap ***/
-    if (ywd->TypeMapBU) {
-        _dispose(ywd->TypeMapBU);
-        ywd->TypeMapBU = NULL;
-    };
-    if (ywd->OwnerMapBU) {
-        _dispose(ywd->OwnerMapBU);
-        ywd->OwnerMapBU = NULL;
-    };
-    if (ywd->TypeMap) {
-        ywd->TypeMapBU = yw_CopyBmpObject(ywd->TypeMap,"copyof_typemap");
-    };
-    if (ywd->OwnerMap) {
-        ywd->OwnerMapBU = yw_CopyBmpObject(ywd->OwnerMap,"copyof_ownermap");
-    };
 
     return( TRUE );
 }
