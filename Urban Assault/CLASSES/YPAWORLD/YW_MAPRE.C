@@ -1266,6 +1266,11 @@ void yw_HandleInputMR(struct ypaworld_data *ywd, struct VFMInput *ip)
                     /*** deselektiere aktuelles Geschwader ***/
                     ywd->ActCmdID = 0;
                     ywd->ActCmdr  = -1;
+                    
+                    /*** falls Beamen aktiv, dieses abbrechen ***/
+                    if (SR.ActiveMode & (STAT_MODEF_AUTOPILOT|STAT_MODEF_CONTROL)) {
+                        SR.ActiveMode = (STAT_MODEF_ORDER & SR.EnabledModes);
+                    };
                 };
                 /*** Double-Scroll abbrechen ***/
                 MR.flags &= ~MAPF_SCROLL;

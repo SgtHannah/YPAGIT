@@ -49,6 +49,7 @@ BOOL yw_InitTooltips(struct ypaworld_data *ywd)
 **      23-Jul-97   floh    + TOOLTIP_GUI_FINDER_NUMVHCLS
 **      05-Aug-97   floh    + TOOLTIP_GUI_HELP
 **      05-Sep-97   floh    + Tooltips für Debriefing
+**      31-May-98   floh    + TOOLTIP_GUI_MOUSEMODE
 */
 {
     ywd->DefTooltips = (UBYTE **)
@@ -236,7 +237,8 @@ BOOL yw_InitTooltips(struct ypaworld_data *ywd)
         t[TOOLTIP_SHELL_ALTJOYSTICK]    = "USE ALTERNATE JOYSTICK MODEL";
         t[TOOLTIP_SHELL_16BITTEXTURE]   = "USE 16 BIT TEXTURES";
         t[TOOLTIP_SHELL_DRAWPRIMITIVE]  = "USE DRAW PRIMITIVE D3D MODEL";
-
+        t[TOOLTIP_GUI_MOUSEMODE]        = "880 == MOUSE CONTROL MODE ACTIVE (PRESS RMB TO DEACTIVATE)";        
+        
         return(TRUE);
     };
 

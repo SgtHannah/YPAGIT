@@ -142,6 +142,7 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
 **      15-May-98   floh    + Joystick-Handling umgeschrieben...
 **      16-May-98   floh    + alternatives Joystick-Handling
 **      22-May-98   floh    + FireDown Handling
+**      31-May-98   floh    + Extra Mouse Control Tooltip
 */
 {
     struct ClickInfo *ci = &(ip->ClickInfo);
@@ -230,6 +231,9 @@ void yw_InputControl(struct ypaworld_data *ywd, struct VFMInput *ip)
 
         if (ci->flags & CIF_MOUSEHOLD)  ip->Buttons |= (1<<0);  // Fire
         if (ci->flags & CIF_MMOUSEHOLD) ip->Buttons |= (1<<3);  // Brakes
+        
+        /*** Mouse Control Tooltip ***/
+        yw_Tooltip(ywd,TOOLTIP_GUI_MOUSEMODE);        
     };
 
     /*** Joystick-Control-Handling ***/

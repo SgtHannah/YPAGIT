@@ -104,7 +104,7 @@
 #define TOOLTIP_SHELL_ALTJOYSTICK       (77)
 #define TOOLTIP_SHELL_16BITTEXTURE      (78)
 #define TOOLTIP_SHELL_DRAWPRIMITIVE     (79)
-
+#define TOOLTIP_GUI_MOUSEMODE           (80)
 
 /*** Fehlermeldungen ***/
 #define TOOLTIP_ERROR_NOTARGET          (96)    // Mode Select
