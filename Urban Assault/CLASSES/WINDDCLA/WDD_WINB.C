@@ -545,6 +545,13 @@ long FAR PASCAL wdd_WinProc(HWND hWnd, UINT message,
             break;    
     
         case WM_ACTIVATEAPP:
+			if (((BOOL)wParam)==TRUE)
+			{
+				GetWindowRect(hWnd, &r);
+				ClipCursor(&r);
+			}
+			else
+				ClipCursor(NULL);
             if (wdd) wdd_SetMouseImage(wdd,1,TRUE);        
             break;
 
@@ -597,11 +604,6 @@ long FAR PASCAL wdd_WinProc(HWND hWnd, UINT message,
                 wdd->lpDDSPrim->lpVtbl->SetPalette(wdd->lpDDSPrim,wdd->lpDDPal);
             };
             break;
-
-		case WM_SIZE:
-			GetWindowRect(hWnd, &r);
-			ClipCursor(&r);
-			break;
 
         case WM_CREATE:
             /*** Window wurde erzeugt ***/
