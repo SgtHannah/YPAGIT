@@ -34,8 +34,9 @@ _extern_use_audio_engine
 
 #define NO_SPEED            4.0
 
-#define TTDIST              50      // solange ist Teststrahl f¸r Hindernisse
+#define TTDIST             300      // solange ist Teststrahl f¸r Hindernisse
                                     // plus radius !!!
+#define TTSTOP              50      // ab da plus radius wird gestopped                      
 #define SIDEDIST            150     // so lang sind die Seitentestsrahlen
 #define PREFERLEFT_ANGLE    0.4     // unterhalb dieses Winkel bevorzugt nach
                                     // Links fahren
@@ -85,7 +86,7 @@ _dispatcher(void, yt_YBM_AI_LEVEL3, struct trigger_logic_msg *msg)
     FLOAT  max_angle, tu_angle, distance;
     struct assesstarget_msg at1, at2;
     ULONG  rat1, rat2;
-    FLOAT  ttdist, td;
+    FLOAT  ttdist, ttstop, td;
 
     struct ypatank_data *ytd = INST_DATA( cl, o );
 
@@ -111,6 +112,7 @@ _dispatcher(void, yt_YBM_AI_LEVEL3, struct trigger_logic_msg *msg)
 
     /*** Teststrahll‰nge ***/
     ttdist = ytd->bact->radius + TTDIST;
+    ttstop = ytd->bact->radius + TTSTOP;
 
     /*** Sichtbarkeit ***/
     VIS = _methoda( ytd->world, YWM_ISVISIBLE, ytd->bact );
@@ -190,6 +192,17 @@ _dispatcher(void, yt_YBM_AI_LEVEL3, struct trigger_logic_msg *msg)
                 ytd->bact->wait_for_coll -= msg->frame_time;
                 goto NACH_BEWEGUNG;
                 }
+                
+            /* ----------------------------------------------------------
+            ** Winkel zwischen Ziel und derzeitiger Ausrichtung. brauchen
+            ** wir haeufig, somit hier schon mal berechnen
+            ** --------------------------------------------------------*/    
+            tu_angle = nc_acos( (ytd->bact->dir.m31 * ytd->bact->tar_unit.x +
+                                 ytd->bact->dir.m33 * ytd->bact->tar_unit.z) /
+                         nc_sqrt(ytd->bact->dir.m31 * ytd->bact->dir.m31+
+                                 ytd->bact->dir.m33 * ytd->bact->dir.m33)/
+                         nc_sqrt(ytd->bact->tar_unit.x * ytd->bact->tar_unit.x+
+                                 ytd->bact->tar_unit.z * ytd->bact->tar_unit.z));
 
 
             /*** Sind wir in einer Kollisionsbearbeitungsphase? ***/
@@ -403,13 +416,6 @@ _dispatcher(void, yt_YBM_AI_LEVEL3, struct trigger_logic_msg *msg)
                 ** ---------------------------------------------------*/
                 ytd->bact->ExtraState |= EXTRA_MOVE;
 
-                tu_angle = nc_acos( (ytd->bact->dir.m31 * ytd->bact->tar_unit.x +
-                                     ytd->bact->dir.m33 * ytd->bact->tar_unit.z) /
-                             nc_sqrt(ytd->bact->dir.m31 * ytd->bact->dir.m31+
-                                     ytd->bact->dir.m33 * ytd->bact->dir.m33)/
-                             nc_sqrt(ytd->bact->tar_unit.x * ytd->bact->tar_unit.x+
-                                     ytd->bact->tar_unit.z * ytd->bact->tar_unit.z));
-
                 if( (tu_angle > 1.1) && (ytd->collway<=0.001) ) {
                 
                     /*** v auch 0, sonst f‰hrt er dann r¸ckw‰rts ***/
@@ -549,227 +555,267 @@ _dispatcher(void, yt_YBM_AI_LEVEL3, struct trigger_logic_msg *msg)
             if( inter.insect &&
                 (inter.sklt->PlanePool[ inter.pnum ].B < YPS_PLANE) &&
                 (ytd->collangle == 0.0) ) {
-
-                struct intersect_msg int2;
-                struct flt_triple svec;
+                
                 FLOAT  iA, iB, iC;
-
-                /*** Stoppen? ***/
-                ytd->bact->ExtraState &= ~EXTRA_MOVE;
-                ytd->bact->pos         = ytd->bact->old_pos;
-
-                /* NEU -------------------------------------------------------------
-                ** Die Hindernisrichtung l‰ﬂt sich nicht allein aus der Fl‰che, auf
-                ** die ich treffe, ermitteln, weil gar nicht klar ist, aus wel-
-                ** cher Richtung ich komme. Deshalb muﬂ ich die Schnittlinie
-                ** aus meiner und der Hindernisfl‰che berechnen, die durch das
-                ** VP der Normalenvektoren repr‰sentiert wird.
-                **
-                ** Wichtig f¸r die weitere Bearbeitung ist letztendlich, daﬂ collvec
-                ** von mir wegzeigt.
-                ** ---------------------------------------------------------------*/
-
+                
                 /*** Weil PlaneParas sich bei Int. ‰ndern kˆnnen, merken ***/
                 iA = inter.sklt->PlanePool[ inter.pnum ].A;
                 iB = inter.sklt->PlanePool[ inter.pnum ].B;
                 iC = inter.sklt->PlanePool[ inter.pnum ].C;
-
-                int2.pnt.x = ytd->bact->pos.x;
-                int2.pnt.y = ytd->bact->pos.y;
-                int2.pnt.z = ytd->bact->pos.z;
-                int2.vec.x = ytd->bact->dir.m21 * 300;
-                int2.vec.y = ytd->bact->dir.m22 * 300;
-                int2.vec.z = ytd->bact->dir.m23 * 300;
-                int2.flags  = INTERSECTF_CHEAT;  // egal, weil sich der Subs. nicht aendert
-
-                _methoda( ytd->world, YWM_INTERSECT, &int2 );
-
-                /*** VP, also Schnittlinie berechnen ***/
-                if( int2.insect ) {
-
-                    /*** Was immer sein sollte ***/
-                    svec.x = iB * int2.sklt->PlanePool[ int2.pnum ].C -
-                             iC * int2.sklt->PlanePool[ int2.pnum ].B;
-                    svec.y = iC * int2.sklt->PlanePool[ int2.pnum ].A -
-                             iA * int2.sklt->PlanePool[ int2.pnum ].C;
-                    svec.z = iA * int2.sklt->PlanePool[ int2.pnum ].B -
-                             iB * int2.sklt->PlanePool[ int2.pnum ].A;
-                    }
-                else {
-
-                    svec.x = -iC;
-                    svec.y =  0;
-                    svec.z =  iA;
-                    }
-
-                /*** Sind Fl‰chen identisch? ***/
-                if( (svec.x == 0.0) && (svec.y == 0.0) && (svec.z == 0.0)) {
-
-                    /*** Einfachsterweise lokal x ***/
-                    svec.x = ytd->bact->dir.m11;
-                    svec.y = ytd->bact->dir.m12;
-                    svec.z = ytd->bact->dir.m13;
-                    }
-
-                /*** Nun CollVec so ermitteln, daﬂ er von mir weg zeigt ***/
-                ytd->collvec.x = ytd->bact->dir.m22 * svec.z -
-                                 ytd->bact->dir.m23 * svec.y;
-                ytd->collvec.y = ytd->bact->dir.m23 * svec.x -
-                                 ytd->bact->dir.m21 * svec.z;
-                ytd->collvec.z = ytd->bact->dir.m21 * svec.y -
-                                 ytd->bact->dir.m22 * svec.x;
-
-                /*** zeigt der Abhang komischerweise zu mir? ***/
-                if( (ytd->bact->dir.m31 * ytd->collvec.x +
-                     ytd->bact->dir.m32 * ytd->collvec.y +
-                     ytd->bact->dir.m33 * ytd->collvec.z) < 0.0 ) {
-
-                     ytd->collvec.x = -ytd->collvec.x;
-                     ytd->collvec.y = -ytd->collvec.y;
-                     ytd->collvec.z = -ytd->collvec.z;
-                     }
+    
+                /* -------------------------------------------------------
+                ** Es gibt 2 Arten von Hindernissen. Einmal die, wo
+                ** wir stoppen, weil sie nah dran sind und dann die,
+                ** wo wir versuchen auszuweichen. Die ersteren beschreiben
+                ** sozusagen das klassische Verhalten.
+                ** Achtung, dass Ausweichen machen wir nur, wenn wir Zeit
+                ** dafuer haben!
+                ** -----------------------------------------------------*/
                 
-                /* -------------------------------------------------------------
-                ** Winkel je nach bisherigen Flags bestimmen. Zuerst ermitteln
-                ** wir den Winkel und die Drehrichtung. anschlieﬂend entscheiden 
-                ** die Flags, ob wir das ¸berhaupt d¸rfen.
-                ** Dabei ermitteln wir den Winkel wie folgt: Wir kennen die 
-                ** Richtung des Hindernisses und machen nun zwei Intersections
-                ** parallel zum Hindernis nach beiden Seiten. Liefert eine
-                ** der beiden ein richtiges Hindernis, so fahren wir in die
-                ** andere Richtung, andernfalls entscheidet wie bisher das
-                ** SP zum Ziel.
-                ** -----------------------------------------------------------*/
-                
-                td = nc_sqrt( ytd->collvec.x*ytd->collvec.x+ytd->collvec.z*ytd->collvec.z);
-                irechts.vec.x =  ytd->collvec.z * SIDEDIST / td;
-                irechts.vec.z = -ytd->collvec.x * SIDEDIST / td;
-                ilinks.vec.x  = -ytd->collvec.z * SIDEDIST / td;
-                ilinks.vec.z  =  ytd->collvec.x * SIDEDIST / td;
-                irechts.vec.y =  ilinks.vec.y = 0.0;
-                irechts.pnt.x =  ilinks.pnt.x = ytd->bact->old_pos.x;
-                irechts.pnt.y =  ilinks.pnt.y = ytd->bact->old_pos.y;
-                irechts.pnt.z =  ilinks.pnt.z = ytd->bact->old_pos.z;
-                irechts.flags =  INTERSECTF_CHEAT;
-                ilinks.flags  =  INTERSECTF_CHEAT;
+//                if( (inter.t * ttdist > ttstop) &&
+//                    (tu_angle < 1.0) &&
+//                    (TARTYPE_NONE == ytd->bact->SecTargetType) ) {
+         
+//                    /* ---------------------------------------------------------
+//                    ** Wir drehen nur etwas zur Seite. Das machen wir wie folgt:
+//                    ** wir setzen collway auf etwas, weil damit das eindrehen
+//                   ** auf tarvec verhindert wird und ausserdem danach noch eine
+//                    ** Mindeststrecke gefahren wird.
+//                    ** Weiterhin drehen wir uns in die Richtung, in die wir uns
+//                    ** auch so drehen wuerden.
+//                    ** Drehen muss frame_time und speed-abhaengig sein.
+//                    ** -------------------------------------------------------*/
+//                    FLOAT ao_angle;
+//                    
+//                    ao_angle  = (FLOAT)(msg->frame_time) / 1000.0;
+//                   ao_angle *= ytd->bact->dof.v/ 10.0;
+//                           
+//                    if( (ytd->bact->dir.m31 * iC - ytd->bact->dir.m33 * iA) < 0 )
+//                        yt_rot_round_lokal_y( ytd->bact, ao_angle );
+//                    else
+//                        yt_rot_round_lokal_y( ytd->bact, -ao_angle );
+//                        
+//                    ytd->collway = 100;    
+//                    }
+                    
+                /*** Direkte Kollision? klassisch ***/    
+                if(inter.t * ttdist <= ttstop) {
 
-                /* ----------------------------------------------------
-                ** Wenn Ebenenparameter ausgewertet werden sollen, dann
-                ** Intersections nacheinander, weil diese (bei Slurps)
-                ** ¸berschrieben werden kˆnnen
-                ** --------------------------------------------------*/
-
-                _methoda( ytd->world, YWM_INTERSECT, &irechts );
-                if( irechts.insect &&
-                    (irechts.sklt->PlanePool[ irechts.pnum ].B < YPS_PLANE) )
-                    hr = TRUE;  else hr = FALSE;
-
-                _methoda( ytd->world, YWM_INTERSECT, &ilinks  );
-                if( ilinks.insect &&
-                    (ilinks.sklt->PlanePool[ ilinks.pnum ].B < YPS_PLANE) )
-                    hl = TRUE;  else hl = FALSE;
-
-                if( (hl && !hr) || (hr && !hl) ) {
-
-                    /*** Nur auf einer Seite ein Hindernis. Entscheidung mˆglich ***/
-                    if( hl ) {
-
-                        /*** Hindernis links. Nach rechts drehen ***/
-                        ytd->collangle = nc_acos(
-                            (ytd->bact->dir.m31 * irechts.vec.x +
-                             ytd->bact->dir.m33 * irechts.vec.z) /
-                            nc_sqrt(ytd->bact->dir.m31 * ytd->bact->dir.m31 +
-                                    ytd->bact->dir.m33 * ytd->bact->dir.m33) /
-                             SIDEDIST );
-
-                        wall_left = TRUE;
-
+                    struct intersect_msg int2;
+                    struct flt_triple svec;
+    
+                    /*** Stoppen? ***/
+                    ytd->bact->ExtraState &= ~EXTRA_MOVE;
+                    ytd->bact->pos         = ytd->bact->old_pos;
+    
+                    /* NEU -------------------------------------------------------------
+                    ** Die Hindernisrichtung l‰ﬂt sich nicht allein aus der Fl‰che, auf
+                    ** die ich treffe, ermitteln, weil gar nicht klar ist, aus wel-
+                    ** cher Richtung ich komme. Deshalb muﬂ ich die Schnittlinie
+                    ** aus meiner und der Hindernisfl‰che berechnen, die durch das
+                    ** VP der Normalenvektoren repr‰sentiert wird.
+                    **
+                    ** Wichtig f¸r die weitere Bearbeitung ist letztendlich, daﬂ collvec
+                    ** von mir wegzeigt.
+                    ** ---------------------------------------------------------------*/
+    
+                    int2.pnt.x = ytd->bact->pos.x;
+                    int2.pnt.y = ytd->bact->pos.y;
+                    int2.pnt.z = ytd->bact->pos.z;
+                    int2.vec.x = ytd->bact->dir.m21 * 300;
+                    int2.vec.y = ytd->bact->dir.m22 * 300;
+                    int2.vec.z = ytd->bact->dir.m23 * 300;
+                    int2.flags  = INTERSECTF_CHEAT;  // egal, weil sich der Subs. nicht aendert
+    
+                    _methoda( ytd->world, YWM_INTERSECT, &int2 );
+    
+                    /*** VP, also Schnittlinie berechnen ***/
+                    if( int2.insect ) {
+    
+                        /*** Was immer sein sollte ***/
+                        svec.x = iB * int2.sklt->PlanePool[ int2.pnum ].C -
+                                 iC * int2.sklt->PlanePool[ int2.pnum ].B;
+                        svec.y = iC * int2.sklt->PlanePool[ int2.pnum ].A -
+                                 iA * int2.sklt->PlanePool[ int2.pnum ].C;
+                        svec.z = iA * int2.sklt->PlanePool[ int2.pnum ].B -
+                                 iB * int2.sklt->PlanePool[ int2.pnum ].A;
                         }
                     else {
-
-                        /*** Hindernis rechts. Nach links drehen ***/
-                        ytd->collangle = nc_acos(
-                            (ytd->bact->dir.m31 * ilinks.vec.x +
-                             ytd->bact->dir.m33 * ilinks.vec.z) /
-                            nc_sqrt(ytd->bact->dir.m31 * ytd->bact->dir.m31 +
-                                    ytd->bact->dir.m33 * ytd->bact->dir.m33) /
-                             SIDEDIST );
-
-                        wall_left = FALSE;
+    
+                        svec.x = -iC;
+                        svec.y =  0;
+                        svec.z =  iA;
                         }
-                    }
-                else {
-
-                    /* ---------------------------------------
-                    ** Keine Hindernisse oder 
-                    ** unbedeutende Hindernisse oder
-                    ** beidseitige richtige Hindernisse. 
-                    ** Wie ¸blich entscheidet die Zielrichtung 
-                    ** -------------------------------------*/
-                
-                    ytd->collangle = PI / 2 - nc_acos(
-                                     (ytd->bact->dir.m31 * ytd->collvec.x +
-                                      ytd->bact->dir.m33 * ytd->collvec.z) /
-                              nc_sqrt(ytd->bact->dir.m31 * ytd->bact->dir.m31 +
-                                      ytd->bact->dir.m33 * ytd->bact->dir.m33) /
-                              nc_sqrt(ytd->collvec.x * ytd->collvec.x +
-                                      ytd->collvec.z * ytd->collvec.z) );
-                    ytd->collangle += 0.01;
-
-                    if( (ytd->bact->dir.m31 * ytd->collvec.z - 
-                         ytd->bact->dir.m33 * ytd->collvec.x ) > 0.0 )
-                        wall_left = TRUE;
-                    else
-                        wall_left = FALSE;
-
-                    /* --------------------------------------------------
-                    ** Neuer Hack: Weil viele probleme dadurch entstehen,
-                    ** weil fahrzeuge, die ein Ziel hinter einem Hinder-
-                    ** nis ansteuern, den kleinsten Winkel nehmen und so
-                    ** aufeinaanderzufahren, legen wir fest, dass sie
-                    ** bevorzugt nach links fahren.
-                    **
-                    ** BRINGT MEHR PROBLEME ALS ER LOEST.
-                    ** ------------------------------------------------*/
-                    //if( wall_left && (ytd->collangle > (PI/2-PREFERLEFT_ANGLE)) ) {
-
-                    //    wall_left      = FALSE;
-                    //    ytd->collangle = PI - ytd->collangle;
-                    //    }
-                    }
-
-                if( (ytd->collflags & TCF_WALL_L) && !wall_left ) {
-
-                    /* -------------------------------------------------------
-                    ** Links ist eine Wand, also ein Hindernis, und wir wollen
-                    ** uns nach links drehen. Das geht schief. Folglich lassen
-                    ** wir das Flag und drehen uns 180 - angle.
-                    ** -----------------------------------------------------*/
-                    ytd->collangle = PI - ytd->collangle;
-                    }
-                else {
-                    if( (ytd->collflags & TCF_WALL_R) && wall_left ) {
-
+    
+                    /*** Sind Fl‰chen identisch? ***/
+                    if( (svec.x == 0.0) && (svec.y == 0.0) && (svec.z == 0.0)) {
+    
+                        /*** Einfachsterweise lokal x ***/
+                        svec.x = ytd->bact->dir.m11;
+                        svec.y = ytd->bact->dir.m12;
+                        svec.z = ytd->bact->dir.m13;
+                        }
+    
+                    /*** Nun CollVec so ermitteln, daﬂ er von mir weg zeigt ***/
+                    ytd->collvec.x = ytd->bact->dir.m22 * svec.z -
+                                     ytd->bact->dir.m23 * svec.y;
+                    ytd->collvec.y = ytd->bact->dir.m23 * svec.x -
+                                     ytd->bact->dir.m21 * svec.z;
+                    ytd->collvec.z = ytd->bact->dir.m21 * svec.y -
+                                     ytd->bact->dir.m22 * svec.x;
+    
+                    /*** zeigt der Abhang komischerweise zu mir? ***/
+                    if( (ytd->bact->dir.m31 * ytd->collvec.x +
+                         ytd->bact->dir.m32 * ytd->collvec.y +
+                         ytd->bact->dir.m33 * ytd->collvec.z) < 0.0 ) {
+    
+                         ytd->collvec.x = -ytd->collvec.x;
+                         ytd->collvec.y = -ytd->collvec.y;
+                         ytd->collvec.z = -ytd->collvec.z;
+                         }
+                    
+                    /* -------------------------------------------------------------
+                    ** Winkel je nach bisherigen Flags bestimmen. Zuerst ermitteln
+                    ** wir den Winkel und die Drehrichtung. anschlieﬂend entscheiden 
+                    ** die Flags, ob wir das ¸berhaupt d¸rfen.
+                    ** Dabei ermitteln wir den Winkel wie folgt: Wir kennen die 
+                    ** Richtung des Hindernisses und machen nun zwei Intersections
+                    ** parallel zum Hindernis nach beiden Seiten. Liefert eine
+                    ** der beiden ein richtiges Hindernis, so fahren wir in die
+                    ** andere Richtung, andernfalls entscheidet wie bisher das
+                    ** SP zum Ziel.
+                    ** -----------------------------------------------------------*/
+                    
+                    td = nc_sqrt( ytd->collvec.x*ytd->collvec.x+ytd->collvec.z*ytd->collvec.z);
+                    irechts.vec.x =  ytd->collvec.z * SIDEDIST / td;
+                    irechts.vec.z = -ytd->collvec.x * SIDEDIST / td;
+                    ilinks.vec.x  = -ytd->collvec.z * SIDEDIST / td;
+                    ilinks.vec.z  =  ytd->collvec.x * SIDEDIST / td;
+                    irechts.vec.y =  ilinks.vec.y = 0.0;
+                    irechts.pnt.x =  ilinks.pnt.x = ytd->bact->old_pos.x;
+                    irechts.pnt.y =  ilinks.pnt.y = ytd->bact->old_pos.y;
+                    irechts.pnt.z =  ilinks.pnt.z = ytd->bact->old_pos.z;
+                    irechts.flags =  INTERSECTF_CHEAT;
+                    ilinks.flags  =  INTERSECTF_CHEAT;
+    
+                    /* ----------------------------------------------------
+                    ** Wenn Ebenenparameter ausgewertet werden sollen, dann
+                    ** Intersections nacheinander, weil diese (bei Slurps)
+                    ** ¸berschrieben werden kˆnnen
+                    ** --------------------------------------------------*/
+    
+                    _methoda( ytd->world, YWM_INTERSECT, &irechts );
+                    if( irechts.insect &&
+                        (irechts.sklt->PlanePool[ irechts.pnum ].B < YPS_PLANE) )
+                        hr = TRUE;  else hr = FALSE;
+    
+                    _methoda( ytd->world, YWM_INTERSECT, &ilinks  );
+                    if( ilinks.insect &&
+                        (ilinks.sklt->PlanePool[ ilinks.pnum ].B < YPS_PLANE) )
+                        hl = TRUE;  else hl = FALSE;
+    
+                    if( (hl && !hr) || (hr && !hl) ) {
+    
+                        /*** Nur auf einer Seite ein Hindernis. Entscheidung mˆglich ***/
+                        if( hl ) {
+    
+                            /*** Hindernis links. Nach rechts drehen ***/
+                            ytd->collangle = nc_acos(
+                                (ytd->bact->dir.m31 * irechts.vec.x +
+                                 ytd->bact->dir.m33 * irechts.vec.z) /
+                                nc_sqrt(ytd->bact->dir.m31 * ytd->bact->dir.m31 +
+                                        ytd->bact->dir.m33 * ytd->bact->dir.m33) /
+                                 SIDEDIST );
+    
+                            wall_left = TRUE;
+    
+                            }
+                        else {
+    
+                            /*** Hindernis rechts. Nach links drehen ***/
+                            ytd->collangle = nc_acos(
+                                (ytd->bact->dir.m31 * ilinks.vec.x +
+                                 ytd->bact->dir.m33 * ilinks.vec.z) /
+                                nc_sqrt(ytd->bact->dir.m31 * ytd->bact->dir.m31 +
+                                        ytd->bact->dir.m33 * ytd->bact->dir.m33) /
+                                 SIDEDIST );
+    
+                            wall_left = FALSE;
+                            }
+                        }
+                    else {
+    
+                        /* ---------------------------------------
+                        ** Keine Hindernisse oder 
+                        ** unbedeutende Hindernisse oder
+                        ** beidseitige richtige Hindernisse. 
+                        ** Wie ¸blich entscheidet die Zielrichtung 
+                        ** -------------------------------------*/
+                    
+                        ytd->collangle = PI / 2 - nc_acos(
+                                         (ytd->bact->dir.m31 * ytd->collvec.x +
+                                          ytd->bact->dir.m33 * ytd->collvec.z) /
+                                  nc_sqrt(ytd->bact->dir.m31 * ytd->bact->dir.m31 +
+                                          ytd->bact->dir.m33 * ytd->bact->dir.m33) /
+                                  nc_sqrt(ytd->collvec.x * ytd->collvec.x +
+                                          ytd->collvec.z * ytd->collvec.z) );
+                        ytd->collangle += 0.01;
+    
+                        if( (ytd->bact->dir.m31 * ytd->collvec.z - 
+                             ytd->bact->dir.m33 * ytd->collvec.x ) > 0.0 )
+                            wall_left = TRUE;
+                        else
+                            wall_left = FALSE;
+    
+                        /* --------------------------------------------------
+                        ** Neuer Hack: Weil viele probleme dadurch entstehen,
+                        ** weil fahrzeuge, die ein Ziel hinter einem Hinder-
+                        ** nis ansteuern, den kleinsten Winkel nehmen und so
+                        ** aufeinaanderzufahren, legen wir fest, dass sie
+                        ** bevorzugt nach links fahren.
+                        **
+                        ** BRINGT MEHR PROBLEME ALS ER LOEST.
+                        ** ------------------------------------------------*/
+                        //if( wall_left && (ytd->collangle > (PI/2-PREFERLEFT_ANGLE)) ) {
+    
+                        //    wall_left      = FALSE;
+                        //    ytd->collangle = PI - ytd->collangle;
+                        //    }
+                        }
+    
+                    if( (ytd->collflags & TCF_WALL_L) && !wall_left ) {
+    
+                        /* -------------------------------------------------------
+                        ** Links ist eine Wand, also ein Hindernis, und wir wollen
+                        ** uns nach links drehen. Das geht schief. Folglich lassen
+                        ** wir das Flag und drehen uns 180 - angle.
+                        ** -----------------------------------------------------*/
                         ytd->collangle = PI - ytd->collangle;
                         }
                     else {
-
-                        /* -----------------------------------------------
-                        ** Keine probleme, wir brauchen nur noch die Flags
-                        ** zu setzen.
-                        ** ---------------------------------------------*/
-                        if( wall_left )
-                            ytd->collflags |= TCF_WALL_L;
-                        else
-                            ytd->collflags |= TCF_WALL_R;
+                        if( (ytd->collflags & TCF_WALL_R) && wall_left ) {
+    
+                            ytd->collangle = PI - ytd->collangle;
+                            }
+                        else {
+    
+                            /* -----------------------------------------------
+                            ** Keine probleme, wir brauchen nur noch die Flags
+                            ** zu setzen.
+                            ** ---------------------------------------------*/
+                            if( wall_left )
+                                ytd->collflags |= TCF_WALL_L;
+                            else
+                                ytd->collflags |= TCF_WALL_R;
+                            }
                         }
+    
+                    /*** Der Weg ***/
+                    ytd->collway = 100;    // vorher 50
+    
+                    /*** Nun kann es sein, daﬂ es eine direkte Kollision war ***/
+                    if( (inter.t * ttdist) < ytd->bact->radius ) direct_coll = TRUE;
                     }
-
-                /*** Der Weg ***/
-                ytd->collway = 100;    // vorher 50
-
-                /*** Nun kann es sein, daﬂ es eine direkte Kollision war ***/
-                if( (inter.t * ttdist) < ytd->bact->radius ) direct_coll = TRUE;
                 }
 
             /* -------------------------------------------------------------

@@ -96,6 +96,16 @@
 #define TOOLTIP_ACTION_BUILD            (71)
 #define TOOLTIP_ACTION_BEAM             (72)
 
+/*** Weitere Tooltips, ungeordnet ***/
+#define TOOLTIP_SHELL_EXITDEBRIEFING    (73)
+#define TOOLTIP_SHELL_GOTOLOADSAVE      (74)
+#define TOOLTIP_SHELL_SETTINGS3D        (75)
+#define TOOLTIP_SHELL_SENDMESSAGE       (76)
+#define TOOLTIP_SHELL_ALTJOYSTICK       (77)
+#define TOOLTIP_SHELL_16BITTEXTURE      (78)
+#define TOOLTIP_SHELL_DRAWPRIMITIVE     (79)
+
+
 /*** Fehlermeldungen ***/
 #define TOOLTIP_ERROR_NOTARGET          (96)    // Mode Select
 #define TOOLTIP_ERROR_NOROOM            (97)    // Mode New, Add
@@ -154,7 +164,7 @@
 #define TOOLTIP_SHELL_BACKTOPLAYER      (148)
 #define TOOLTIP_SHELL_BACKTOSESSION     (149)
 
-#define TOOLTIP_SHELL_PL_GOTOLOADSAVE   (150) // Level Selection, Goto Load Save Screen
+
 #define TOOLTIP_SHELL_DB_STOP           (151) // <OBSOLETE>
 #define TOOLTIP_SHELL_DB_REWIND         (152) // Debriefing zurückspulen
 #define TOOLTIP_SHELL_DB_TIME_LOC       (153) // <OBSOLETE>
@@ -205,7 +215,6 @@
 #define TOOLTIP_SHELL_JOYSTICK          (196)
 #define TOOLTIP_SHELL_FORCEFEEDBACK     (197)
 #define TOOLTIP_SHELL_SWITCHOFF         (198)
-#define TOOLTIP_SHELL_EXITDEBRIEFING    (199)
 
 
 // ***ANPASSEN***
