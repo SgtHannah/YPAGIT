@@ -708,7 +708,8 @@ void yw_PutDebugInfo(struct ypaworld_data *ywd, struct VFMInput *ip)
                     else                       btn_buf[i] = '_';
                 };
                 btn_buf[i] = 0;
-                str = yw_PutDbgMsg(ywd,str,&buf_ptr,btn_buf);
+                str = yw_PutDbgMsg(ywd,str,&buf_ptr,btn_buf); new_line(str);
+                str = yw_PutDbgMsg(ywd,str,&buf_ptr,"keycode = %d",ip->ContKey); new_line(str);
             };
             break;
 
@@ -845,11 +846,11 @@ void yw_PutDebugInfo(struct ypaworld_data *ywd, struct VFMInput *ip)
         _methoda(ywd->GfxObject,RASTM_End2D,NULL);
 
         if (do_reset == 0) {
-            if(ip->NormKey == KEYCODE_F9) ywd->DebugInfo++;
+            if(yw_CheckCheatKey(ywd,ip,KEYCODE_F9)) ywd->DebugInfo++;
         }else ywd->DebugInfo = 0;
 
     }else{
-        if (ip->NormKey == KEYCODE_F9) ywd->DebugInfo++;
+        if (yw_CheckCheatKey(ywd,ip,KEYCODE_F9)) ywd->DebugInfo++;
     };
 }
 

@@ -297,9 +297,9 @@ BOOL yw_InitStatusReq(Object *o, struct ypaworld_data *ywd)
     SR.GroupSpace = (ywd->DspXRes-(STAT_LBAR_NUMBUTTONS*ywd->IconBW))/4; // 4 Gruppen!
 
     if (ywd->DspXRes < 512) {
-        SR.SubModeW  = ywd->Fonts[FONTID_DEFAULT]->fchars['W'].width * 16;
+        SR.SubModeW  = ywd->Fonts[FONTID_DEFAULT]->fchars['W'].width * 18;
     } else {
-        SR.SubModeW  = ywd->Fonts[FONTID_DEFAULT]->fchars['W'].width * 12;
+        SR.SubModeW  = ywd->Fonts[FONTID_DEFAULT]->fchars['W'].width * 14;
     };
     SR.ModeStart = SR.GroupSpace/2;
     SR.WinStart  = SR.ModeStart + SR.GroupSpace + ywd->IconBW;

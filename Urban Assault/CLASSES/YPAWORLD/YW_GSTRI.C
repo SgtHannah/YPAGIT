@@ -170,7 +170,7 @@ _dispatcher( void, yw_YWM_TRIGGERGAMESHELL, struct GameShellReq *GSR )
         }
 
     /*** von diesem einen Screenshot anfertigen? ***/
-    if( GSR->input->NormKey == KEYCODE_NUM_MUL ) yw_ScreenShot( GSR->ywd );
+    if(yw_CheckCheatKey(GSR->ywd, GSR->input, KEYCODE_NUM_MUL)) yw_ScreenShot( GSR->ywd );
 
     /* ----------------------------------------------------
     ** Blanker? wenn keine Netzwerkvorbereitungen, d.h. wir
@@ -2202,7 +2202,7 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
             switch( GSR->a_lettercount ) {
 
                 case 0: /*** A akzeptieren ***/
-                        if( GSR->input->NormKey == KEYCODE_A ) {
+                        if(yw_CheckCheatKey(GSR->ywd,GSR->input,KEYCODE_A)) {
                             GSR->a_waittime = GSR->global_time;
                             GSR->a_lettercount++;
                             }
@@ -2213,7 +2213,7 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                         break;
 
                 case 1: /*** m merken ***/
-                        if( GSR->input->NormKey == KEYCODE_M ) {
+                        if(yw_CheckCheatKey(GSR->ywd,GSR->input,KEYCODE_M)) {
                             GSR->a_lettercount++;
                             GSR->a_waittime = GSR->global_time;
                             }
@@ -2224,7 +2224,7 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                         break;
 
                 case 2: /*** o okkupieren ***/
-                        if( GSR->input->NormKey == KEYCODE_O ) {
+                        if(yw_CheckCheatKey(GSR->ywd,GSR->input,KEYCODE_O)) {
                             GSR->a_waittime = GSR->global_time;
                             GSR->a_lettercount++;
                             }
@@ -2235,7 +2235,7 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                         break;
 
                 case 3: /*** k kaufen ***/
-                        if( GSR->input->NormKey == KEYCODE_K ) {
+                        if(yw_CheckCheatKey(GSR->ywd,GSR->input,KEYCODE_K)) {
 
                             yw_OpenAbout( GSR );
                             _StartSoundSource( &(GSR->ShellSound2), SHELLSOUND_SECRET );

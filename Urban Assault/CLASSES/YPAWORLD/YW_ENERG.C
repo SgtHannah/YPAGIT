@@ -1205,6 +1205,8 @@ _dispatcher(void, yw_YWM_NOTIFYDEADROBO, struct notifydeadrobo_msg *msg)
 **      26-Aug-97   floh    + updated für NotifyHistoryEvent
 **      28-Feb-98   floh    + inkrementiert <ywd->Level->MaxNumBuddies>,
 **                            falls der Killer der User-Robo war
+**      29-May-98   floh    + falls es der User-Robo war, wird 
+**                            UserRoboDied auf TRUE gesetzt.
 */
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
@@ -1216,7 +1218,10 @@ _dispatcher(void, yw_YWM_NOTIFYDEADROBO, struct notifydeadrobo_msg *msg)
 
     /*** Killer-ID 0 nicht erlaubt ***/
     if (msg->killer_id == 0) return;
-
+    
+    /*** war es der User-Robo? ***/
+    if (msg->victim == ywd->URBact) ywd->UserRoboDied = TRUE;
+    
     /*** falls Killer der User war, darf er 1 Buddy mehr mitnehmen ***/
     if (ywd->URBact && (ywd->URBact->Owner==msg->killer_id)) {
         ywd->Level->MaxNumBuddies++;

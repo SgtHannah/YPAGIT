@@ -1710,7 +1710,7 @@ void yw_BuildTrLogicMsg(Object *world,
                     /*** nur eigene Fahrzeuge können controlled werden ***/
                     mptr_type = YW_MOUSE_CANCEL;
                     if (ywd->FrameFlags & YWFF_MouseOverBact) {
-                        if (ip->ContKey == KEYCODE_F7) {
+                        if (yw_CheckCheatContKey(ywd,ip,KEYCODE_F7)) {
                             /*** Onboard-Kamera (nicht nur User-Vhcls!) ***/
                             mptr_type = YW_MOUSE_CONTROL;
                             action    = YW_ACTION_ONBOARD;

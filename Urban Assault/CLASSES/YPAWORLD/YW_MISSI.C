@@ -247,7 +247,7 @@ BOOL yw_MBLoadSet(struct ypaworld_data *ywd, ULONG set_num)
     } else {
         _LogMsg("Briefing: No fat base object\n");
         retval = FALSE;
-    };
+    };   
 
     /*** alten Resource-Pfad wiederherstellen ***/
     _SetAssign("rsrc",old_path);
@@ -350,6 +350,10 @@ BOOL yw_InitMissionBriefing(struct ypaworld_data *ywd, ULONG lnum)
 **                            korrekt aufgeraeumt
 **      18-May-98   floh    + loescht jetzt zuerst den Screen.
 **                          + stoppt CD Player
+**      28-May-98   floh    + Blacksect-FirstContact-Video 
+**                            wurde nicht abgespielt...
+**                          + FirstContact Flag wird jetzt nur gesetzt,
+**                            wenn man den Level auch gewonnen hat.
 */
 {
     struct MissionBriefing *mb = &(ywd->Mission);
@@ -403,33 +407,34 @@ BOOL yw_InitMissionBriefing(struct ypaworld_data *ywd, ULONG lnum)
 
                 ULONG i;
                 UBYTE *name;
-
-                /*** FirstContact Handling ***/
-                for (i=0; i<ld->num_robos; i++) {
-                    ULONG owner = ld->robos[i].owner;
-                    if (!ywd->Level->RaceTouched[owner]) {
-                        LONG movie_id;
-                        switch(ld->robos[i].owner) {
-                            case 2: movie_id=MOV_KYT_INTRO;  break;
-                            case 3: movie_id=MOV_MYK_INTRO;  break;
-                            case 4: movie_id=MOV_TAER_INTRO; break;
-                            case 5: movie_id=MOV_SULG_INTRO; break;
-                            case 6: movie_id=MOV_KYT_INTRO;  break;
-                            default: movie_id=-1;
-                        };
-                        if ((movie_id != -1) && (ywd->MovieData.Valid[movie_id])) {
-                            ywd->Level->RaceTouched[owner] = TRUE;
-                            strcpy(mb->Movie,&(ywd->MovieData.Name[movie_id]));
-                            mb->Status = MBSTATUS_START_MOVIE;
-                            break;
-                        };
-                    };
-                };
-
-                /*** normales Level-Intro-Movie-Handling ***/
+                
+                /*** hat Level ein Intro-Movie? ***/
                 if (ywd->Level->Movie[0] && (MBSTATUS_INVALID == mb->Status)) {
                     strcpy(mb->Movie,ywd->Level->Movie);
                     mb->Status = MBSTATUS_START_MOVIE;
+                } else {
+                    /*** FirstContact Movie Handling ***/
+                    for (i=0; i<ld->num_robos; i++) {
+                        ULONG owner = ld->robos[i].owner;
+                        if (!ywd->Level->RaceTouched[owner]) {
+                            LONG movie_id;
+                            switch(ld->robos[i].owner) {
+                                case 2: movie_id=MOV_SULG_INTRO;  break;
+                                case 3: movie_id=MOV_MYK_INTRO;   break;
+                                case 4: movie_id=MOV_TAER_INTRO;  break;
+                                case 5: movie_id=MOV_BLACK_INTRO; break;
+                                case 6: movie_id=MOV_KYT_INTRO;   break;
+                                default: movie_id=-1;
+                            };
+                            if ((movie_id != -1) && (ywd->MovieData.Valid[movie_id])) {
+                                /*** erst KILLLEVEL uebernimmt das RaceTouched Handling ***/
+                                ywd->FirstContactOwner = owner;
+                                strcpy(mb->Movie,&(ywd->MovieData.Name[movie_id]));
+                                mb->Status = MBSTATUS_START_MOVIE;
+                                break;
+                            };
+                        };
+                    };
                 };
                 
                 /*** lade Hintergrund Map ***/

@@ -1994,6 +1994,7 @@ struct ypaworld_data {
     LONG FrameTime;             // FrameTime des aktuellen Frames
     LONG FrameCount;            // einfacher FrameCounter
     UBYTE *Version;             // Versions-String
+    ULONG UserRoboDied;         // in Shell TRUE, wenn UserRobo gekillt wurde.
     
     UWORD FireDownStatus;       // Status des Feuer-Buttons im letzten Frame
     UWORD FireDown;             // TRUE, wenn Feuerbutton in diesem Frame niedergedrueckt
@@ -2215,6 +2216,7 @@ struct ypaworld_data {
 
     /*** Movie Data ***/
     struct ypa_MovieData MovieData;
+    ULONG FirstContactOwner;
 
     /*** Help URL ***/
     UBYTE *Url;

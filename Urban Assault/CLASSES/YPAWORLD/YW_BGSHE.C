@@ -301,6 +301,7 @@ void yw_InitShellBgMode(struct ypaworld_data *ywd, ULONG shell_mode)
         case SHELLMODE_PLAY:
         case SHELLMODE_TUTORIAL:
             /*** Single Player Level Selection ***/
+            ywd->FirstContactOwner = 0;
             ywd->Mission.Status = MBSTATUS_INVALID;
             ywd->LevelNet->MouseOverLevel = 0;
             yw_MaskGetBlitCoords(ywd);
@@ -672,12 +673,13 @@ void yw_TriggerShellBgGameTut(struct ypaworld_data *ywd,
             };
         };
         if (LEVELSTAT_ABORTED == ywd->Level->Status) {
-            if (ywd->Level->LoseMovie[0]) {
+            if (ywd->Level->LoseMovie[0] && ywd->UserRoboDied) {
                 yw_PlayMovie(ywd,&(ywd->Level->LoseMovie));
             };
-            ywd->Mission.Status = MBSTATUS_INVALID;
-            ywd->Level->Status   = LEVELSTAT_SHELL;
         };
+   
+        ywd->Mission.Status = MBSTATUS_INVALID;
+        ywd->Level->Status   = LEVELSTAT_SHELL;
 
         /*** Debriefing wenn gewonnen, oder im Netzwerkspiel ***/
         if (ywd->DoDebriefing) yw_InitDebriefing(ywd);

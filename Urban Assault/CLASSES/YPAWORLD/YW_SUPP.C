@@ -358,7 +358,7 @@ void yw_DoDigiStuff(struct ypaworld_data *ywd, struct VFMInput *ip)
 */
 {
     /*** Snapshot? ***/
-    if (ip->NormKey == KEYCODE_NUM_MUL) yw_ScreenShot(ywd);
+    if (yw_CheckCheatKey(ywd,ip,KEYCODE_NUM_MUL)) yw_ScreenShot(ywd);
 
     /*** Sequenz-Digitizing? ***/
     if (ywd->seq_digger) {
@@ -368,7 +368,7 @@ void yw_DoDigiStuff(struct ypaworld_data *ywd, struct VFMInput *ip)
         UBYTE filename[256];
 
         /*** auschalten? ***/
-        if (ip->NormKey == KEYCODE_NUM_DIV) ywd->seq_digger = FALSE;
+        if (yw_CheckCheatKey(ywd,ip,KEYCODE_NUM_DIV)) ywd->seq_digger = FALSE;
         sprintf(filename, "env/snaps/s%d_%04d", ywd->seq_num, ywd->frame_num++);
         _OVE_GetAttrs(OVET_Object,&gfxo,TAG_DONE);
         dssm.filename = filename;
@@ -376,7 +376,7 @@ void yw_DoDigiStuff(struct ypaworld_data *ywd, struct VFMInput *ip)
 
     } else {
         /*** einschalten? ***/
-        if (ip->NormKey == KEYCODE_NUM_DIV) {
+        if (yw_CheckCheatKey(ywd,ip,KEYCODE_NUM_DIV)) {
             ywd->seq_digger = TRUE;
             ywd->seq_num++;
             ywd->frame_num = 0;
@@ -386,10 +386,10 @@ void yw_DoDigiStuff(struct ypaworld_data *ywd, struct VFMInput *ip)
     /*** Sequenz-Recording? ***/
     if (ywd->out_seq->active) {
         /*** ausschalten? ***/
-        if (ip->NormKey == KEYCODE_NUM_MINUS) yw_RCEndScene(ywd);
+        if (yw_CheckCheatKey(ywd,ip,KEYCODE_NUM_MINUS)) yw_RCEndScene(ywd);
     } else {
         /*** einschalten? ***/
-        if (ip->NormKey == KEYCODE_NUM_MINUS) yw_RCNewScene(ywd);
+        if (yw_CheckCheatKey(ywd,ip,KEYCODE_NUM_MINUS)) yw_RCNewScene(ywd);
     };
 }
 
@@ -762,6 +762,7 @@ ULONG yw_HandleGamePaused(struct ypaworld_data *ywd, struct trigger_msg *msg)
 **  CHANGED
 **      28-Oct-97   floh    created
 **      24-Nov-97   floh    Game Paused Meldung DBCS Enabled
+**      29-May-98   floh    + Pausen-Taste jetzt extra hardgecoded.
 */
 {
     if (!ywd->playing_network) {
@@ -822,7 +823,7 @@ ULONG yw_HandleGamePaused(struct ypaworld_data *ywd, struct trigger_msg *msg)
             return(TRUE);
 
         } else {
-            if (HOTKEY_PAUSE == msg->input->HotKey) {
+            if ((HOTKEY_PAUSE == msg->input->HotKey) || (msg->input->NormKey == KEYCODE_PAUSE)) {
                 ywd->GamePaused  = TRUE;
                 ywd->GamePausedTimeStamp = msg->global_time;
             };
@@ -1417,3 +1418,44 @@ ULONG yw_CheckCD(ULONG check_install_type,
     return(res);
 }
 
+/*-----------------------------------------------------------------*/
+ULONG yw_CheckCheatKey(struct ypaworld_data *ywd,
+                       struct VFMInput *ip,
+                       ULONG keycode)
+/*
+**  FUNCTION
+**      Testet, ob die Normkey zusammen mit einem anderen
+**      Ereignis zusammen gedrueckt ist...
+**
+**  CHANGED
+**      29-May-98   floh    created
+*/
+{
+    struct ClickInfo *ci = &(ip->ClickInfo);
+    if ((ip->NormKey == keycode) && (ci->flags & CIF_RMOUSEHOLD)) {
+        return(TRUE);
+    } else {
+        return(FALSE);
+    };
+}
+    
+/*-----------------------------------------------------------------*/
+ULONG yw_CheckCheatContKey(struct ypaworld_data *ywd,
+                           struct VFMInput *ip,
+                           ULONG keycode)
+/*
+**  FUNCTION
+**      Testet, ob die Contkey zusammen mit einem anderen
+**      Ereignis zusammen gedrueckt ist...
+**
+**  CHANGED
+**      29-May-98   floh    created
+*/
+{
+    struct ClickInfo *ci = &(ip->ClickInfo);
+    if ((ip->ContKey == keycode) && (ci->flags & CIF_RMOUSEHOLD)) {
+        return(TRUE);
+    } else {
+        return(FALSE);
+    };
+}

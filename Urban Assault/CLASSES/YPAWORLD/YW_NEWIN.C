@@ -1896,17 +1896,23 @@ _dispatcher(void, yw_YWM_KILLLEVEL, void *ignored)
 **      18-Apr-98   floh    + yw_KillEventCatcher()
 **      18-May-98   floh    + Bug: Zugriff auf Robo, der aber gar
 **                            existieren musste...
+**      28-May-98   floh    + Debriefing wird nur abgespielt, wenn
+**                            Level gewonnen, oder Multiplayer
+**      
 */                           
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
     UBYTE   user_owner;
 
-    /*** Network-Session aufräumen ***/
-    if (ywd->Level->Status == LEVELSTAT_FINISHED) ywd->DoDebriefing = TRUE;
-    else                                          ywd->DoDebriefing = FALSE;
-    // FIXME!
-    ywd->DoDebriefing = TRUE;
-    
+    /*** Wenn User gewonnen hat, Debriefing anschalten ***/ 
+    if (ywd->Level->Status == LEVELSTAT_FINISHED) {
+        /*** Single-Player-Debriefing aktivieren ***/
+        ywd->DoDebriefing = TRUE;
+        /*** FirstContact Handling ***/
+        if (ywd->FirstContactOwner != 0) ywd->Level->RaceTouched[ywd->FirstContactOwner] = TRUE;
+    } else {
+        ywd->DoDebriefing = FALSE;
+    };
     
     /* -------------------------------------------------------------
     ** Wenn Level korrekt verlassen wurde, ist jedes InGame-Savegame
@@ -2184,6 +2190,8 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
 **      16-May-98   floh    + nucleus.ini Auswertung
 **      22-May-98   floh    + ywd->FireDown Initialisierung
 **      27-May-98   floh    + Ingame-Stats werden zurueckgesetzt.
+**      29-May-98   floh    + Texturefiltering-Flag ist wieder raus...
+**                          + UserRoboDied wird initialisiert
 */
 {
     BOOL retval = FALSE;
@@ -2226,6 +2234,7 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
     ywd->LastOccupiedID       = 0;
     ywd->FireDownStatus       = FALSE;
     ywd->FireDown             = FALSE;
+    ywd->UserRoboDied         = FALSE;
 
     memset(&(ywd->Level->Gate),0,sizeof(ywd->Level->Gate));
     memset(&(ywd->Level->Item),0,sizeof(ywd->Level->Item));
@@ -2256,7 +2265,6 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
         do_soft_mouse    = ywd->Prefs.Flags & YPA_PREFS_SOFTMOUSE;
         do_txt_filtering = ywd->Prefs.Flags & YPA_PREFS_FILTERING;
         _set(ywd->GfxObject,WINDDA_CursorMode,(do_soft_mouse ? WINDD_CURSORMODE_SOFT:WINDD_CURSORMODE_HW));
-        _set(ywd->GfxObject,WINDDA_TextureFilter,do_txt_filtering);
         #ifdef __DBCS__
         if (ywd->DspXRes < 512) {
             dbcs_SetFont(ypa_GetStr(ywd->LocHandle,STR_FONTDEFINE_LRES,"Arial,8,400,0"));
