@@ -432,7 +432,7 @@ void yw_RenderQuickLog(struct ypaworld_data *ywd)
 **  CHANGED
 **      24-Jun-96   floh    created
 **      29-Jul-96   floh    revised & updated (Dynamic Layout + Locale)
-**      10-Aug-96   floh    Übernimmt jetzt auch die Kontrolle über
+**      10-Aug-96   floh    uebernimmt jetzt auch die Kontrolle über
 **                          die Anzeige des TypeIcons, in dem
 **                          der User sitzt.
 **      12-Apr-97   floh    + VP_Array nicht mehr global
@@ -448,6 +448,7 @@ void yw_RenderQuickLog(struct ypaworld_data *ywd)
 **                          + auf 10 Zeilen max begrenzt, weil es einen
 **                            Absturz gab, wenn das Display voll war.
 **      29-May-98   floh    + Quicklog-Meldungen kommen jetzt am linken Rand
+**      01-Jun-98   floh    + zusaetzliche Netzwerk-Status-Meldungen
 */
 {
     /*** Alter der letzten Message ermitteln ***/
@@ -459,7 +460,44 @@ void yw_RenderQuickLog(struct ypaworld_data *ywd)
     ULONG first_hit = FALSE;
     // old: WORD xpos = ywd->DspXRes/5;
     WORD xpos = 16;
-
+    
+    /*** Netzwerk-Status-Meldungen? ***/
+    if (ywd->playing_network) {
+        if (ywd->netplayerstatus.kind != NPS_NONE) {
+            UBYTE *msg;
+            LONG time;
+            UBYTE buf[512];
+            switch (ywd->netplayerstatus.kind) {
+                case NPS_YOUWIN:
+                    msg     = ypa_GetStr(ywd->LocHandle,STR_NETWORK_YOUWIN,"2468 == *** VICTORY IS YOURS ***");
+                    sprintf(buf,msg);                
+                    time    = 40000;
+                    break;
+                case NPS_WASKILLED:
+                case NPS_HASDIED:
+                    msg  = ypa_GetStr(ywd->LocHandle,STR_NETWORK_DEFEATED,"2469 == *** %s HAS BEEN DEFEATED ***");
+                    sprintf(buf,msg,ywd->netplayerstatus.name);
+                    time = 20000;
+                    break;
+                default: 
+                    msg     = NULL;
+                    time    = 0;
+            };
+            if (msg && ((ywd->TimeStamp - ywd->netplayerstatus.time) < time)) {
+                if ((ywd->TimeStamp / 300) & 1) {
+                    WORD ypos = ((ywd->DspYRes*2)/3);
+                    new_font(str,FONTID_TRACY);
+                    xpos_brel(str,0);
+                    ypos_brel(str,ypos);
+                    dbcs_color(str,yw_Red(ywd,YPACOLOR_OWNER_6),yw_Green(ywd,YPACOLOR_OWNER_6),yw_Blue(ywd,YPACOLOR_OWNER_6));
+                    str = yw_TextCenteredSkippedItem(ywd->Fonts[FONTID_TRACY], str, buf, ywd->DspXRes);
+                };
+            } else {
+                ywd->netplayerstatus.kind = NPS_NONE;
+            };
+        };
+    };    
+    
     /*** Tech Upgrade, oder Logmsgs anzeigen? ***/
     if (!yw_RenderTechUpgrade(ywd)) {
 

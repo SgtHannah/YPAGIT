@@ -1459,3 +1459,4 @@ ULONG yw_CheckCheatContKey(struct ypaworld_data *ywd,
         return(FALSE);
     };
 }
+

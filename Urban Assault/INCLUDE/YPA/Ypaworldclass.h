@@ -1861,11 +1861,10 @@ struct ypa_MovieData {
 
 /*** Was hat sich im Netzspiel bezgl. der Spieler getan? ***/
 struct netplayerstatus {
-
-    ULONG   kind;       // Art des ereignisses
-    ULONG   time;       // ywd->Timestamp der Anmeldung
-    char    name[ STANDARD_NAMELEN ];   
-    char    data[ STANDARD_NAMELEN ];
+    LONG   kind;        // Art des ereignisses
+    LONG   time;        // ywd->Timestamp der Anmeldung
+    char    name[STANDARD_NAMELEN];   
+    char    data[STANDARD_NAMELEN];
 };
 
 #define NPS_NONE        0       // zur Zeit nix los
@@ -2537,7 +2536,7 @@ struct logmsg_msg {
 #define LOGMSG_NETWORK_MYK_KILLED       (90)
 #define LOGMSG_NETWORK_YOUWIN           (91)
 
-#define LOGMSG_NETWORK_PARASITE_STOPPED (92)
+#define LOGMSG_PARASITE_STOPPED         (92)
 #define LOGMSG_CHAT                     (93)
 
 struct initplayer_msg {

@@ -790,6 +790,8 @@ static UBYTE *ypa_GetStr(UBYTE **loc, ULONG id, UBYTE *def)
 #define STR_DEBRIEF_TU_GENERIC          (2465)
 #define STR_CDREQUEST_BODYTEXT          (2466)
 #define STR_BRIEFING_LOADING            (2467)
+#define STR_NETWORK_YOUWIN              (2468)
+#define STR_NETWORK_DEFEATED            (2469)
 
 /*** Confirm-Req-Inhalt ***/
 #define STR_CONFIRM_EXIT                (2480)
