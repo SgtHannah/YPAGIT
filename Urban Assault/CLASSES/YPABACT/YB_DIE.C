@@ -87,14 +87,11 @@ _dispatcher(void, yb_YBM_DIE, void *nix)
     dm.new_master         = NULL;
     dm.landed             = 0;
     dm.class              = ybd->bact.BactClassID;
-    if( ybd->bact.killer ) {
+    if( ybd->bact.killer ) 
         dm.killer         = ybd->bact.killer->ident;
-        dm.killerowner    = ybd->bact.killer->Owner;
-        }
-    else {
-        dm.killerowner    = 0;
+    else 
         dm.killer         = 0L;
-        }
+    dm.killerowner        = ybd->bact.killer_owner;      
           
     ywd = INST_DATA( ((struct nucleusdata *)ybd->world)->o_Class, ybd->world);
     #endif

@@ -85,24 +85,21 @@ _dispatcher(void, yr_YBM_DIE, void *nix)
     ywd = INST_DATA( ((struct nucleusdata *)yrd->world)->o_Class, yrd->world);
     rd.generic.message_id = YPAM_ROBODIE;
     rd.generic.owner      = yrd->bact->Owner;
-    if( yrd->bact->killer ) {
-        rd.killerowner    = yrd->bact->killer->Owner;
+    if( yrd->bact->killer ) 
         rd.killer         = yrd->bact->killer->ident;
-        }
-    else {
-        rd.killerowner    = 0;
+    else 
         rd.killer         = 0L;
-        }
+    rd.killerowner        = yrd->bact->killer_owner;
 
     #endif
 
     /*** Wenn es einen Killer gab, dann NOTIFY. auch in yw_network.c !!! ***/
-    if( yrd->bact->killer ) {
+    if( yrd->bact->killer_owner ) {
 
         struct notifydeadrobo_msg ndr;
 
         /*** Meldung an die Welt ***/
-        ndr.killer_id = yrd->bact->killer->Owner;
+        ndr.killer_id = yrd->bact->killer_owner;
         ndr.victim    = yrd->bact;
         _methoda( yrd->world, YWM_NOTIFYDEADROBO, &ndr );
         }

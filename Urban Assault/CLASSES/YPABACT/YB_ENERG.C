@@ -143,6 +143,7 @@ _dispatcher(void, yb_YBM_MODVEHICLEENERGY, struct modvehicleenergy_msg *mve)
             re.killer          = NULL;
             re.killerowner     = 0;
             }
+     
         sm.receiver_id         = NULL;
         sm.receiver_kind       = MSG_ALL;
         sm.data                = &re;
@@ -155,7 +156,9 @@ _dispatcher(void, yb_YBM_MODVEHICLEENERGY, struct modvehicleenergy_msg *mve)
         /*** Energie richtig abziehen ***/
         ybd->bact.Energy += mve->energy;
 
-        /*** ist der Kandidat unter 0, dann setzeb wir den VP ***/
+        ybd->bact.killer_owner = mve->killer->Owner;
+
+        /*** ist der Kandidat unter 0, dann setzen wir den VP ***/
         if( ybd->bact.Energy <= 0 ) {
 
             struct setstate_msg state;
@@ -164,7 +167,7 @@ _dispatcher(void, yb_YBM_MODVEHICLEENERGY, struct modvehicleenergy_msg *mve)
             ** killer immer merken, denn der Robo kann ja kurz danach
             ** an Energiemangel sterben
             ** ----------------------------------------------------*/
-            ybd->bact.killer = mve->killer;
+            ybd->bact.killer       = mve->killer;
 
             /*** erst hier fallend machen! ***/
             ybd->bact.ExtraState &= ~EXTRA_LANDED;  // !!!

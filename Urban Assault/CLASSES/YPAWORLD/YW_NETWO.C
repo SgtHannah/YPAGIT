@@ -2374,6 +2374,9 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
 
                 /*** Energie ***/
                 dv->Energy += ve->energy;
+                
+                /*** killerowner immer merken ***/
+                dv->killer_owner = ve->killerowner;
 
                 /*** Folgen? ***/
                 if( dv->Energy < 0 ) {
@@ -2957,7 +2960,7 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
             ndr.killer_id = rd->killerowner;
             ndr.victim    = robo->bact;
             _methoda( ywd->world, YWM_NOTIFYDEADROBO, &ndr );
-
+_LogMsg("KILLER IST OWNER %d\n", rd->killerowner);
 
             //blog.ID     = LOGMSG_ROBODEAD;
             //blog.para1  = robo->bact->Owner;
@@ -3996,30 +3999,36 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
             yw_NetLog(">>> received ANNOUNCEQUIT from %s at %d\n",
                        rm->sender_id, ywd->TimeStamp/1000 );
                        
-            ywd->netplayerstatus.kind = NPS_HASLEFT;
-            ywd->netplayerstatus.time = ywd->TimeStamp;
-            strcpy( ywd->netplayerstatus.name, rm->sender_id );
-
             ywd->gsr->player[ owner ].status = NWS_LEFTGAME;
             
-            log.pri  = 50;  // wie die normale ROBODEAD-message
-            log.msg  = NULL;
-            log.bact = NULL;
-            switch( aq->generic.owner ) {
-                case 3:
-                    log.code = LOGMSG_NETWORK_MYK_LEFT;
-                    break;
-                case 4:
-                    log.code = LOGMSG_NETWORK_TAER_LEFT;
-                    break;
-                case 6:
-                    log.code = LOGMSG_NETWORK_KYT_LEFT;
-                    break;
-                case 1:
-                    log.code = LOGMSG_NETWORK_USER_LEFT;
-                    break;
+            /*** Wenn der Robo schon tot ist, keine Meldung ***/
+            robo = yw_GetRoboByOwner( ywd, aq->generic.owner );
+            if( robo && (ACTION_DEAD != robo->bact->MainState) ) {
+            
+                ywd->netplayerstatus.kind = NPS_HASLEFT;
+                ywd->netplayerstatus.time = ywd->TimeStamp;
+                strcpy( ywd->netplayerstatus.name, rm->sender_id );
+
+                log.pri  = 50;  // wie die normale ROBODEAD-message
+                log.msg  = NULL;
+                log.bact = NULL;
+                switch( aq->generic.owner ) {
+                    case 3:
+                        log.code = LOGMSG_NETWORK_MYK_LEFT;
+                        break;
+                    case 4:
+                        log.code = LOGMSG_NETWORK_TAER_LEFT;
+                        break;
+                    case 6:
+                        log.code = LOGMSG_NETWORK_KYT_LEFT;
+                        break;
+                    case 1:
+                        log.code = LOGMSG_NETWORK_USER_LEFT;
+                        break;
+                    }
+                _methoda( ywd->world, YWM_LOGMSG, &log );
                 }
-            _methoda( ywd->world, YWM_LOGMSG, &log );
+                
             break;
             
         case YPAM_CHECKSUM:
