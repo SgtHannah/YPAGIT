@@ -80,6 +80,18 @@ BOOL FAR PASCAL wdd_EditDialogProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lP
             break;
 
         case WM_COMMAND:
+
+            /*** IME Window flushen ***/
+    		if ((HIWORD(wParam) == EN_KILLFOCUS) && (GetDlgItem(hDlg,101)==(HWND)lParam)) {
+    			HIMC hIMC = ImmGetContext((HWND)lParam);
+    			if (hIMC) {
+    				ImmNotifyIME(hIMC, NI_COMPOSITIONSTR, CPS_COMPLETE, 0 );
+    				ImmReleaseContext((HWND)lParam,hIMC);
+    			}
+    			break;
+    		};
+        
+            /*** Kommando auswerten ***/        
             switch (wParam) {
                 case IDOK:
                     {

@@ -1151,7 +1151,7 @@ UBYTE *yw_RenderTextbar(struct ypaworld_data *ywd,
     
     /*** Rahmen drum, fertig ***/
     sx = h->vid_w;
-    sy = h->vid_text_h;
+    sy = h->vid_text_h * 1.2;
     sklt = h->HudVecSklt[HUDVEC_FRAME];
     if (sklt) {
         FLOAT offset = (1.0 / ywd->DspYRes) * 2;
@@ -1243,7 +1243,7 @@ UBYTE *yw_RenderVID(struct ypaworld_data *ywd,
     if (do_vehicle) yw_VecRenderVehicle(ywd,h,vp,tx,ty,dt);
     if (do_energy)  str = yw_RenderLifebar(ywd,h,str,b,vp,tx,ty+(7*h->vid_text_h));
     if (do_shield)  str = yw_RenderShieldbar(ywd,h,str,b,vp,tx,ty+(9*h->vid_text_h));
-    if (do_vehicle) str = yw_RenderNamebar(ywd,h,str,b,vp,vp_num,tx,ty+(11*h->vid_text_h));
+    if (do_vehicle) str = yw_RenderNamebar(ywd,h,str,b,vp,vp_num,tx,ty+(12*h->vid_text_h));
     if (wp && do_weapon) {
         yw_VecRenderWeapon(ywd,h,wp,tx,ty-(9*h->vid_text_h));
         str = yw_RenderReloadbar(ywd,h,str,b,wp,tx,ty-(7*h->vid_text_h));

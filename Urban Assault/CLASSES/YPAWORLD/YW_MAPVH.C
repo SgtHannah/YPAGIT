@@ -1273,7 +1273,7 @@ UBYTE *yw_RenderMapCursors(struct ypaworld_data *ywd, UBYTE *str)
         case 4:
             sec_fid    = FONTID_MAPCUR_64;
             sec_size   = 64;
-            vhc_fid    = FONTID_BACT9X9;
+            vhc_fid    = FONTID_TYPE_NS; // FONTID_BACT9X9;
             vhc_height = ywd->Fonts[vhc_fid]->height;
             vhc_width  = ywd->Fonts[vhc_fid]->fchars[1].width;
             robo_char       = MAP_CHAR_ROBO_HUGE;
