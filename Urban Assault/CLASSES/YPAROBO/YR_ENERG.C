@@ -39,6 +39,8 @@ _dispatcher(void, yr_YBM_GENERALENERGY, struct trigger_logic_msg *msg)
 **      29-Apr-98   floh    + funktioniert jetzt auch bei
 **                            gesperrter System-Batterie
 **                          + fuellt die Load/Loss Flags aus
+**      27-May-98   floh    + Reload wird nicht mehr durch num_batt
+**                            geteilt
 */
 {
     struct yparobo_data *yrd = INST_DATA(cl,o);
@@ -92,7 +94,7 @@ _dispatcher(void, yr_YBM_GENERALENERGY, struct trigger_logic_msg *msg)
             if ((yrd->FillModus & YRF_Fill_System) || (flow < 0.0))  num_batt++;
             if (yrd->FillModus & YRF_Fill_Vehicle) num_batt++; 
             if (yrd->FillModus & YRF_Fill_Beam)    num_batt++;
-            yrd->AbsReload = ((LONG)((reload_const * factor) / 6000.0)) / num_batt; // Reload pro Sekunde
+            yrd->AbsReload = ((LONG)((reload_const * factor) / 6000.0)); // Reload pro Sekunde
             if (num_batt > 0) {
             
                 FLOAT max_balance_flow;
