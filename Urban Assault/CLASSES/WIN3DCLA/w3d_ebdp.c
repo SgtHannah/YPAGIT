@@ -20,8 +20,9 @@ extern LPDIRECTDRAW lpDD;
 extern LPDIRECT3D2  lpD3D2;
 extern struct wdd_Data wdd_Data;
 
-/*** aus wdd_log.c ***/
+/*** aus windd.class ***/
 void wdd_Log(char *string,...);
+void wdd_CheckLostSurfaces(struct windd_data *);
 
 /*-----------------------------------------------------------------*/
 void w3d_StartExecuteBuffer(struct windd_data *wdd,
@@ -164,9 +165,14 @@ void w3d_BeginScene(struct windd_data *wdd, struct win3d_data *w3d)
 **      11-Mar-98   floh    created
 **      31-May-98   floh    setzt ein Flag ob BeginScene klappt
 **                          oder schiefgeht...
+**      08-Jun-98   floh    + wenn BeginScene schiefgeht, und
+**                            der Grund eine Lost Surface war,
+**                            wird versucht, die Surface zu restoren
+**                            und das ganze wird nochmal versucht
 */
 {
     HRESULT ddrval;
+    ENTERED("w3d_BeginScene");
     if (wdd->usedrawprimitive) {
         ddrval = wdd->d3d->lpD3DDevice2->lpVtbl->BeginScene(wdd->d3d->lpD3DDevice2);
         if (ddrval == DD_OK) {
@@ -186,6 +192,7 @@ void w3d_BeginScene(struct windd_data *wdd, struct win3d_data *w3d)
         }; 
         w3d_StartExecuteBuffer(wdd,w3d);        
     };
+    LEFT("w3d_BeginScene");
 }
 
 /*-----------------------------------------------------------------*/
@@ -199,6 +206,7 @@ void w3d_EndScene(struct windd_data *wdd, struct win3d_data *w3d)
 **      13-Mar-97   floh    created
 */
 {
+    ENTERED("w3d_EndScene");
     if (w3d->p->exec.begin_scene_ok) {
         HRESULT ddrval;
         if (wdd->usedrawprimitive) {
@@ -214,6 +222,7 @@ void w3d_EndScene(struct windd_data *wdd, struct win3d_data *w3d)
             };
         }; 
     };
+    LEFT("w3d_EndScene");
 }
 
 /*-----------------------------------------------------------------*/

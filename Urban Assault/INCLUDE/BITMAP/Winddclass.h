@@ -63,6 +63,20 @@
 #endif
 
 /*-------------------------------------------------------------------
+**  DEBUGGING MACROS
+*/
+
+// #define WDD_DEBUG   (1)
+extern void wdd_Log(char *,...);
+#ifdef WDD_DEBUG
+    #define ENTERED(x) wdd_Log("-> %s entered\n",x);
+    #define LEFT(x)    wdd_Log("-> %s left\n",x);
+#else
+    #define ENTERED(x) 
+    #define LEFT(x)
+#endif
+
+/*-------------------------------------------------------------------
 **  NAME
 **      drivers/gfx/windd.class -- Treiberklasse für DDraw Windowed
 **

@@ -20,6 +20,11 @@ extern LPDIRECTDRAW lpDD;
 extern LPDIRECT3D2  lpD3D2;
 extern struct wdd_Data wdd_Data;
 
+/*** aus wdd_winb.c ***/
+void wdd_Log(char *string,...);
+void wdd_FailMsg(char *, char *, unsigned long);
+void wdd_CheckLostSurfaces(struct windd_data *wdd);
+
 /*** aus w3d_poly.c ***/
 void w3d_BeginScene(struct windd_data *, struct win3d_data *);
 void w3d_EndRender(struct windd_data *wdd, struct win3d_data *);
@@ -99,10 +104,12 @@ void w3d_Begin(struct windd_data *wdd, struct win3d_data *w3d)
 */
 {
     /*** Display kann hier bereits ungültig sein... ***/
+    ENTERED("w3d_Begin()");
     if (wdd->hWnd) {
         w3d_TxtCacheBeginFrame(wdd,w3d);
         w3d_BeginScene(wdd,w3d);
     };
+    LEFT("w3d_Begin()");
 }
 
 /*-----------------------------------------------------------------*/
@@ -121,8 +128,11 @@ unsigned long w3d_LockBackBuffer(struct windd_data *wdd, struct win3d_data *w3d)
 **      26-Mar-97   floh    created
 **		19-Nov-97	floh	benutzt jetzt testweise das DDLOCK_NOSYSLOCK
 **							Flag beim Locken der Backsurface
+**      08-Jun-97   floh    + Fehlermeldung, wenn Locken schiefgeht...
+**                          + Surfaces werden restored, wenn lost.
 */
 {
+    ENTERED("w3d_LockBackBuffer()");
     if (wdd->hWnd) {
 
         DDSURFACEDESC ddsd;
@@ -135,12 +145,15 @@ unsigned long w3d_LockBackBuffer(struct windd_data *wdd, struct win3d_data *w3d)
         if (ddrval == DD_OK) {
             wdd->back_ptr   = ddsd.lpSurface;
             wdd->back_pitch = ddsd.lPitch;
+            LEFT("w3d_LockBackBuffer(TRUE)");
             return(TRUE);
         };
+        wdd_FailMsg("w3d_LockBackBuffer()","Lock() failed.",ddrval);
         /*** ab hier Fehler ***/
     };
     wdd->back_ptr = NULL;
     wdd->back_pitch = 0;
+    LEFT("w3d_LockBackBuffer(FALSE)");
     return(FALSE);
 }
 
@@ -156,10 +169,12 @@ void w3d_UnlockBackBuffer(struct windd_data *wdd, struct win3d_data *w3d)
 **      26-Mar-97   floh    created
 */
 {
+    ENTERED("w3d_UnlockBackBuffer");    
     if (wdd->hWnd) {
         HRESULT ddrval;
         ddrval = wdd->lpDDSBack->lpVtbl->Unlock(wdd->lpDDSBack,NULL);
     };
+    LEFT("w3d_UnlockBackBuffer");
 }
 
 /*-----------------------------------------------------------------*/

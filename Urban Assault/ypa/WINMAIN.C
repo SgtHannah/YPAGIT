@@ -81,7 +81,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                     TranslateMessage(&msg);
                     DispatchMessage(&msg);
                 };
-            } else if (GetActiveWindow()) {    
+            } else if (!IsIconic(win_HWnd)) {    
                 if (!ypa_DoFrame()) {
                     if (win_HWnd) DestroyWindow(win_HWnd);
                     ypa_Kill();

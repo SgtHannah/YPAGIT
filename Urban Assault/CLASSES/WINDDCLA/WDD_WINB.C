@@ -318,6 +318,9 @@ void wdd_CheckLostSurfaces(struct windd_data *wdd)
 **
 **  CHANGED
 **      08-Mar-97   floh    created
+**      08-Jun-98   floh    + falls die Backsurface lost war, werden
+**                            die back_ptr und back_pitch Werte
+**                            geloescht
 */
 {
     HRESULT ddrval;
@@ -333,6 +336,8 @@ void wdd_CheckLostSurfaces(struct windd_data *wdd)
         ddrval = wdd->lpDDSBack->lpVtbl->IsLost(wdd->lpDDSBack);
         if (ddrval != DD_OK) {
             ddrval = wdd->lpDDSBack->lpVtbl->Restore(wdd->lpDDSBack);
+            wdd->back_ptr   = NULL;
+            wdd->back_pitch = 0;
         };
     };
     if (wdd->lpDDSBackup) {

@@ -17,6 +17,8 @@
 #include "misc/dbcs.h"
 
 struct dbcs_Handle *DBCS = NULL;
+extern void wdd_Log(char *string,...);
+void wdd_FailMsg(char *title, char *msg, unsigned long code);
 
 /*-----------------------------------------------------------------*/
 void dbcs_KillFont(void)
@@ -201,8 +203,15 @@ unsigned long dbcs_EndText(DDSURFACEDESC *ddsd)
             ddsd->dwSize = sizeof(DDSURFACEDESC);
             ddrval = DBCS->lpSurf->lpVtbl->Lock(DBCS->lpSurf,NULL,ddsd,
                                                 DDLOCK_NOSYSLOCK|DDLOCK_WAIT,NULL);
+            if (ddrval != DD_OK) {
+                wdd_FailMsg("dbcs_EndText()","Lock on backsurface failed.",ddrval);
+            };
             return(TRUE);
+        } else {
+            wdd_Log("dbcs_EndText(): no device context (back ptr invalid!)\n");
         };
+    } else {
+        wdd_Log("dbcs_EndText(): no DBCS pointer (back ptr invalid!)\n");
     };
     return(FALSE);
 }

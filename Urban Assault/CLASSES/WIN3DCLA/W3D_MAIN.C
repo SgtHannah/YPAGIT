@@ -358,7 +358,9 @@ _dispatcher(void, w3d_RASTM_Begin3D, void *nil)
 {
     struct windd_data *wdd = INST_DATA(cl->superclass,o);
     struct win3d_data *w3d = INST_DATA(cl,o);
+    ENTERED("w3d_RASTM_Begin3D");
     w3d_Begin(wdd,w3d);
+    LEFT("w3d_RASTM_Begin3D");
 }
 
 /*-----------------------------------------------------------------*/
@@ -370,11 +372,12 @@ _dispatcher(void, w3d_RASTM_End3D, void *nil)
 {
     struct windd_data *wdd = INST_DATA(cl->superclass,o);
     struct win3d_data *w3d = INST_DATA(cl,o);
-
+    ENTERED("w3d_RASTM_End3D");
     w3d_FlushDelayed(wdd,w3d);
     w3d_FlushTracy(wdd,w3d);
     w3d_EndScene(wdd,w3d);
     w3d_TxtCacheEndFrame(wdd,w3d);
+    LEFT("w3d_RASTM_End3D");
 }
 
 /*-----------------------------------------------------------------*/
@@ -386,7 +389,9 @@ _dispatcher(void, w3d_RASTM_Begin2D, void *nil)
 {
     struct windd_data *wdd = INST_DATA(cl->superclass,o);
     struct win3d_data *w3d = INST_DATA(cl,o);
+    ENTERED("w3d_RASTM_Begin2D");
     w3d_LockBackBuffer(wdd,w3d);
+    LEFT("w3d_RASTM_Begin2D");
 }
 
 /*-----------------------------------------------------------------*/
@@ -398,7 +403,9 @@ _dispatcher(void, w3d_RASTM_End2D, void *nil)
 {
     struct windd_data *wdd = INST_DATA(cl->superclass,o);
     struct win3d_data *w3d = INST_DATA(cl,o);
+    ENTERED("w3d_RASTM_End2D");
     w3d_UnlockBackBuffer(wdd,w3d);
+    LEFT("w3d_RASTM_End2D");
 }
 
 /*-----------------------------------------------------------------*/
@@ -426,7 +433,9 @@ _dispatcher(void, w3d_RASTM_Text, struct rast_text *msg)
     struct raster_data *rd = INST_DATA(cl->superclass->superclass->superclass,o);
     struct windd_data *wdd = INST_DATA(cl->superclass,o);
     struct win3d_data *w3d = INST_DATA(cl,o);
+    ENTERED("w3d_RASTM_Text");
     w3d_DrawText(wdd,w3d,&(rd->fonts),msg->string,msg->clips);
+    LEFT("w3d_RASTM_Text");
 }
 
 /*=================================================================**
@@ -778,6 +787,7 @@ _dispatcher(void, w3d_RASTM_Line, struct rast_line *msg)
     LONG y0 = FLOAT_TO_INT((msg->y0+1.0)*(rd->foff_y-1.0));
     LONG x1 = FLOAT_TO_INT((msg->x1+1.0)*(rd->foff_x-1.0));
     LONG y1 = FLOAT_TO_INT((msg->y1+1.0)*(rd->foff_y-1.0));
+    ENTERED("w3d_RASTM_Line");
     w3d_DrawLine(wdd,w3d,x0,y0,x1,y1,
                 (rd->fg_pen>>16) & 0xff,
                 (rd->fg_pen>>8)  & 0xff,
@@ -785,6 +795,7 @@ _dispatcher(void, w3d_RASTM_Line, struct rast_line *msg)
                 (rd->fg_apen>>16)& 0xff,
                 (rd->fg_apen>>8) & 0xff,
                 (rd->fg_apen)    & 0xff);
+    LEFT("w3d_RASTM_Line");            
 }
 
 /*-----------------------------------------------------------------*/
@@ -803,6 +814,7 @@ _dispatcher(void, w3d_RASTM_IntLine, struct rast_intline *msg)
     LONG y0 = msg->y0 + rd->ioff_y;
     LONG x1 = msg->x1 + rd->ioff_x;
     LONG y1 = msg->y1 + rd->ioff_y;
+    ENTERED("w3d_RASTM_IntLine");
     w3d_DrawLine(wdd,w3d,x0,y0,x1,y1,
                 (rd->fg_pen>>16) & 0xff,
                 (rd->fg_pen>>8)  & 0xff,
@@ -810,6 +822,7 @@ _dispatcher(void, w3d_RASTM_IntLine, struct rast_intline *msg)
                 (rd->fg_apen>>16)& 0xff,
                 (rd->fg_apen>>8) & 0xff,
                 (rd->fg_apen)    & 0xff);
+    LEFT("w3d_RASTM_IntLine");
 }
 
 /*-----------------------------------------------------------------*/
@@ -825,7 +838,7 @@ _dispatcher(void, w3d_RASTM_ClippedLine, struct rast_line *msg)
     struct windd_data *wdd  = INST_DATA(cl->superclass,o);
     struct win3d_data *w3d  = INST_DATA(cl,o);
     LONG x0,y0,x1,y1;
-
+    ENTERED("w3d_RASTM_ClippedLine");
     x0 = FLOAT_TO_INT((msg->x0+1.0)*(rd->foff_x-1.0));
     y0 = FLOAT_TO_INT((msg->y0+1.0)*(rd->foff_y-1.0));
     x1 = FLOAT_TO_INT((msg->x1+1.0)*(rd->foff_x-1.0));
@@ -837,6 +850,7 @@ _dispatcher(void, w3d_RASTM_ClippedLine, struct rast_line *msg)
                    (rd->fg_apen>>16)& 0xff,
                    (rd->fg_apen>>8) & 0xff,
                    (rd->fg_apen)    & 0xff);
+    LEFT("w3d_RASTM_ClippedLine");
 }
 
 /*-----------------------------------------------------------------*/
@@ -852,7 +866,7 @@ _dispatcher(void, w3d_RASTM_IntClippedLine, struct rast_intline *msg)
     struct windd_data *wdd  = INST_DATA(cl->superclass,o);
     struct win3d_data *w3d  = INST_DATA(cl,o);
     LONG x0,y0,x1,y1;
-
+    ENTERED("w3d_RASTM_IntClippedLine");
     x0 = msg->x0 + rd->ioff_x;
     y0 = msg->y0 + rd->ioff_y;
     x1 = msg->x1 + rd->ioff_x;
@@ -864,6 +878,7 @@ _dispatcher(void, w3d_RASTM_IntClippedLine, struct rast_intline *msg)
                    (rd->fg_apen>>16)& 0xff,
                    (rd->fg_apen>>8) & 0xff,
                    (rd->fg_apen)    & 0xff);
+    LEFT("w3d_RASTM_IntClippedLine");
 }
 
 /*-----------------------------------------------------------------*/
@@ -883,6 +898,7 @@ _dispatcher(void, w3d_RASTM_Blit, struct rast_blit *msg)
     void *from_data;
     ULONG from_w;
 
+    ENTERED("w3d_RASTM_Blit");
     to_mulx   = rd->foff_x;
     to_muly   = rd->foff_y;
     src_mulx  = (FLOAT)(msg->src->Width>>1);
@@ -900,6 +916,7 @@ _dispatcher(void, w3d_RASTM_Blit, struct rast_blit *msg)
     w3d_StretchBlit(wdd,w3d,from_data,from_w,
                     from_xmin, from_ymin, from_xmax, from_ymax,
                     to_xmin, to_ymin, to_xmax, to_ymax);
+    LEFT("w3d_RASTM_Blit");
 }
 
 /*-----------------------------------------------------------------*/
@@ -919,6 +936,7 @@ _dispatcher(void, w3d_RASTM_MaskBlit, struct rast_maskblit *msg)
     void *from_data;
     ULONG from_w;
 
+    ENTERED("w3d_RASTM_MaskBlit");
     to_mulx   = rd->foff_x;
     to_muly   = rd->foff_y;
     src_mulx  = (FLOAT)(msg->src->Width>>1);
@@ -936,6 +954,7 @@ _dispatcher(void, w3d_RASTM_MaskBlit, struct rast_maskblit *msg)
     w3d_MaskStretchBlit(wdd, w3d, from_data, from_w, msg->mask->Data, msg->mask_key,
                         from_xmin, from_ymin, from_xmax, from_ymax,
                         to_xmin, to_ymin, to_xmax, to_ymax);
+    LEFT("w3d_RASTM_MaskBlit");
 }
 
 /*-----------------------------------------------------------------*/
@@ -950,6 +969,8 @@ _dispatcher(void, w3d_RASTM_ClippedBlit, struct rast_blit *msg)
     struct win3d_data *w3d  = INST_DATA(cl,o);
     struct rast_intblit blt;
     FLOAT to_mulx,to_muly,src_mulx,src_muly;
+
+    ENTERED("w3d_RASTM_ClippedBlit");    
     to_mulx   = rd->foff_x;
     to_muly   = rd->foff_y;
     src_mulx  = (FLOAT)(msg->src->Width>>1);
@@ -968,6 +989,7 @@ _dispatcher(void, w3d_RASTM_ClippedBlit, struct rast_blit *msg)
                         blt.from.xmin, blt.from.ymin, blt.from.xmax, blt.from.ymax,
                         blt.to.xmin, blt.to.ymin, blt.to.xmax, blt.to.ymax);
     };
+    LEFT("w3d_RASTM_ClippedBlit");
 }
 
 /*-----------------------------------------------------------------*/
@@ -978,8 +1000,10 @@ _dispatcher(void, w3d_DISPM_MixPalette, struct disp_mixpal_msg *msg)
 */
 {
     struct win3d_data *w3d = INST_DATA(cl,o);
+    ENTERED("w3d_DISPM_MixPalette");
     w3d_MixPalette(w3d,msg->num,msg->slot,msg->weight);
     _supermethoda(cl,o,DISPM_MixPalette,msg);
+    LEFT("w3d_DISPM_MixPalette");
 }
 
 /*-----------------------------------------------------------------*/

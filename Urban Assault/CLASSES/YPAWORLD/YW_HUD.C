@@ -88,13 +88,14 @@ void yw_InitHUD(struct ypaworld_data *ywd)
     };
 
     /*** Vehicle Information Display Sachen ***/
-    h->vid_text_h   = ((FLOAT)ywd->Fonts[FONTID_DEFAULT]->height) / ((FLOAT)ywd->DspXRes);
     if (ywd->DspXRes < 512) {
+        h->vid_text_h    = (((FLOAT)ywd->Fonts[FONTID_DEFAULT]->height)*1.5) / ((FLOAT)ywd->DspXRes);
         h->vid_numtiles  = 6;
-        h->vid_prefix_w  = 24;
-        h->vid_postfix_w = 24;
+        h->vid_prefix_w  = 18;
+        h->vid_postfix_w = 18;
         h->vid_h         = 18 * h->vid_text_h; 
     } else {
+        h->vid_text_h    = ((FLOAT)ywd->Fonts[FONTID_DEFAULT]->height) / ((FLOAT)ywd->DspXRes);
         h->vid_numtiles  = 8;
         h->vid_prefix_w  = 28;
         h->vid_postfix_w = 28;

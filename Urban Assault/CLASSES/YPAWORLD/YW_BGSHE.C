@@ -326,11 +326,14 @@ void yw_KillShellBgMode(struct ypaworld_data *ywd, ULONG shell_mode)
     switch(shell_mode) {
         case SHELLMODE_PLAY:
         case SHELLMODE_TUTORIAL:
-            /*** falls Briefing noch aktiv, killen ***/
-            if (ywd->Mission.Status != MBSTATUS_INVALID) {
+            /*** falls Briefing oder Debriefing noch aktiv, killen ***/
+            if (LEVELSTAT_BRIEFING == ywd->Level->Status) {            
                 yw_KillMissionBriefing(ywd);
+            } else if (LEVELSTAT_DEBRIEFING == ywd->Level->Status) {
+                yw_KillDebriefing(ywd);
             };
             break;
+            
     };
 }
 

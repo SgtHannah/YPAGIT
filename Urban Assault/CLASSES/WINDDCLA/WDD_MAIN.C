@@ -40,7 +40,7 @@ _dispatcher(void, wdd_OM_SET, struct TagItem *);
 /*** es kann vorkommen, daß sich die Hintergrund-Map nicht locken ***/
 /*** ließ, in diesem Fall dürfen keine Raster-Operationen darauf  ***/
 /*** "durchkommen"                                                ***/
-#define rast_method(m,id) _dispatcher(void,m,void *msg) {struct windd_data *wdd=INST_DATA(cl,o); if (wdd->r->Data) _supermethoda(cl,o,id,msg);}
+#define rast_method(m,id,name) _dispatcher(void,m,void *msg) {struct windd_data *wdd=INST_DATA(cl,o); ENTERED(name); if (wdd->r->Data) _supermethoda(cl,o,id,msg); LEFT(name); }
 
 _dispatcher(void, wdd_RASTM_Clear, void *);
 _dispatcher(void, wdd_RASTM_Copy, void *);
@@ -764,26 +764,26 @@ _dispatcher(void, wdd_RASTM_Text, struct rast_text *msg)
 **  sich die Background-Map locken ließ.                           **
 **=================================================================*/
 
-rast_method(wdd_RASTM_Copy,RASTM_Copy);
-rast_method(wdd_RASTM_Rect,RASTM_Rect);
-rast_method(wdd_RASTM_IntRect,RASTM_IntRect);
-rast_method(wdd_RASTM_ClippedRect,RASTM_ClippedRect);
-rast_method(wdd_RASTM_IntClippedRect,RASTM_IntClippedRect);
-rast_method(wdd_RASTM_Line,RASTM_Line);
-rast_method(wdd_RASTM_IntLine,RASTM_IntLine);
-rast_method(wdd_RASTM_ClippedLine,RASTM_ClippedLine);
-rast_method(wdd_RASTM_IntClippedLine,RASTM_IntClippedLine);
-rast_method(wdd_RASTM_Blit,RASTM_Blit);
-rast_method(wdd_RASTM_IntBlit,RASTM_IntBlit);
-rast_method(wdd_RASTM_MaskBlit,RASTM_MaskBlit);
-rast_method(wdd_RASTM_IntMaskBlit,RASTM_IntMaskBlit);
-rast_method(wdd_RASTM_ClippedBlit,RASTM_ClippedBlit);
-rast_method(wdd_RASTM_IntClippedBlit,RASTM_IntClippedBlit);
-rast_method(wdd_RASTM_Poly,RASTM_Poly);
-rast_method(wdd_RASTM_Begin2D,RASTM_Begin2D);
-rast_method(wdd_RASTM_End2D,RASTM_End2D);
-rast_method(wdd_RASTM_Begin3D,RASTM_Begin3D);
-rast_method(wdd_RASTM_End3D,RASTM_End3D);
+rast_method(wdd_RASTM_Copy,RASTM_Copy,"RASTM_Copy");
+rast_method(wdd_RASTM_Rect,RASTM_Rect,"RASTM_Rect");
+rast_method(wdd_RASTM_IntRect,RASTM_IntRect,"RASTM_IntRect");
+rast_method(wdd_RASTM_ClippedRect,RASTM_ClippedRect,"RASTM_ClippedRect");
+rast_method(wdd_RASTM_IntClippedRect,RASTM_IntClippedRect,"RASTM_IntClippedRect");
+rast_method(wdd_RASTM_Line,RASTM_Line,"RASTM_Line");
+rast_method(wdd_RASTM_IntLine,RASTM_IntLine,"RASTM_IntLine");
+rast_method(wdd_RASTM_ClippedLine,RASTM_ClippedLine,"RASTM_ClippedLine");
+rast_method(wdd_RASTM_IntClippedLine,RASTM_IntClippedLine,"RASTM_IntClippedLined");
+rast_method(wdd_RASTM_Blit,RASTM_Blit,"RASTM_Blit");
+rast_method(wdd_RASTM_IntBlit,RASTM_IntBlit,"RASTM_IntBlit");
+rast_method(wdd_RASTM_MaskBlit,RASTM_MaskBlit,"RASTM_MaskBlit");
+rast_method(wdd_RASTM_IntMaskBlit,RASTM_IntMaskBlit,"RASTM_IntMaskBlit");
+rast_method(wdd_RASTM_ClippedBlit,RASTM_ClippedBlit,"RASTM_ClippedBlit");
+rast_method(wdd_RASTM_IntClippedBlit,RASTM_IntClippedBlit,"RASTM_IntClippedBlit");
+rast_method(wdd_RASTM_Poly,RASTM_Poly,"RASTM_Poly");
+rast_method(wdd_RASTM_Begin2D,RASTM_Begin2D,"RASTM_Begin2D");
+rast_method(wdd_RASTM_End2D,RASTM_End2D,"RASTM_End2D");
+rast_method(wdd_RASTM_Begin3D,RASTM_Begin3D,"RASTM_Begin3D");
+rast_method(wdd_RASTM_End3D,RASTM_End3D,"RASTM_End3D");
 
 /*-----------------------------------------------------------------*/
 void wdd_PutSoftwarePointer(Object *o,
@@ -914,9 +914,11 @@ _dispatcher(void, wdd_DISPM_Begin, void *nil)
 */
 {
     struct windd_data *wdd = INST_DATA(cl,o);
+    ENTERED("wdd_DISPM_Begin");
     wdd_Begin(wdd);
     wdd->r->Data        = wdd->back_ptr;
     wdd->r->BytesPerRow = wdd->back_pitch;
+    LEFT("wdd_DISPM_Begin");
 }
 
 /*-----------------------------------------------------------------*/
@@ -929,6 +931,7 @@ _dispatcher(void, wdd_DISPM_End, void *nil)
     struct windd_data *wdd  = INST_DATA(cl,o);
     struct display_data *dd = INST_DATA(cl->superclass,o);
 
+    ENTERED("wdd_DISPM_End");
     if (wdd_DoSoftCursor(wdd)) {
         /*** Pointer rendern ***/
         long x,y;
@@ -938,6 +941,7 @@ _dispatcher(void, wdd_DISPM_End, void *nil)
         _methoda(o,RASTM_End2D,NULL);
     };
     wdd_End(wdd);
+    LEFT("wdd_DISPM_End");
 }
 
 /*-----------------------------------------------------------------*/
@@ -963,6 +967,8 @@ _dispatcher(void, wdd_DISPM_SetPalette, struct disp_setpal_msg *msg)
 **      14-Apr-97   floh    created
 */
 {
+    ENTERED("wdd_DISPM_SetPalette");
+    
     /*** 8-Bit-HACK: Farbe 0 auf schwarz patchen ***/
     if (!wdd_DoDirect3D) {
         if ((msg->slot == 0) && (msg->first == 0)) {
@@ -972,6 +978,7 @@ _dispatcher(void, wdd_DISPM_SetPalette, struct disp_setpal_msg *msg)
 
     /*** Superklasse übernimmt das Mixing... ***/
     _supermethoda(cl,o,DISPM_SetPalette,msg);
+    LEFT("wdd_DISPM_SetPalette");
 }
 
 /*-----------------------------------------------------------------*/
@@ -984,11 +991,14 @@ _dispatcher(void, wdd_DISPM_MixPalette, struct disp_mixpal_msg *msg)
     struct windd_data *wdd  = INST_DATA(cl,o);
     struct display_data *dd = INST_DATA((cl->superclass),o);
 
+    ENTERED("wdd_DISPM_MixPalette");
+    
     /*** display.class übernimmt Mixing ***/
     _supermethoda(cl,o,DISPM_MixPalette,msg);
 
     /*** Resultat realisieren ***/
     wdd_SetPalette(wdd,(UBYTE *)&(dd->pal));
+    LEFT("wdd_DISPM_MixPalette");
 }
 
 /*-----------------------------------------------------------------*/
@@ -999,8 +1009,10 @@ _dispatcher(void, wdd_DISPM_SetPointer, struct disp_pointer_msg *msg)
 */
 {
     struct windd_data *wdd = INST_DATA(cl,o);
+    ENTERED("wdd_DISPM_SetPointer");
     wdd_SetMouseImage(wdd,msg->type,FALSE);
     _supermethoda(cl,o,DISPM_SetPointer,msg);
+    LEFT("wdd_DISPM_SetPointer");
 }
 
 /*-----------------------------------------------------------------*/
@@ -1011,7 +1023,9 @@ _dispatcher(void, wdd_WINDDM_EnableGDI, void *nil)
 */
 {
     struct windd_data *wdd = INST_DATA(cl,o);
+    ENTERED("wdd_WINDDM_EnableGDI");
     wdd_EnableGDI(wdd,WINDD_GDIMODE_WINDOW);
+    LEFT("wdd_WINDDM_EnableGDI");
 }
 
 /*-----------------------------------------------------------------*/
@@ -1023,8 +1037,10 @@ _dispatcher(void, wdd_WINDDM_DisableGDI, void *nil)
 {
     struct windd_data *wdd = INST_DATA(cl,o);
     struct display_data *dd = INST_DATA((cl->superclass),o);
+    ENTERED("wdd_WINDDM_DisableGDI");
     wdd_DisableGDI(wdd,WINDD_GDIMODE_WINDOW);
     wdd_SetPalette(wdd,(UBYTE *)&(dd->pal));
+    LEFT("wdd_WINDDM_DisableGDI");
 }
 
 /*-----------------------------------------------------------------*/
@@ -1035,10 +1051,12 @@ _dispatcher(void, wdd_WINDDM_GetText, struct windd_gettext *msg)
 */
 {
     struct windd_data *wdd = INST_DATA(cl,o);
+    ENTERED("wdd_WINDDM_GetText");
     _methoda(o,WINDDM_EnableGDI,NULL);
     msg->result = wdd_GetText(wdd,msg->title_text,msg->ok_text,msg->cancel_text,
                   msg->default_text,msg->timer_val,msg->timer_func,msg->timer_arg);
     _methoda(o,WINDDM_DisableGDI,NULL);
+    LEFT("wdd_WINDDM_GetText");
 }
 
 /*-----------------------------------------------------------------*/
@@ -1050,8 +1068,10 @@ _dispatcher(void, wdd_WINDDM_PlayMovie, struct windd_playmovie *msg)
 {
     struct windd_data *wdd = INST_DATA(cl,o);
     struct display_data *dd = INST_DATA((cl->superclass),o);
+    ENTERED("wdd_WINDDM_PlayMovie");
     wdd_PlayMovie(wdd,msg->fname);
     wdd_SetPalette(wdd,(UBYTE *)&(dd->pal));
+    LEFT("wdd_WINDDM_PlayMovie");
 }
 
 /*-----------------------------------------------------------------*/

@@ -24,6 +24,7 @@ extern struct wdd_Data wdd_Data;
 /*** aus w3d_txtcache.c ***/
 void *w3d_ValidateTexture(struct windd_data *,struct win3d_data *,struct w3d_BmpAttach *,unsigned long);
 void wdd_FailMsg(char *title, char *msg, unsigned long code);
+void wdd_Log(char *string,...);
 
 #define ROUND D3DVAL
 
@@ -217,191 +218,181 @@ void w3d_DrawPoly(struct windd_data *wdd,
 **  CHANGED
 **      12-Mar-97   floh    created
 **      04-Apr-97   floh    + Paletten-Effekte
-**      03-Mar-98   floh    + Transparenz für SrcAlpha/InvSrcAlpha-Only-
+**      03-Mar-98   floh    + Transparenz fuer SrcAlpha/InvSrcAlpha-Only-
 **                            Karten gefixt
+**      08-Jun-98   floh    + es wird nix mehr gemacht, wenn begin_scene_ok
+**                            nicht ok ist
 */
 {
-    long xmin,xmax,ymin,ymax;
-    unsigned long i,vx_offset;
-    unsigned char *inst;
-    float xsize,ysize;
-    D3DTLVERTEX v_array[24];
-    D3DTEXTUREHANDLE t_handle;
-    HRESULT ddrval;    
-    struct w3d_Execute *exec = &(w3d->p->exec);
+    if (w3d->p->exec.begin_scene_ok) {
 
-    /*** Eckpunkte ok? ***/
-    if ((p->pnum<3) || (p->pnum>12)) return;
+        long xmin,xmax,ymin,ymax;
+        unsigned long i,vx_offset;
+        unsigned char *inst;
+        float xsize,ysize;
+        D3DTLVERTEX v_array[24];
+        D3DTEXTUREHANDLE t_handle;
+        HRESULT ddrval;    
+        struct w3d_Execute *exec = &(w3d->p->exec);
 
-    /*** Transparent und nicht der Tracy-Pass -> Delay ***/
-    if ((p->flags & (W3DF_RPOLY_ZEROTRACY|W3DF_RPOLY_LUMTRACY)) && (!tracy)) {
-        w3d_TracyPolygon(wdd,w3d,p,bmp_attach);
-        return;
-    };
+        /*** Eckpunkte ok? ***/
+        if ((p->pnum<3) || (p->pnum>12)) return;
 
-    /*** Textur bereitstellen, oder ein Delay ***/
-    if (p->flags & (W3DF_RPOLY_LINMAP|W3DF_RPOLY_PERSPMAP)) {
-        t_handle = w3d_ValidateTexture(wdd,w3d,bmp_attach,force);
-        /*** CacheMiss... ***/
-        if (!t_handle) {
-            w3d_DelayPolygon(wdd,w3d,p,bmp_attach);
+        /*** Transparent und nicht der Tracy-Pass -> Delay ***/
+        if ((p->flags & (W3DF_RPOLY_ZEROTRACY|W3DF_RPOLY_LUMTRACY)) && (!tracy)) {
+            w3d_TracyPolygon(wdd,w3d,p,bmp_attach);
             return;
         };
-    };
 
-    /*** Eckpunkte konvertieren, MiniMax-Ermittlung ***/
-    xmin = xmax = 0;
-    ymin = ymax = 0;
-    for (i=0; i<p->pnum; i++) {
-        v_array[i].sx       = ROUND((p->xyz[i*3+0] + 1.0) * w3d->p->x_scale);
-        v_array[i].sy       = ROUND((p->xyz[i*3+1] + 1.0) * w3d->p->y_scale);
-        v_array[i].sz       = ROUND(p->xyz[i*3+2] / 8192.0);
-        v_array[i].rhw      = ROUND(1.0 / p->xyz[i*3+2]);
-        v_array[i].color    = RGBA_MAKE(255,255,255,255);
-        v_array[i].specular = RGB_MAKE(0,0,0);
-        v_array[i].tu       = D3DVAL(0.0);
-        v_array[i].tv       = D3DVAL(0.0);
-        if (v_array[i].sx < v_array[xmin].sx)      xmin=i;
-        else if (v_array[i].sx > v_array[xmax].sx) xmax=i;
-        if (v_array[i].sy < v_array[ymin].sy)      ymin=i;
-        else if (v_array[i].sy > v_array[ymax].sy) ymax=i;
-    };
-
-    /*** Poly immer noch gültig? ***/
-    if ((xsize = v_array[xmax].sx - v_array[xmin].sx) <= 0) return;
-    if ((ysize = v_array[ymax].sy - v_array[ymin].sy) <= 0) return;
-
-    /*** Linear-Map-Optimierung ***/
-    if (p->flags & W3DF_RPOLY_PERSPMAP) {
-        if ((xsize < 32) && (ysize < 32)) {
-            p->flags &= ~W3DF_RPOLY_PERSPMAP;
-            p->flags |= W3DF_RPOLY_LINMAP;
+        /*** Textur bereitstellen, oder ein Delay ***/
+        if (p->flags & (W3DF_RPOLY_LINMAP|W3DF_RPOLY_PERSPMAP)) {
+            t_handle = w3d_ValidateTexture(wdd,w3d,bmp_attach,force);
+            /*** CacheMiss... ***/
+            if (!t_handle) {
+                w3d_DelayPolygon(wdd,w3d,p,bmp_attach);
+                return;
+            };
         };
-    };
 
-    /*** einen definierten Renderstate-Zustand herstellen ***/
-    exec->cur_state[W3DSTATE_TEXTUREHANDLE].status      = NULL;
-    exec->cur_state[W3DSTATE_TEXTUREPERSPECTIVE].status = FALSE;
-    exec->cur_state[W3DSTATE_SHADEMODE].status          = D3DSHADE_FLAT;
-    exec->cur_state[W3DSTATE_STIPPLEENABLE].status      = FALSE;
-    exec->cur_state[W3DSTATE_SRCBLEND].status           = D3DBLEND_ONE;
-    exec->cur_state[W3DSTATE_DESTBLEND].status          = D3DBLEND_ZERO;
-    exec->cur_state[W3DSTATE_TEXTUREMAPBLEND].status    = D3DTBLEND_COPY;
-    exec->cur_state[W3DSTATE_BLENDENABLE].status        = FALSE;
-    exec->cur_state[W3DSTATE_ZWRITEENABLE].status       = TRUE;
-    exec->cur_state[W3DSTATE_MAGTEXTUREFILTER].status   = (w3d->filter?D3DFILTER_LINEAR:D3DFILTER_NEAREST);
-    exec->cur_state[W3DSTATE_MINTEXTUREFILTER].status   = exec->cur_state[W3DSTATE_MAGTEXTUREFILTER].status;
-
-    if (p->flags & W3DF_RPOLY_LINMAP) {
-
-        /*** Renderstate-Mods für Linearmapping ***/
-        exec->cur_state[W3DSTATE_TEXTUREHANDLE].status   = t_handle;
-
-        /*** [u,v] Channel füllen ***/
+        /*** Eckpunkte konvertieren, MiniMax-Ermittlung ***/
+        xmin = xmax = 0;
+        ymin = ymax = 0;
         for (i=0; i<p->pnum; i++) {
-            v_array[i].tu = ROUND(p->uv[i*2+0]);
-            v_array[i].tv = ROUND(p->uv[i*2+1]);
+            v_array[i].sx       = ROUND((p->xyz[i*3+0] + 1.0) * w3d->p->x_scale);
+            v_array[i].sy       = ROUND((p->xyz[i*3+1] + 1.0) * w3d->p->y_scale);
+            v_array[i].sz       = ROUND(p->xyz[i*3+2] / 8192.0);
+            v_array[i].rhw      = ROUND(1.0 / p->xyz[i*3+2]);
+            v_array[i].color    = RGBA_MAKE(255,255,255,255);
+            v_array[i].specular = RGB_MAKE(0,0,0);
+            v_array[i].tu       = D3DVAL(0.0);
+            v_array[i].tv       = D3DVAL(0.0);
+            if (v_array[i].sx < v_array[xmin].sx)      xmin=i;
+            else if (v_array[i].sx > v_array[xmax].sx) xmax=i;
+            if (v_array[i].sy < v_array[ymin].sy)      ymin=i;
+            else if (v_array[i].sy > v_array[ymax].sy) ymax=i;
         };
 
-    } else if (p->flags & W3DF_RPOLY_PERSPMAP) {
+        /*** Poly immer noch gültig? ***/
+        if ((xsize = v_array[xmax].sx - v_array[xmin].sx) <= 0) return;
+        if ((ysize = v_array[ymax].sy - v_array[ymin].sy) <= 0) return;
 
-        /*** RenderState-Mods für Perspektiv-Mapping ***/
-        exec->cur_state[W3DSTATE_TEXTUREHANDLE].status      = t_handle;
-        exec->cur_state[W3DSTATE_TEXTUREPERSPECTIVE].status = TRUE;
+        /*** Linear-Map-Optimierung ***/
+        if (p->flags & W3DF_RPOLY_PERSPMAP) {
+            if ((xsize < 32) && (ysize < 32)) {
+                p->flags &= ~W3DF_RPOLY_PERSPMAP;
+                p->flags |= W3DF_RPOLY_LINMAP;
+            };
+        };
 
-        /*** [u,v] Channel füllen ***/
-        for (i=0; i<p->pnum; i++) {
-            v_array[i].tu = p->uv[i*2+0];
-            v_array[i].tv = p->uv[i*2+1];
-        };
-    } else {
-        /*** schwarz und flat ***/
-        for (i=0; i<p->pnum; i++) {
-            v_array[i].color = RGBA_MAKE(0,0,0,255);
-        };
-    };
+        /*** einen definierten Renderstate-Zustand herstellen ***/
+        exec->cur_state[W3DSTATE_TEXTUREHANDLE].status      = NULL;
+        exec->cur_state[W3DSTATE_TEXTUREPERSPECTIVE].status = FALSE;
+        exec->cur_state[W3DSTATE_SHADEMODE].status          = D3DSHADE_FLAT;
+        exec->cur_state[W3DSTATE_STIPPLEENABLE].status      = FALSE;
+        exec->cur_state[W3DSTATE_SRCBLEND].status           = D3DBLEND_ONE;
+        exec->cur_state[W3DSTATE_DESTBLEND].status          = D3DBLEND_ZERO;
+        exec->cur_state[W3DSTATE_TEXTUREMAPBLEND].status    = D3DTBLEND_COPY;
+        exec->cur_state[W3DSTATE_BLENDENABLE].status        = FALSE;
+        exec->cur_state[W3DSTATE_ZWRITEENABLE].status       = TRUE;
+        exec->cur_state[W3DSTATE_MAGTEXTUREFILTER].status   = (w3d->filter?D3DFILTER_LINEAR:D3DFILTER_NEAREST);
+        exec->cur_state[W3DSTATE_MINTEXTUREFILTER].status   = exec->cur_state[W3DSTATE_MAGTEXTUREFILTER].status;
 
-    /*** Shading ***/
-    if (p->flags & (W3DF_RPOLY_FLATSHADE|W3DF_RPOLY_GRADSHADE)) {
-        /*** Renderstate-Mods für Gourauld-Shading ***/
-        exec->cur_state[W3DSTATE_SHADEMODE].status       = D3DSHADE_GOURAUD;
-        exec->cur_state[W3DSTATE_TEXTUREMAPBLEND].status = D3DTBLEND_MODULATE;
-        /*** [rgba] Channel mit Helligkeit füllen ***/
-        for (i=0; i<p->pnum; i++) {
-            long b = (long) ((1.0 - p->b[i])*255.0);
-            v_array[i].color = RGBA_MAKE(b,b,b,255);
-        };
-    };
+        if (p->flags & W3DF_RPOLY_LINMAP) {
 
-    /*** Transparenz ***/
-    if (p->flags & W3DF_RPOLY_LUMTRACY){
-        if (!w3d->zbufwhentracy) {
-            exec->cur_state[W3DSTATE_ZWRITEENABLE].status = FALSE;
+            /*** Renderstate-Mods für Linearmapping ***/
+            exec->cur_state[W3DSTATE_TEXTUREHANDLE].status   = t_handle;
+
+            /*** [u,v] Channel füllen ***/
+            for (i=0; i<p->pnum; i++) {
+                v_array[i].tu = ROUND(p->uv[i*2+0]);
+                v_array[i].tv = ROUND(p->uv[i*2+1]);
+            };
+
+        } else if (p->flags & W3DF_RPOLY_PERSPMAP) {
+
+            /*** RenderState-Mods für Perspektiv-Mapping ***/
+            exec->cur_state[W3DSTATE_TEXTUREHANDLE].status      = t_handle;
+            exec->cur_state[W3DSTATE_TEXTUREPERSPECTIVE].status = TRUE;
+
+            /*** [u,v] Channel füllen ***/
+            for (i=0; i<p->pnum; i++) {
+                v_array[i].tu = p->uv[i*2+0];
+                v_array[i].tv = p->uv[i*2+1];
+            };
+        } else {
+            /*** schwarz und flat ***/
+            for (i=0; i<p->pnum; i++) {
+                v_array[i].color = RGBA_MAKE(0,0,0,255);
+            };
         };
-        if (wdd_Data.Driver.CanDoAdditiveBlend) {
-            /*** Idealfall...additives Blending supported ***/
-            exec->cur_state[W3DSTATE_SHADEMODE].status       = D3DSHADE_FLAT;
+
+        /*** Shading ***/
+        if (p->flags & (W3DF_RPOLY_FLATSHADE|W3DF_RPOLY_GRADSHADE)) {
+            /*** Renderstate-Mods für Gourauld-Shading ***/
+            exec->cur_state[W3DSTATE_SHADEMODE].status       = D3DSHADE_GOURAUD;
+            exec->cur_state[W3DSTATE_TEXTUREMAPBLEND].status = D3DTBLEND_MODULATE;
+            /*** [rgba] Channel mit Helligkeit füllen ***/
+            for (i=0; i<p->pnum; i++) {
+                long b = (long) ((1.0 - p->b[i])*255.0);
+                v_array[i].color = RGBA_MAKE(b,b,b,255);
+            };
+        };
+
+        /*** Transparenz ***/
+        if (p->flags & W3DF_RPOLY_LUMTRACY){
+            if (!w3d->zbufwhentracy) {
+                exec->cur_state[W3DSTATE_ZWRITEENABLE].status = FALSE;
+            };
+            if (wdd_Data.Driver.CanDoAdditiveBlend) {
+                /*** Idealfall...additives Blending supported ***/
+                exec->cur_state[W3DSTATE_SHADEMODE].status       = D3DSHADE_FLAT;
+                exec->cur_state[W3DSTATE_BLENDENABLE].status     = TRUE;
+                exec->cur_state[W3DSTATE_TEXTUREMAPBLEND].status = D3DTBLEND_MODULATEALPHA;
+                exec->cur_state[W3DSTATE_SRCBLEND].status        = D3DBLEND_SRCALPHA;
+                exec->cur_state[W3DSTATE_DESTBLEND].status       = D3DBLEND_ONE;
+            } else if (wdd_Data.Driver.CanDoAlpha) {
+                /*** sonst additiv-Emulation per Alphachannel ***/
+                exec->cur_state[W3DSTATE_SHADEMODE].status       = D3DSHADE_FLAT;
+                exec->cur_state[W3DSTATE_BLENDENABLE].status     = TRUE;
+                exec->cur_state[W3DSTATE_TEXTUREMAPBLEND].status = D3DTBLEND_MODULATEALPHA;
+                exec->cur_state[W3DSTATE_SRCBLEND].status        = D3DBLEND_SRCALPHA;
+                exec->cur_state[W3DSTATE_DESTBLEND].status       = D3DBLEND_INVSRCALPHA;
+            } else if (wdd_Data.Driver.CanDoStipple) {
+                /*** sonst Stipple Transparenz Emulation ***/
+                exec->cur_state[W3DSTATE_SHADEMODE].status       = D3DSHADE_FLAT;
+                exec->cur_state[W3DSTATE_BLENDENABLE].status     = TRUE;
+                exec->cur_state[W3DSTATE_TEXTUREMAPBLEND].status = D3DTBLEND_MODULATEALPHA;
+                exec->cur_state[W3DSTATE_SRCBLEND].status        = D3DBLEND_SRCALPHA;
+                exec->cur_state[W3DSTATE_DESTBLEND].status       = D3DBLEND_INVSRCALPHA;
+                exec->cur_state[W3DSTATE_STIPPLEENABLE].status   = TRUE;
+            };
+            for (i=0; i<p->pnum; i++) {
+                v_array[i].color &= 0x00ffffff;
+                v_array[i].color |= ((w3d->alpha)<<24);
+            };
+        }else if (p->flags & W3DF_RPOLY_ZEROTRACY){
+            if (!w3d->zbufwhentracy) {
+                exec->cur_state[W3DSTATE_ZWRITEENABLE].status = FALSE;
+            };
+            /*** bei 8-Bit-Texturen, normales Colorkeying, sonst Alphablending ***/
+            if (w3d->p->txt_pfmt.byte_size != 1) {
+                /*** per Alphablending ***/
+                exec->cur_state[W3DSTATE_SRCBLEND].status  = D3DBLEND_SRCALPHA;
+                exec->cur_state[W3DSTATE_DESTBLEND].status = D3DBLEND_INVSRCALPHA;
+            };
+            exec->cur_state[W3DSTATE_TEXTUREMAPBLEND].status = D3DTBLEND_MODULATE;
             exec->cur_state[W3DSTATE_BLENDENABLE].status     = TRUE;
-            exec->cur_state[W3DSTATE_TEXTUREMAPBLEND].status = D3DTBLEND_MODULATEALPHA;
-            exec->cur_state[W3DSTATE_SRCBLEND].status        = D3DBLEND_SRCALPHA;
-            exec->cur_state[W3DSTATE_DESTBLEND].status       = D3DBLEND_ONE;
-        } else if (wdd_Data.Driver.CanDoAlpha) {
-            /*** sonst additiv-Emulation per Alphachannel ***/
-            exec->cur_state[W3DSTATE_SHADEMODE].status       = D3DSHADE_FLAT;
-            exec->cur_state[W3DSTATE_BLENDENABLE].status     = TRUE;
-            exec->cur_state[W3DSTATE_TEXTUREMAPBLEND].status = D3DTBLEND_MODULATEALPHA;
-            exec->cur_state[W3DSTATE_SRCBLEND].status        = D3DBLEND_SRCALPHA;
-            exec->cur_state[W3DSTATE_DESTBLEND].status       = D3DBLEND_INVSRCALPHA;
-        } else if (wdd_Data.Driver.CanDoStipple) {
-            /*** sonst Stipple Transparenz Emulation ***/
-            exec->cur_state[W3DSTATE_SHADEMODE].status       = D3DSHADE_FLAT;
-            exec->cur_state[W3DSTATE_BLENDENABLE].status     = TRUE;
-            exec->cur_state[W3DSTATE_TEXTUREMAPBLEND].status = D3DTBLEND_MODULATEALPHA;
-            exec->cur_state[W3DSTATE_SRCBLEND].status        = D3DBLEND_SRCALPHA;
-            exec->cur_state[W3DSTATE_DESTBLEND].status       = D3DBLEND_INVSRCALPHA;
-            exec->cur_state[W3DSTATE_STIPPLEENABLE].status   = TRUE;
+            /*** Texture-Filtering ausschalten ***/
+            exec->cur_state[W3DSTATE_MAGTEXTUREFILTER].status = D3DFILTER_NEAREST;
+            exec->cur_state[W3DSTATE_MINTEXTUREFILTER].status = D3DFILTER_NEAREST;
         };
-        for (i=0; i<p->pnum; i++) {
-            v_array[i].color &= 0x00ffffff;
-            v_array[i].color |= ((w3d->alpha)<<24);
-        };
-    }else if (p->flags & W3DF_RPOLY_ZEROTRACY){
-        if (!w3d->zbufwhentracy) {
-            exec->cur_state[W3DSTATE_ZWRITEENABLE].status = FALSE;
-        };
-        /*** bei 8-Bit-Texturen, normales Colorkeying, sonst Alphablending ***/
-        if (w3d->p->txt_pfmt.byte_size != 1) {
-            /*** per Alphablending ***/
-            exec->cur_state[W3DSTATE_SRCBLEND].status  = D3DBLEND_SRCALPHA;
-            exec->cur_state[W3DSTATE_DESTBLEND].status = D3DBLEND_INVSRCALPHA;
-        };
-        exec->cur_state[W3DSTATE_TEXTUREMAPBLEND].status = D3DTBLEND_MODULATE;
-        exec->cur_state[W3DSTATE_BLENDENABLE].status     = TRUE;
-        /*** Texture-Filtering ausschalten ***/
-        exec->cur_state[W3DSTATE_MAGTEXTUREFILTER].status = D3DFILTER_NEAREST;
-        exec->cur_state[W3DSTATE_MINTEXTUREFILTER].status = D3DFILTER_NEAREST;
+
+        /*** RenderState-Instruktionen schreiben ***/
+        w3d_RenderStateChanged(wdd,w3d,FALSE);
+        
+        /*** Dreiecke schreiben ***/
+        w3d_Primitive(wdd,w3d,(LPVOID)v_array,p->pnum);
     };
-
-    /*** Paletten-Effekte reinrechnen ***/
-    //if ((w3d->p->pal_r<1.0)||(w3d->p->pal_g<1.0)||(w3d->p->pal_b<1.0)) {
-    //    /*** falls noch TextureBlendCopy aktiviert, auf Modulate schalten ***/
-    //    if (exec->cur_state[W3DSTATE_TEXTUREMAPBLEND].status == D3DTBLEND_COPY) {
-    //        exec->cur_state[W3DSTATE_TEXTUREMAPBLEND].status = D3DTBLEND_MODULATE;
-    //    };
-    //    /*** Specular-Farben modifizieren ***/
-    //    for (i=0; i<p->pnum; i++) {
-    //        LONG r = 255.0 * w3d->p->pal_r;
-    //        LONG g = 255.0 * w3d->p->pal_g;
-    //        LONG b = 255.0 * w3d->p->pal_b;
-    //        v_array[i].specular = RGB_MAKE(r,g,b);
-    //    };
-    //};
-
-    /*** RenderState-Instruktionen schreiben ***/
-    w3d_RenderStateChanged(wdd,w3d,FALSE);
-    
-    /*** Dreiecke schreiben ***/
-    w3d_Primitive(wdd,w3d,(LPVOID)v_array,p->pnum);
 }
 
 /*-----------------------------------------------------------------*/
@@ -450,26 +441,30 @@ void w3d_FlushDelayed(struct windd_data *wdd, struct win3d_data *w3d)
 **  CHANGED
 **      18-Mar-97   floh    created
 **      19-Mar-97   floh    immer wenn eine neue Textur "encountered"
-**                          wird, muß der ExecuteBuffer geflusht werden.
+**                          wird, muss der ExecuteBuffer geflusht werden.
 */
 {
-    if (w3d->p->num_solid > 0) {
+    ENTERED("w3d_FlushDelayed");
+    if (w3d->p->exec.begin_scene_ok) {
+        if (w3d->p->num_solid > 0) {
 
-        unsigned long i;
+            unsigned long i;
 
-        /*** sortiere Delayed-Array nach Texturen ***/
-        qsort(&(w3d->p->solid[0]),w3d->p->num_solid,
-              sizeof(struct w3d_DelayedPoly),
-              w3d_SolidCmpFunc);
+            /*** sortiere Delayed-Array nach Texturen ***/
+            qsort(&(w3d->p->solid[0]),w3d->p->num_solid,
+                  sizeof(struct w3d_DelayedPoly),
+                  w3d_SolidCmpFunc);
 
-        /*** Polys mit identischer Textur folgen jetzt aufeinander ***/
-        for (i=0; i<w3d->p->num_solid; i++) {
-            /*** Polygone wegrendern... ***/
-            struct w3d_DelayedPoly *dp = &(w3d->p->solid[i]);
-            w3d_DrawPoly(wdd,w3d,dp->p,dp->bmp_attach,TRUE,FALSE);
+            /*** Polys mit identischer Textur folgen jetzt aufeinander ***/
+            for (i=0; i<w3d->p->num_solid; i++) {
+                /*** Polygone wegrendern... ***/
+                struct w3d_DelayedPoly *dp = &(w3d->p->solid[i]);
+                w3d_DrawPoly(wdd,w3d,dp->p,dp->bmp_attach,TRUE,FALSE);
+            };
+            w3d->p->num_solid = 0;
         };
-        w3d->p->num_solid = 0;
     };
+    LEFT("w3d_FlushDelayed");
 }
 
 /*-----------------------------------------------------------------*/
@@ -483,34 +478,38 @@ void w3d_FlushTracy(struct windd_data *wdd, struct win3d_data *w3d)
 **      18-Mar-97   floh    created
 */
 {
-    if (w3d->p->num_tracy > 0) {
+    ENTERED("w3d_FlushTracy");
+    if (w3d->p->exec.begin_scene_ok) {
+        if (w3d->p->num_tracy > 0) {
 
-        unsigned long i;
-        void *act_txt = NULL;
-
-        /*** <max_z> initialisieren ***/
-        for (i=0; i<w3d->p->num_tracy; i++) {
-            unsigned long j;
-            struct w3d_DelayedPoly *dp = &(w3d->p->tracy[i]);
-            float max_z = 0.0;
-            for (j=0; j<dp->p->pnum; j++) {
-                if (max_z < dp->p->xyz[j*3+2]) max_z=dp->p->xyz[j*3+2];
+            unsigned long i;
+            void *act_txt = NULL;
+            
+            /*** <max_z> initialisieren ***/
+            for (i=0; i<w3d->p->num_tracy; i++) {
+                unsigned long j;
+                struct w3d_DelayedPoly *dp = &(w3d->p->tracy[i]);
+                float max_z = 0.0;
+                for (j=0; j<dp->p->pnum; j++) {
+                    if (max_z < dp->p->xyz[j*3+2]) max_z=dp->p->xyz[j*3+2];
+                };
+                dp->max_z = max_z;
             };
-            dp->max_z = max_z;
-        };
 
-        /*** sortiere Delayed-Array nach Texturen ***/
-        qsort(&(w3d->p->tracy[0]),w3d->p->num_tracy,
-              sizeof(struct w3d_DelayedPoly),
-              w3d_TracyCmpFunc);
-
-        /*** Polys mit identischer Textur folgen jetzt aufeinander ***/
-        for (i=0; i<w3d->p->num_tracy; i++) {
-            /*** Polygone wegrendern... ***/
-            struct w3d_DelayedPoly *dp = &(w3d->p->tracy[i]);
-            w3d_DrawPoly(wdd,w3d,dp->p,dp->bmp_attach,TRUE,TRUE);
+            /*** sortiere Delayed-Array nach Texturen ***/
+            qsort(&(w3d->p->tracy[0]),w3d->p->num_tracy,
+                  sizeof(struct w3d_DelayedPoly),
+                  w3d_TracyCmpFunc);
+            
+            /*** Polys mit identischer Textur folgen jetzt aufeinander ***/
+            for (i=0; i<w3d->p->num_tracy; i++) {
+                /*** Polygone wegrendern... ***/
+                struct w3d_DelayedPoly *dp = &(w3d->p->tracy[i]);
+                w3d_DrawPoly(wdd,w3d,dp->p,dp->bmp_attach,TRUE,TRUE);
+            };
+            w3d->p->num_tracy = 0;
         };
-        w3d->p->num_tracy = 0;
     };
+    LEFT("w3d_FlushTracy");
 }
 
