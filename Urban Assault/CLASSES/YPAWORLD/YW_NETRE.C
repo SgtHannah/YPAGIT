@@ -140,7 +140,7 @@ void yw_HandleInputMW( struct ypaworld_data *ywd, struct VFMInput *input )
     if( (MW.Req.flags & REQF_Closed) && (HOTKEY_TOALL == input->HotKey) ) {
 
         /*** Requester öffnen und Ziel festlegen ***/
-        yw_LocStrCpy( MsgName, ypa_GetStr( GlobalLocaleHandle, STR_NET_ALL, "ALL") );
+        strcpy( MsgName, ypa_GetStr( GlobalLocaleHandle, STR_NET_ALL, "ALL") );
 
         /*** Nun je nach InputModus ***/
         if( ywd->UseSystemTextInput ) {
@@ -269,7 +269,7 @@ void yw_HandleInputMW( struct ypaworld_data *ywd, struct VFMInput *input )
             ** rein ist!
             ** -------------------------------------------------------------*/
             sprintf( ascii_in, "%c\0", input->AsciiKey );
-            yw_LocStrCpy( ascii_out, ascii_in );
+            strcpy( ascii_out, ascii_in );
             if( (ascii_in[0] != '*') && (ascii_out[0] == '*') )
                 return;
 

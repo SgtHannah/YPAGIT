@@ -422,6 +422,13 @@ ULONG yw_ParseUserData( struct ScriptParser *parser )
         /*** Wir sind bereit für etwas neues ***/
         if( stricmp( parser->keyword, "new_user") == 0 ) {
 
+            /*** FIXME FLOH: lese Multiplayer Callsign ***/
+            if (!yw_GetStrEnv(ywd,"callsign.def",ywd->gsr->NPlayerName,
+                sizeof(ywd->gsr->NPlayerName)))
+            {
+                strcpy(ywd->gsr->NPlayerName,ypa_GetStr(ywd->LocHandle,STR_DGADGET_NEWUSER,"UNNAMED"));
+            };
+
             /*** Das ist etwas für uns ***/
             parser->status = PARSESTAT_RUNNING;
             return( PARSE_ENTERED_CONTEXT );
@@ -447,26 +454,9 @@ ULONG yw_ParseUserData( struct ScriptParser *parser )
             if( (parser->store[0]) && (parser->store[1]) ) {
 
                 if( stricmp( parser->keyword, "username") == 0) {
-
                     /*** Der Name wird ignoriert ***/
                 }else if( stricmp( parser->keyword, "netname") == 0) {
-
-                    /* -------------------------------------------------------
-                    ** Der Name fuers Netzwerk. Achtung!!! bereits vorher wird
-                    ** auf LobbyStart getestet. Wenn remotestart, dann ist das
-                    ** Namensfeld schon ausgefuellt.
-                    ** -----------------------------------------------------*/
-                    if( !ywd->gsr->remotestart ) {
-                        
-                    int i = 0;
-                    
-                        strncpy( ywd->gsr->NPlayerName, parser->data, 60);
-                        while( ywd->gsr->NPlayerName[ i ]) {
-                            if( ywd->gsr->NPlayerName[ i ] == '_')
-                                ywd->gsr->NPlayerName[ i ]  = ' ';
-                            i++;
-                        }
-                    }   
+                    /*** OBSOLETE OBSOLETE OBSOLETE ***/
                 } else if( stricmp( parser->keyword, "maxroboenergy") == 0) {
                     /*** Die höchste Energie, die ich je hatte ***/
                     ywd->MaxRoboEnergy = strtol( parser->data, NULL, 0 );
@@ -1477,6 +1467,9 @@ BOOL yw_WriteUserData( FILE *ifile, char *name, struct GameShellReq *GSR)
 
     char str[ 300 ];
     int  i;
+    
+    /*** schreibe Callsign ***/
+    if (GSR->NPlayerName[0] > 31) yw_PutStrEnv(GSR->ywd,"callsign.def",GSR->NPlayerName); 
 
     /*** Eröffnung ***/
     sprintf( str, "new_user\n\0" );
@@ -1501,24 +1494,6 @@ BOOL yw_WriteUserData( FILE *ifile, char *name, struct GameShellReq *GSR)
     sprintf( str, "    maxreloadconst = %d\n\0", GSR->ywd->MaxReloadConst );
     _FWrite( str, strlen( str ), 1, ifile );
     
-    if( ((UBYTE)(GSR->NPlayerName[0])) > 31 ) {
-    
-        char name[ 300 ];
-        int i = 0;
-        
-        while( GSR->NPlayerName[ i ]) {
-            if( GSR->NPlayerName[ i ] == ' ')
-                name[ i ] = '_';
-            else
-                name[ i ] = GSR->NPlayerName[ i ];
-            i++;
-            }
-        name[ i ] = 0;
-                        
-        sprintf( str, "    netname       = %s\n\0", name );
-        _FWrite( str, strlen( str ), 1, ifile );
-        }
-
     /*** Wieviele Buddies duerfen mit? ***/
     sprintf( str, "    numbuddies    = %d\n\0", GSR->ywd->Level->MaxNumBuddies );
     _FWrite( str, strlen( str ), 1, ifile );

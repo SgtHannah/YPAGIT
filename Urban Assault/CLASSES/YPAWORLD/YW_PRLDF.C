@@ -101,7 +101,7 @@ ULONG yw_LevelDataParser(struct ScriptParser *p)
                     _LogMsg("LevelDataParser(): Level titel too long!");
                     return(PARSE_BOGUS_DATA);
                 };
-                yw_LocStrCpy(ywd->Level->Title,data);
+                strcpy(ywd->Level->Title,data);
             };
 
         /*** set ***/
@@ -519,7 +519,7 @@ ULONG yw_LevelGemParser(struct ScriptParser *p)
                     _LogMsg("LevelGemParser(): Msg too long!");
                     return(PARSE_BOGUS_DATA);
                 };
-                yw_LocStrCpy(gem->msg,data);
+                strcpy(gem->msg,data);
             };
 
         /*** sec_x ***/

@@ -723,13 +723,13 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
 
                 gpn.number = i;
                 if( _methoda( GSR->ywd->nwo, NWM_GETPROVIDERNAME, &gpn ) ) {
-                    yw_LocStrCpy( block, gpn.name );
+                    strcpy( block, gpn.name );
                     raus        = FALSE;
 
                     if( (-1 == GSR->NSel) && (0 == i) ) {
 
                         /*** keiner ausgewählt aber einer da --> setzen ***/
-                        yw_LocStrCpy( GSR->N_Name, gpn.name );
+                        strcpy( GSR->N_Name, gpn.name );
                         ss.unpressed_text = GSR->N_Name;
                         _methoda( GSR->bnet, BTM_SETSTRING, &ss );
                         GSR->NSel = 0;
@@ -806,7 +806,7 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
                     if( level->num_players < _methoda( GSR->ywd->nwo, NWM_GETNUMPLAYERS, NULL) )
                         continue;
 
-                    yw_LocStrCpy( block, GSR->netlevel[ i ].name );
+                    strcpy( block, GSR->netlevel[ i ].name );
                     count++;
                     raus = FALSE;
                     sprintf( block_size, "%d X %d\0", level->size_x, level->size_y );
@@ -861,7 +861,7 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
 
                 if( i <  GSR->act_messageline ) {
 
-                    yw_LocStrCpy( block, GSR->messagebuffer[ i ] );
+                    strcpy( block, GSR->messagebuffer[ i ] );
                     raus = FALSE;
                     }
                 else

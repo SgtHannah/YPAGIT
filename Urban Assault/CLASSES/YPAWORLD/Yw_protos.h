@@ -243,6 +243,8 @@ void yw_ShowTipOfTheDayDiskAccess(struct ypaworld_data *, Object *, UBYTE *);
 LONG yw_GetIntEnv(struct ypaworld_data *, UBYTE *);
 ULONG yw_PutIntEnv(struct ypaworld_data *, UBYTE *, LONG); 
 void yw_PutTOD(struct ypaworld_data *, Object *, UBYTE *, WORD, WORD);
+ULONG yw_GetStrEnv(struct ypaworld_data *, UBYTE *, UBYTE *, ULONG);
+ULONG yw_PutStrEnv(struct ypaworld_data *, UBYTE *, UBYTE *); 
 
 /*** yw_record.c ***/
 void yw_FreeSequenceData(struct YPASeqData *);

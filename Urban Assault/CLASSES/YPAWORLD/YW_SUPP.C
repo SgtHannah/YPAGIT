@@ -1764,3 +1764,47 @@ ULONG yw_PutIntEnv(struct ypaworld_data *ywd, UBYTE *name, LONG num)
     };
     return(retval);
 }
+
+/*-----------------------------------------------------------------*/
+ULONG yw_GetStrEnv(struct ypaworld_data *ywd, UBYTE *name, UBYTE *buf, ULONG buf_size)
+/*
+**  CHANGED
+**      30-Jun-98   floh    created
+*/
+{
+    ULONG retval = FALSE;
+    memset(buf,0,buf_size);
+    if (ywd->gsr) {
+        APTR fp;
+        UBYTE fname[256];
+        sprintf(fname, "save:%s/%s",ywd->gsr->UserName,name);
+        if (fp = _FOpen(fname,"r")) {
+            if (_FGetS(buf,buf_size-1,fp)) {
+                retval = TRUE;
+            };
+            _FClose(fp);
+        };
+    };
+    return(retval);
+}
+
+/*-----------------------------------------------------------------*/
+ULONG yw_PutStrEnv(struct ypaworld_data *ywd, UBYTE *name, UBYTE *str) 
+/*
+**  CHANGED
+**      20-Jun-98   floh    created    
+*/
+{
+    ULONG retval = FALSE;
+    if (ywd->gsr) {
+        APTR fp;
+        UBYTE fname[256];
+        sprintf(fname, "save:%s/%s",ywd->gsr->UserName,name);
+        if (fp = _FOpen(fname,"w")) {
+            fprintf(fp,"%s",str);
+            _FClose(fp);
+            retval = TRUE;
+        };
+    };
+    return(retval);
+}

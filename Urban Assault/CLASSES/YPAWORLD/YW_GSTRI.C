@@ -1712,7 +1712,7 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                     ** rein ist!
                     ** -------------------------------------------------------------*/
                     sprintf( ascii_in, "%c\0", GSR->input->AsciiKey );
-                    yw_LocStrCpy( ascii_out, ascii_in );
+                    strcpy( ascii_out, ascii_in );
                     if( (!( (ascii_in[0] != '*') && (ascii_out[0] == '*') )) &&
                         (yw_IsOKForFilename( ascii_in[0] )) ) {
 
@@ -2937,7 +2937,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                                 
                                 GSR->NLevelName   = GSR->netlevel[ i ].name;
                                 GSR->NLevelOffset = GSR->netlevel[ i ].number;
-//                                yw_LocStrCpy( GSR->N_Name, GSR->NLevelName);
                                 break;    
                                 }
                             offset++;
@@ -3015,7 +3014,7 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                     ** rein ist!
                     ** -------------------------------------------------------------*/
                     sprintf( ascii_in, "%c\0", GSR->input->AsciiKey );
-                    yw_LocStrCpy( ascii_out, ascii_in );
+                    strcpy( ascii_out, ascii_in );
                     if( !( (ascii_in[0] != '*') && (ascii_out[0] == '*') ) ) {
 
                         /*** Buchstabe einsortieren ***/
@@ -5463,8 +5462,8 @@ void yw_EAR_Load( struct GameShellReq *GSR )
     _methoda( GSR->ywd->world, YWM_LOADSETTINGS, &sls );
 
     /*** Name wird ja nicht mehr gescannt ***/
-    yw_LocStrCpy( GSR->UserName, finode->username);
-    yw_LocStrCpy( GSR->D_Name, finode->username);
+    strcpy( GSR->UserName, finode->username);
+    strcpy( GSR->D_Name, finode->username);
 
     /*** inputMode ausschalten ***/
     GSR->D_InputMode = DIM_NONE;

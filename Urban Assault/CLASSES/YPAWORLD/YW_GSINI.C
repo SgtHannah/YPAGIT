@@ -426,7 +426,7 @@ _dispatcher( BOOL, yw_YWM_INITGAMESHELL, struct GameShellReq *GSR )
             ** Wichtig, darf beim Laden von Usereinstellungen nicht ueber-
             ** schrieben werden!
             ** ---------------------------------------------------------*/    
-            yw_LocStrCpy( ywd->gsr->NPlayerName, crs.name );
+            strcpy( ywd->gsr->NPlayerName, crs.name );
 
             if( crs.is_host ) 
                 ywd->gsr->is_host = 1;
@@ -629,10 +629,6 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
     ** unpressed           FONTID_MAPCUR_16
     ** disabled            FONTID_ENERGY
     */
-
-    /*** vorsichtshalber UserName "großbuchstabig" machen ***/
-    yw_LocStrCpy( sys_string, GSR->UserName );
-    strcpy( GSR->UserName, sys_string );
 
     /* ----------------------------------------------------------------
     ** Videomode setzen, wenn  erwuenscht. Weil SETVIDEOMODE (wie lange
@@ -2456,7 +2452,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
     GSR->dmenu.Req.req_cbox.rect.y = GSR->dmenu_yoffset;
 
     button_ok = FALSE;
-    yw_LocStrCpy(GSR->D_Name, GSR->UserName );
+    strcpy(GSR->D_Name, GSR->UserName );
     GSR->DCursorPos = strlen( GSR->D_Name );
     if( GSR->D_InputMode )
         sprintf( sys_string, "%s%s\0", GSR->D_Name, CURSORSIGN );
@@ -4406,12 +4402,7 @@ void yw_ScanUserDirectory( struct GameShellReq *GSR, char *dirname, Object *Worl
 
                     struct ScriptParser parser;
                     char   filename[ 300 ];
-
-                    /* ------------------------------------------
-                    ** Node ausfüllen. Aus '_' wird bei LocStrCpy
-                    ** automatisch ein Space
-                    ** ----------------------------------------*/
-                    yw_LocStrCpy( infonode->username, entry.name );
+                    strcpy(infonode->username,entry.name);
 
                     /*** So, die Node ist ausgefnllt, also klinken wir sie ein ***/
                     _AddTail( (struct List *) &( GSR->flist ), 
