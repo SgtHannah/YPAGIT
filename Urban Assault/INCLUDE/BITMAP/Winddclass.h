@@ -154,7 +154,7 @@
 **          (WINDD_CURSORMODE_HW, WINDD_CURSORMODE_SOFT).
 **
 **      WINDDA_TextureFilter    (S)
-**      WINDDA_16BitTextures    (I)
+**      WINDDA_16BitTextures    (S)
 **      WINDDA_UseDrawPrimitive (S)
 **      WINDDA_DisableLowres    (S)
 **-----------------------------------------------------------------*/

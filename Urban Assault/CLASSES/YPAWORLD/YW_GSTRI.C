@@ -4133,6 +4133,36 @@ void yw_OKSettings( struct GameShellReq *GSR )
         set3dmode = TRUE;
         sgv.forcesetvideo = TRUE;
         }
+        
+    /*** 16BitTexture ***/
+    if( GSR->settings_changed & SCF_16BITTEXTURE ) {
+        if( GSR->new_video_flags & VF_16BITTEXTURE ) {
+            GSR->video_flags |=  VF_16BITTEXTURE;
+            _set(GSR->ywd->GfxObject,WINDDA_16BitTextures,TRUE);
+            }
+        else {
+            GSR->video_flags &= ~VF_16BITTEXTURE;
+            _set(GSR->ywd->GfxObject,WINDDA_16BitTextures,FALSE);
+            }
+        old_modus = GSR->ywd->GameRes;
+        set3dmode = TRUE;
+        sgv.forcesetvideo = TRUE;
+        }
+
+    /*** DrawPrimitive ***/
+    if( GSR->settings_changed & SCF_DRAWPRIMITIVE ) {
+        if( GSR->new_video_flags & VF_DRAWPRIMITIVE ) {
+            GSR->video_flags |= VF_DRAWPRIMITIVE;
+            _set(GSR->ywd->GfxObject,WINDDA_UseDrawPrimitive,TRUE);
+            }
+        else {
+            GSR->video_flags &= ~VF_DRAWPRIMITIVE;
+            _set(GSR->ywd->GfxObject,WINDDA_UseDrawPrimitive,FALSE);
+            }
+        old_modus = GSR->ywd->GameRes;
+        set3dmode = TRUE;
+        sgv.forcesetvideo = TRUE;
+        }
 
     if( (setvideomode && GSR->ywd->OneDisplayRes) ||
         (set3dmode) ) {
@@ -4248,40 +4278,6 @@ void yw_OKSettings( struct GameShellReq *GSR )
         else {
             GSR->video_flags &= ~VF_HEAVEN;
             _set( ywd->world, YWA_RenderHeaven, FALSE );
-            }
-        }
-
-    /*** 16BitTexture ***/
-    if( GSR->settings_changed & SCF_16BITTEXTURE ) {
-
-        if( GSR->new_video_flags & VF_16BITTEXTURE ) {
-            GSR->video_flags      |=  VF_16BITTEXTURE;
-            //GSR->ywd->Prefs.Flags |=  YPA_PREFS_FILTERING;
-            // FIXME_FLOH
-            //_set(GSR->ywd->GfxObject,WINDDA_TextureFilter,TRUE);
-            }
-        else {
-            GSR->video_flags      &= ~VF_16BITTEXTURE;
-            //GSR->ywd->Prefs.Flags &= ~YPA_PREFS_FILTERING;
-            // FIXME_FLOH
-            //_set(GSR->ywd->GfxObject,WINDDA_TextureFilter,FALSE);
-            }
-        }
-
-    /*** DrawPrimitive ***/
-    if( GSR->settings_changed & SCF_DRAWPRIMITIVE ) {
-
-        if( GSR->new_video_flags & VF_DRAWPRIMITIVE ) {
-            GSR->video_flags      |=  VF_DRAWPRIMITIVE;
-            //GSR->ywd->Prefs.Flags |=  YPA_PREFS_FILTERING;
-            // FIXME_FLOH
-            //_set(GSR->ywd->GfxObject,WINDDA_TextureFilter,TRUE);
-            }
-        else {
-            GSR->video_flags      &= ~VF_DRAWPRIMITIVE;
-            //GSR->ywd->Prefs.Flags &= ~YPA_PREFS_FILTERING;
-            // FIXME_FLOH
-            //_set(GSR->ywd->GfxObject,WINDDA_TextureFilter,FALSE);
             }
         }
 

@@ -130,6 +130,10 @@ struct ConfigItem wdd_ConfigItems[WINDD_NUM_CONFIG_ITEMS] = {
 
 extern unsigned long wdd_ForceAlphaTextures;
 
+#define ENV_NAME     ("env/vid.def")
+#define ENV_16BITTXT ("env/txt16bit.def")
+#define ENV_DPRIM    ("env/drawprim.def")
+
 /*-------------------------------------------------------------------
 **  Class Header
 */
@@ -446,6 +450,7 @@ struct disp_idnode *wdd_GetIDNodeFromFile(UBYTE *fname)
 /*
 **  CHANGED
 **      18-Dec-97   floh    created
+**      02-Jun-98   floh    + oops, File wurde nicht geschlossen
 */
 {
     APTR fp;
@@ -458,9 +463,47 @@ struct disp_idnode *wdd_GetIDNodeFromFile(UBYTE *fname)
             if (dike_out = strpbrk(buf, "\n")) *dike_out = 0;
             ind = wdd_GetIDNodeByName(buf);
         };
+        fclose(fp);
     };
     if (!ind) ind=wdd_GetFallbackIDNode();
     return(ind);
+}
+
+/*-----------------------------------------------------------------*/
+ULONG wdd_ReadEnvStatus(UBYTE *fname, ULONG def_val)
+/*
+**  CHANGED
+**      02-Jun-98   floh    created
+*/
+{
+    APTR fp;
+    ULONG retval = def_val;
+    if (fp = fopen(fname,"r")) {
+        UBYTE buf[128];
+        if (fgets(buf,sizeof(buf),fp)) {
+            UBYTE *dike_out;
+            if (dike_out = strpbrk(buf, "; \n")) *dike_out=0;
+            if (stricmp(buf,"yes")==0) retval = TRUE;
+            else                       retval = FALSE;
+        };
+        fclose(fp);
+    };
+    return(retval);
+}
+
+/*-----------------------------------------------------------------*/
+void wdd_WriteEnvStatus(UBYTE *fname, ULONG status)
+/*
+**  CHANGED
+**      02-Jun-98   floh    created
+*/
+{
+    APTR fp;
+    if (fp = fopen(fname,"w")) {
+        if (status) fputs("yes",fp);
+        else        fputs("no",fp);
+        fclose(fp);
+    };
 }
 
 /*=================================================================**
@@ -476,6 +519,8 @@ _dispatcher(Object *, wdd_OM_NEW, struct TagItem *attrs)
 **      10-Mar-98   floh    + DDraw/D3D Init passiert jetzt hier,
 **                            nicht mehr in MakeClass
 **      26-May-98   floh    + disable_lowres Handling
+**      02-Jun-98   floh    + liest AlphaTextureStatus jetzt aus
+**                            einem ENV-File.
 */
 {
     struct disp_idnode *idnode = NULL;
@@ -486,12 +531,15 @@ _dispatcher(Object *, wdd_OM_NEW, struct TagItem *attrs)
     ULONG  id,res,t=0;
     APTR fp;
     struct TagItem *txt_ti;
+    ULONG force_alpha_textures;
+    ULONG use_draw_primitive;
     memset(ti,0,sizeof(ti));
-    #define ENV_NAME ("env/vid.def")
-
+    
     /*** Konfiguration auslesen ***/
+    force_alpha_textures   = wdd_ReadEnvStatus(ENV_16BITTXT,TRUE);
+    use_draw_primitive     = wdd_ReadEnvStatus(ENV_DPRIM,FALSE);    
+    wdd_ForceAlphaTextures = force_alpha_textures;
     _GetConfigItems(NULL,wdd_ConfigItems,WINDD_NUM_CONFIG_ITEMS);
-    wdd_ForceAlphaTextures = wdd_ConfigItems[3].data;
     _NewList((struct List *) &wdd_IDList);
     _NewList((struct List *) &wdd_DevList);
 
@@ -526,14 +574,9 @@ _dispatcher(Object *, wdd_OM_NEW, struct TagItem *attrs)
 
     wdd->forcesoftcursor    = wdd_ConfigItems[0].data;
     wdd->movieplayer        = wdd_ConfigItems[2].data;
-    wdd->forcealphatextures = wdd_ConfigItems[3].data;
-    wdd->usedrawprimitive   = wdd_ConfigItems[4].data;
     wdd->disablelowres      = wdd_ConfigItems[5].data;
-    
-    if (txt_ti = _FindTagItem(WINDDA_16BitTextures,attrs)) {
-        if (txt_ti->ti_Data) wdd->forcealphatextures = TRUE;
-        else                 wdd->forcealphatextures = FALSE;
-    };    
+    wdd->forcealphatextures = force_alpha_textures;
+    wdd->usedrawprimitive   = use_draw_primitive;
     
     /*** Mode-Flags auswerten ***/
     if (idnode->data[0] & WINDDF_IsWindowed)    wdd->flags |= WINDDF_IsWindowed;
@@ -593,6 +636,8 @@ _dispatcher(void, wdd_OM_GET, struct TagItem *attrs)
 **      11-Nov-96   floh    created
 **      14-May-97   floh    Bugfix: versetzter Mousepointer bei
 **                          Fullscreen-Half-Modes
+**      02-Jun-98   floh    + WINDDA_16BitTextures
+**                          + WINDDA_DrawPrimitive
 */
 {
     struct windd_data *wdd = INST_DATA(cl,o);
@@ -626,6 +671,12 @@ _dispatcher(void, wdd_OM_GET, struct TagItem *attrs)
                         };
                         *value = (ULONG) &disp;
                         break;
+                    case WINDDA_16BitTextures:
+                        *value = wdd->forcealphatextures;
+                        break;
+                    case WINDDA_UseDrawPrimitive:
+                        *value = wdd->usedrawprimitive;
+                        break;                        
                 };
         };
     };
@@ -638,6 +689,8 @@ _dispatcher(void, wdd_OM_SET, struct TagItem *attrs)
 **  CHANGED
 **      23-Feb-98   floh    created
 **      26-May-98   floh    + WINDDA_DisableLowres
+**      02-Jun-98   floh    + WINDDA_16BitTextures
+**                          + WINDDA_DrawPrimitive
 */
 {
     struct windd_data *wdd = INST_DATA(cl,o);
@@ -665,6 +718,12 @@ _dispatcher(void, wdd_OM_SET, struct TagItem *attrs)
                     case WINDDA_DisableLowres:
                         wdd->disablelowres = data;
                         break;    
+                    case WINDDA_16BitTextures:
+                        wdd_WriteEnvStatus(ENV_16BITTXT,data);
+                        break;
+                    case WINDDA_UseDrawPrimitive:
+                        wdd_WriteEnvStatus(ENV_DPRIM,data);
+                        break;
                 };
         };
     };

@@ -3697,7 +3697,7 @@ _dispatcher( void, yw_YWM_REFRESHGAMESHELL, struct GameShellReq *GSR )
     sbs.who = GSID_SOUND_LR;
     _methoda( GSR->bvideo, BTM_SETSTATE, &sbs );
     
-    if( GSR->sound_flags & VF_16BITTEXTURE )
+    if( GSR->video_flags & VF_16BITTEXTURE )
         sbs.state = SBS_PRESSED;
     else
         sbs.state = SBS_UNPRESSED;

@@ -953,11 +953,8 @@ ULONG yw_ParseInputData( struct ScriptParser *parser )
 
 ULONG yw_ParseVideoData( struct ScriptParser *parser )
 {
-    struct GameShellReq *GSR;
-    Object *World;
-
-    World = (Object *) parser->store[ 0 ];
-
+    struct GameShellReq *GSR = (struct GameShellReq *) parser->target;
+    Object *World            = (Object *) parser->store[ 0 ];
 
     if( PARSESTAT_READY == parser->status ) {
 
@@ -979,6 +976,27 @@ ULONG yw_ParseVideoData( struct ScriptParser *parser )
         /*** Wir bearbeiten das schon. Ist es das Ende? ***/
         if( stricmp( parser->keyword, "end") == 0 ) {
 
+            Object *gfxo;
+
+            /*** 16 Bit Textures und DrawPrimitive lassen wir ***/
+            /*** uns lieber nochmal von der Engine geben      ***/
+            _OVE_GetAttrs(OVET_Object,&gfxo,TAG_DONE);
+            if (gfxo) {
+                ULONG use_16_bit, use_dp;
+                _get(gfxo,WINDDA_16BitTextures,&use_16_bit);
+                _get(gfxo,WINDDA_UseDrawPrimitive,&use_dp);
+                if (use_dp) {
+                    GSR->video_flags |= VF_DRAWPRIMITIVE;
+                } else {
+                    GSR->video_flags &= ~VF_DRAWPRIMITIVE;
+                };
+                if (use_16_bit) {
+                    GSR->video_flags |=  VF_16BITTEXTURE;
+                } else {
+                    GSR->video_flags &= ~VF_16BITTEXTURE;
+                };
+            };                                  
+
             /*** Das Ende naht! ***/
             parser->status = PARSESTAT_READY;
             return( PARSE_LEFT_CONTEXT );
@@ -988,7 +1006,6 @@ ULONG yw_ParseVideoData( struct ScriptParser *parser )
             /*** Es sollte also ein  normales keyword sein ***/
             if( parser->target ) {
 
-                GSR = (struct GameShellReq *) parser->target;
                 GSR->FoundContent |= DM_VIDEO; // weil hier GSR da ist
                 
                 if( stricmp( parser->keyword, "videomode") == 0) {

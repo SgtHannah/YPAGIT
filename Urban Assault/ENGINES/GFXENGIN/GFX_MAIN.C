@@ -136,7 +136,7 @@ struct GET_Nucleus *local_GetNucleus(struct TagItem *tagList)
 
 /*-----------------------------------------------------------------*/
 BOOL ove_CreateDisplayObject(UBYTE *prim_class, UBYTE *sec_class,
-                             ULONG display_id, struct TagItem *more_attrs)
+                             ULONG display_id)
 /*
 **  FUNCTION
 **      Erzeugt Display-Objekt, probiert dabei zwei Klassen
@@ -148,29 +148,26 @@ BOOL ove_CreateDisplayObject(UBYTE *prim_class, UBYTE *sec_class,
 */
 {
     Object *o;
-    struct TagItem tags[32];
-    struct TagItem *tp = tags;
-    
-    tp->ti_Tag = RSA_Name;          tp->ti_Data = "display";        tp++;
-    tp->ti_Tag = RSA_Access;        tp->ti_Data = ACCESS_EXCLUSIVE; tp++;
-    tp->ti_Tag = DISPA_DisplayID;   tp->ti_Data = display_id;       tp++;
-    if (more_attrs) {
-        tp->ti_Tag = TAG_MORE;      tp->ti_Data = more_attrs;
-    } else {
-        tp->ti_Tag = TAG_DONE;      tp->ti_Data = NULL;      
-    };   
 
     /*** Display-Object erzeugen ***/
     if (prim_class[0]) {
         strcpy(DisplayDriver,"drivers/gfx/");
         strcat(DisplayDriver,prim_class);
-        DisplayObject = _new(DisplayDriver, TAG_MORE, tags);
+        DisplayObject = _new(DisplayDriver, 
+                             RSA_Name,        "display",
+                             RSA_Access,      ACCESS_EXCLUSIVE,
+                             DISPA_DisplayID, display_id,
+                             TAG_DONE);
 
         /*** falls primäres Display schiefging, sekundäres versuchen ***/
         if ((!DisplayObject) && (sec_class[0])) {
             strcpy(DisplayDriver,"drivers/gfx/");
             strcat(DisplayDriver,sec_class);
-            DisplayObject = _new(DisplayDriver, TAG_MORE, tags);
+            DisplayObject = _new(DisplayDriver,
+                                 RSA_Name,        "display",
+                                 RSA_Access,      ACCESS_EXCLUSIVE,
+                                 DISPA_DisplayID, display_id,
+                                 TAG_DONE); 
         };
         if (!DisplayObject) {
             _LogMsg("gfx.engine: display driver init failed!\n");
@@ -224,7 +221,7 @@ BOOL ove_Open(ULONG id,...)
     cmap_name  = (UBYTE *) ove_ConfigItems[3].data;
     dsp_class  = (UBYTE *) ove_ConfigItems[4].data;
     dsp2_class = (UBYTE *) ove_ConfigItems[5].data;
-    if (ove_CreateDisplayObject(dsp_class,dsp2_class,0,NULL)) {
+    if (ove_CreateDisplayObject(dsp_class,dsp2_class,0)) {
         /*** lade Colormap ***/
         ove_LoadColorMap(cmap_name);
         retval = TRUE;
@@ -264,7 +261,7 @@ void ove_SetAttrs(ULONG tags,...)
     struct TagItem *tlist = (struct TagItem *) &tags;
     struct TagItem *ti;
     ULONG map;
-
+    
     if (ti = _FindTagItem(OVET_ToFront, tlist)) {
         _methoda(DisplayObject, DISPM_Show, NULL);
     };
@@ -292,7 +289,7 @@ void ove_SetAttrs(ULONG tags,...)
         _dispose(DisplayObject);
 
         /*** erzeuge Display-Object ***/
-        if (ove_CreateDisplayObject(DisplayName,Display2Name,ti->ti_Data,NULL)) {
+        if (ove_CreateDisplayObject(DisplayName,Display2Name,ti->ti_Data)) {
             /*** Colormap restaurieren ***/
             _methoda(DisplayObject,DISPM_Begin,NULL);
             _set(DisplayObject, BMA_ColorMap, cm);

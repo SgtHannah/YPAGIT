@@ -1443,51 +1443,56 @@ UBYTE *yw_3DOverlayCursors(struct ypaworld_data *ywd, UBYTE *str)
 /*
 **  CHANGED
 **      17-Dec-97   floh    created 
-**      21-May-98   floh    + Anzeige des Multiplayer-Namens     
+**      21-May-98   floh    + Anzeige des Multiplayer-Namens   
+**      02-Jun-98   floh    + beachtet jetzt das YPA_PREFS_INDICATOR
+**                            Flag  
 */
 {
-    LONG sec_x,sec_y,end_x,end_y,store_sec_x;
+    if (ywd->Prefs.Flags & YPA_PREFS_INDICATOR) {
 
-    /*** Start-Sektor und End-Sektor ermitteln ***/
-    sec_x = ywd->UVBact->SectX-1;
-    sec_y = ywd->UVBact->SectY-1;
-    end_x = ywd->UVBact->SectX+1;
-    end_y = ywd->UVBact->SectY+1;
-    if (sec_x < 1) sec_x = 1;
-    if (sec_y < 1) sec_y = 1;
-    if (end_x >= ywd->MapSizeX) end_x = ywd->MapSizeX-1;
-    if (end_y >= ywd->MapSizeY) end_y = ywd->MapSizeY-1;
+        LONG sec_x,sec_y,end_x,end_y,store_sec_x;
 
-    /*** oki doki, also mal die Sektoren scannen... ***/
-    store_sec_x = sec_x;
-    for (sec_y; sec_y <= end_y; sec_y++) {
-        for (sec_x = store_sec_x; sec_x <= end_x; sec_x++) {
+        /*** Start-Sektor und End-Sektor ermitteln ***/
+        sec_x = ywd->UVBact->SectX-1;
+        sec_y = ywd->UVBact->SectY-1;
+        end_x = ywd->UVBact->SectX+1;
+        end_y = ywd->UVBact->SectY+1;
+        if (sec_x < 1) sec_x = 1;
+        if (sec_y < 1) sec_y = 1;
+        if (end_x >= ywd->MapSizeX) end_x = ywd->MapSizeX-1;
+        if (end_y >= ywd->MapSizeY) end_y = ywd->MapSizeY-1;
 
-            struct Cell *sec = &(ywd->CellArea[sec_y * ywd->MapSizeX + sec_x]);
-            struct MinList *ls;
-            struct MinNode *nd;
-    
-            /*** fuer jede Bakterie im Sektor... ***/
-            if (sec->FootPrint & MR.footprint) {
-                ls = (struct MinList *) &(sec->BactList);
-                for (nd=ls->mlh_Head; nd->mln_Succ; nd=nd->mln_Succ) {
-                    struct Bacterium *b = (struct Bacterium *) nd;
-                    if ((b->BactClassID != BCLID_YPAMISSY) &&
-                        (b->BactClassID != BCLID_YPAROBO)  &&
-                        (b->MainState   != ACTION_CREATE)  &&
-                        (b->MainState   != ACTION_BEAM)    &&
-                        (b->MainState   != ACTION_DEAD))
-                    {
-                        if (BCLID_YPAGUN == b->BactClassID) {
-                            struct ypagun_data *yd;
-                            yd = INST_DATA( ((struct nucleusdata *)b->BactObject)->o_Class, b->BactObject);
-                            if (!(yd->flags & GUN_RoboGun)) yw_3DCursorOverBact(ywd,b);
-                        } else yw_3DCursorOverBact(ywd,b);
-                        
-                        /*** handelt es sich hier um einen Multiplayer-Opponenten? ***/
-                        if (ywd->playing_network && (b->ExtraState & EXTRA_ISVIEWER) && (ywd->gsr)) {
-                            str = yw_3DNameOverBact(ywd,str,b);
-                        };    
+        /*** oki doki, also mal die Sektoren scannen... ***/
+        store_sec_x = sec_x;
+        for (sec_y; sec_y <= end_y; sec_y++) {
+            for (sec_x = store_sec_x; sec_x <= end_x; sec_x++) {
+
+                struct Cell *sec = &(ywd->CellArea[sec_y * ywd->MapSizeX + sec_x]);
+                struct MinList *ls;
+                struct MinNode *nd;
+        
+                /*** fuer jede Bakterie im Sektor... ***/
+                if (sec->FootPrint & MR.footprint) {
+                    ls = (struct MinList *) &(sec->BactList);
+                    for (nd=ls->mlh_Head; nd->mln_Succ; nd=nd->mln_Succ) {
+                        struct Bacterium *b = (struct Bacterium *) nd;
+                        if ((b->BactClassID != BCLID_YPAMISSY) &&
+                            (b->BactClassID != BCLID_YPAROBO)  &&
+                            (b->MainState   != ACTION_CREATE)  &&
+                            (b->MainState   != ACTION_BEAM)    &&
+                            (b->MainState   != ACTION_DEAD))
+                        {
+                            if (BCLID_YPAGUN == b->BactClassID) {
+                                struct ypagun_data *yd;
+                                yd = INST_DATA( ((struct nucleusdata *)b->BactObject)->o_Class, b->BactObject);
+                                if (!(yd->flags & GUN_RoboGun)) yw_3DCursorOverBact(ywd,b);
+                            } else yw_3DCursorOverBact(ywd,b);
+                            
+                            /*** handelt es sich hier um einen Multiplayer-Opponenten? ***/
+                            if (ywd->playing_network && (b->ExtraState & EXTRA_ISVIEWER) && (ywd->gsr)) {
+                                str = yw_3DNameOverBact(ywd,str,b);
+                            };    
+                        };
                     };
                 };
             };
@@ -1608,7 +1613,7 @@ void yw_RenderHUD(struct ypaworld_data *ywd)
                 new_font(str,FONTID_TRACY);
                 xpos_brel(str,0);
                 ypos_abs(str,ypos);
-                dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_MESSAGE),yw_Green(ywd,YPACOLOR_TEXT_MESSAGE),yw_Blue(ywd,YPACOLOR_TEXT_MESSAGE));
+                dbcs_color(str,yw_Red(ywd,YPACOLOR_OWNER_6),yw_Green(ywd,YPACOLOR_OWNER_6),yw_Blue(ywd,YPACOLOR_OWNER_6));
                 str = yw_TextCenteredSkippedItem(ywd->Fonts[FONTID_TRACY],
                                                  str, dmsg, ywd->DspXRes);
             };
