@@ -72,23 +72,27 @@ void yw_CleanupPrototypeArrays(struct ypaworld_data *ywd)
     ULONG i;
 
     /*** VehicleProtos ***/
-    for (i=0; i<NUM_VEHICLEPROTOS; i++) {
-        struct VehicleProto *vp = &(ywd->VP_Array[i]);
-        if (vp->wireframe_object) {
-            _dispose(vp->wireframe_object);
-            vp->wireframe_object = NULL;
+    if (ywd->VP_Array) {
+        for (i=0; i<NUM_VEHICLEPROTOS; i++) {
+            struct VehicleProto *vp = &(ywd->VP_Array[i]);
+            if (vp->wireframe_object) {
+                _dispose(vp->wireframe_object);
+                vp->wireframe_object = NULL;
+            };
         };
     };
 
     /*** WeaponProtos ***/
-    for (i=0; i<NUM_WEAPONPROTOS; i++) {
-        struct WeaponProto *wp = &(ywd->WP_Array[i]);
-        if (wp->wireframe_object) {
-            _dispose(wp->wireframe_object);
-            wp->wireframe_object = NULL;
+    if (ywd->WP_Array) {
+        for (i=0; i<NUM_WEAPONPROTOS; i++) {
+            struct WeaponProto *wp = &(ywd->WP_Array[i]);
+            if (wp->wireframe_object) {
+                _dispose(wp->wireframe_object);
+                wp->wireframe_object = NULL;
+            };
         };
     };
-
+    
     /*** Buildprotos: nix aufzuräumen ***/
 }
 

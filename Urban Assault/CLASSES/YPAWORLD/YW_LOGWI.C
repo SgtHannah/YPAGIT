@@ -342,9 +342,6 @@ _dispatcher(void, yw_YWM_LOGMSG, struct logmsg_msg *msg)
     LW.lm_timestamp = ywd->TimeStamp;
     LW.lm_code      = msg->code;
 
-    _LogMsg("-> LOGMSG, bact=0%X, pri=%d, code=%d, msg=%s\n",
-            msg->bact, msg->pri, msg->code, msg->msg); 
-    
     /*** hängt auch ein Text dran??? ***/
     if (msg->msg) {
 
