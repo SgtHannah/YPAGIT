@@ -43,6 +43,9 @@ char NETLOGNAME[ 300 ];
 int  NETLOGCOUNT = 0;
 extern struct ConfigItem yw_ConfigItems[];
 
+/*** Global, um die nicht auf dem Stack zu haben ***/
+struct ypamessage_update upd;
+
 /*-----------------------------------------------------------------*/
 
 #ifdef __NETWORK__
@@ -323,8 +326,9 @@ void yw_SendGameCopy( struct ypaworld_data *ywd, UBYTE owner, UBYTE *receiver_id
     ** Seite dann aber der Robo erzeugt wird, dürfen wir nicht neu
     ** erzeugen, sondern nur ausfüllen! Deshalb werden diese extra
     ** gekennzeichnet.
+    ** Die updatemessage muss global sein (Stack, denn das Ding ist
+    ** 32k gross)
     ** -----------------------------------------------------------*/
-    struct ypamessage_update upd;
     struct sendmessage_msg sm;
     struct OBNode *robo, *commander, *slave, *waffe;
     struct vhclupd_entry *eintrag;

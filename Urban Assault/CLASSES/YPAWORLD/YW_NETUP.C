@@ -527,6 +527,7 @@ void yw_ReleaseWeapon( struct ypaworld_data *ywd, struct Bacterium *bact )
         /*** Waffe selbst Ausklinken ***/
         _get( waffe->o, YMA_AutoNode, &node );
         _Remove( node );
+        waffe->bact->master = NULL;
 
         /*** Freigeben ***/
         _methoda( ywd->world, YWM_RELEASEVEHICLE, waffe->o);
