@@ -185,6 +185,8 @@ void yw_setAttrs(Object *o, struct ypaworld_data *ywd, struct TagItem *attrs)
 
                     case YWA_UserVehicle:
                         if (ywd->UserVehicle != ((Object *)data)) {
+                            /*** Window-Handling ***/
+                            struct Bacterium *old_vhcl = ywd->UVBact;                            
                             if (ywd->UVBact) ywd->LastOccupiedID = ywd->UVBact->ident;
                             ywd->UserVehicle          = (Object *) data;
                             _get(ywd->UserVehicle, YBA_Bacterium, &(ywd->UVBact));
@@ -193,6 +195,7 @@ void yw_setAttrs(Object *o, struct ypaworld_data *ywd, struct TagItem *attrs)
                             ywd->DoJoystick           = FALSE;
                             ywd->DragLock             = FALSE;
                             yw_FFVehicleChanged(ywd);
+                            if (old_vhcl) yw_SRHandleVehicleSwitch(ywd,old_vhcl,ywd->UVBact);
                         };
                         break;
 

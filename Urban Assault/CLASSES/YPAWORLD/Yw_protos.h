@@ -179,6 +179,7 @@ BOOL yw_InitMouse(struct ypaworld_data * );
 void yw_KillMouse(struct ypaworld_data * );
 BOOL yw_SelBact2Cmdr(struct ypaworld_data * );
 void yw_BuildTrLogicMsg(unsigned long *, struct ypaworld_data * , struct VFMInput * );
+struct Bacterium *yw_GetCommander(struct Bacterium *);
 
 /*** aus yw_floodm68k.s bzw yw_floodx86.asm ***/
 #ifdef AMIGA

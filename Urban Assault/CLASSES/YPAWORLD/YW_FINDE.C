@@ -148,7 +148,7 @@ void yw_FinderRemap(struct ypaworld_data *ywd)
 **                          beachtet werden müssen.
 **      27-Jul-96   floh    revised & updated (Dynamic Layout)
 **      08-Dec-97   floh    + 1.Zeile im Finder ist jetzt die Hoststation
-**      22-Mar-98   floh    + FirstShown wurde nicht angepaßt, wenn
+**      22-Mar-98   floh    + FirstShown wurde nicht angepasst, wenn
 **                            ans Ende gescrollt und die Geschwader
 **                            weggeplatzt wurden.
 */
@@ -180,7 +180,7 @@ void yw_FinderRemap(struct ypaworld_data *ywd)
             if (ix < FR.l.ShownEntries) FR.b_map[ix] = cmdr;
         };
     };
-
+    
     /*** NumEntries updaten ***/
     FR.l.NumEntries = cmdr_count;
 
@@ -284,6 +284,7 @@ UBYTE *yw_FRBuildCmdrItem(struct ypaworld_data *ywd,
 **      08-Dec-97   floh    + wird nur noch Selected dargestellt, wenn
 **                            Beamzustand nicht aktiviert
 **      20-May-98   floh    + Last-Message-Indikator gefixt...
+**      12-Jun-98   floh    + jetzt mit Lifemeter ueber der Selbact
 */
 {
     UBYTE str_buf[64];
@@ -292,6 +293,12 @@ UBYTE *yw_FRBuildCmdrItem(struct ypaworld_data *ywd,
     struct MinNode *nd;
     ULONG fnt_id;
     struct Bacterium *lm_bact;
+    ULONG act_x = 0;
+    ULONG sel_bact_x = 0;
+    struct Bacterium *sel_bact = NULL;
+    
+    /*** gibt es derzeit eine Selbact? ***/
+    if (ywd->FrameFlags & YWFF_MouseOverBact) sel_bact = ywd->SelBact;    
     
     /*** hole Sender der letzten Message ***/
     lm_bact = ywd->LastMessageSender;    
@@ -299,6 +306,7 @@ UBYTE *yw_FRBuildCmdrItem(struct ypaworld_data *ywd,
     /*** Action-Item und Leerzeichen ***/
     str_buf[i++] = yw_FRGetActionIcon(cmdr);
     str_buf[i++] = '@';
+    act_x = FR.leader_pix_off;
 
     /*** String erzeugen (max. 64 Zeichen) ***/
     if ((cmdr == ywd->UVBact) && ((ywd->TimeStamp/300)&1)) {
@@ -311,8 +319,12 @@ UBYTE *yw_FRBuildCmdrItem(struct ypaworld_data *ywd,
         str_buf[i++] = yw_FRGetTypeIcon(ywd,cmdr);
     };
     str_buf[i++] = '@';
+    
+    /*** ist dieser die Selbact? ***/
+    if (cmdr == sel_bact) sel_bact_x = act_x;
 
     /* Der Rest sind die Slaves */
+    act_x = FR.bunch_pix_off; 
     ls = &(cmdr->slave_list);
     for (nd=ls->mlh_Head; nd->mln_Succ; nd=nd->mln_Succ) {
 
@@ -324,6 +336,7 @@ UBYTE *yw_FRBuildCmdrItem(struct ypaworld_data *ywd,
             (b->MainState != ACTION_BEAM))
         {
             if ((b == ywd->UVBact) && ((ywd->TimeStamp/300)&1)) {
+                /*** falls Viewer, Indikator blinken ***/
                 str_buf[i++] = '!';
             }else if ((lm_bact==b) && ((ywd->TimeStamp/300)&1)) {
                 /*** falls Last-Message-Originator, Indikator blinken lassen ***/
@@ -333,6 +346,8 @@ UBYTE *yw_FRBuildCmdrItem(struct ypaworld_data *ywd,
             };
             if (i >= 60) break; // damit kein Overflow auftritt
         };
+        if (sel_bact == b) sel_bact_x = act_x;
+        act_x += FR.type_icon_width;
     };
     str_buf[i++] = 0;
 
@@ -366,6 +381,19 @@ UBYTE *yw_FRBuildCmdrItem(struct ypaworld_data *ywd,
                               str, str_buf,
                               FR.l.ActEntryWidth - 2*ywd->EdgeW,
                               '@');
+    
+    /*** evtl. Lebensbalken ueber die Selbact ***/
+    if (sel_bact_x && (sel_bact_x < (FR.l.ActEntryWidth - FR.type_icon_width - ywd->EdgeW))) {
+        UBYTE chr;
+        FLOAT nrg = ((FLOAT)sel_bact->Energy) / ((FLOAT)sel_bact->Maximum);
+        xpos_rel(str,-(FR.l.ActEntryWidth-2*ywd->EdgeW));
+        xpos_rel(str,sel_bact_x);
+        if      (nrg <= 0.25) chr=128;
+        else if (nrg <= 0.5)  chr=129;
+        else if (nrg <= 0.75) chr=130;
+        else                  chr=131;
+        put(str,chr);
+    };
     new_line(str);
 
     /*** das war's auch schon... ***/
@@ -536,6 +564,28 @@ UBYTE *yw_FRLayoutLowerBorder(struct ypaworld_data *ywd, UBYTE *str)
 }
 
 /*-----------------------------------------------------------------*/
+UBYTE *yw_FRPutDragIcon(struct ypaworld_data *ywd, UBYTE *str, 
+                        LONG icon_x, LONG icon_y)
+/*
+**  CHANGED
+**      12-Jun-98   floh    created
+*/
+{
+    /*** falls geclippt, nicht zeichnen ***/
+    if ((icon_x > 0) && (icon_y > 0) &&
+        ((icon_x + FR.type_icon_width) < ywd->DspXRes) &&
+        ((icon_y + ywd->FontH) < ywd->DspYRes))
+    {
+        WORD xpos = icon_x - (ywd->DspXRes>>1);
+        WORD ypos = icon_y - (ywd->DspYRes>>1);
+        new_font(str,FONTID_TYPE_NS);
+        pos_abs(str,xpos,ypos);
+        put(str,yw_FRGetTypeIcon(ywd,FR.start_drag));
+    };
+    return(str);
+}
+
+/*-----------------------------------------------------------------*/
 void yw_FRLayoutItems(struct ypaworld_data *ywd, struct VFMInput *ip)
 /*
 **  FUNCTION
@@ -548,8 +598,9 @@ void yw_FRLayoutItems(struct ypaworld_data *ywd, struct VFMInput *ip)
 **      27-Jul-96   floh    + revised & updated (Dynamic Layout)
 **      10-Aug-96   floh    + oberen Rand an neues Layout angepaßt
 **      07-Jul-97   floh    + Drag-Icon wird nur gezeichnet, wenn
-**                            tatsächlich eine Mausbewegung passiert
+**                            tatsaechlich eine Mausbewegung passiert
 **                            ist.
+**      12-Jun-98   floh    + Multidragging
 */
 {
     struct ClickInfo *ci = &(ip->ClickInfo);
@@ -584,22 +635,16 @@ void yw_FRLayoutItems(struct ypaworld_data *ywd, struct VFMInput *ip)
     str = yw_FRLayoutLowerBorder(ywd,str);
 
     /*** evtl. Drag-Type-Icon rendern ***/
-    if ((FR.flags & FRF_Dragging)    &&
+    if ((FR.flags & FRF_Dragging) &&
         ((FR.start_x!=ci->act.scrx) || (FR.start_y!=ci->act.scry)))
     {
-        /*** falls geclippt, nicht zeichnen ***/
-        if ((FR.icon_x > 0) && (FR.icon_y > 0) &&
-            ((FR.icon_x + FR.type_icon_width) < ywd->DspXRes) &&
-            ((FR.icon_y + ywd->FontH) < ywd->DspYRes))
-        {
-            WORD xpos = FR.icon_x - (ywd->DspXRes>>1);
-            WORD ypos = FR.icon_y - (ywd->DspYRes>>1);
+        str = yw_FRPutDragIcon(ywd,str,FR.icon_x,FR.icon_y);    
 
-            new_font(str,FONTID_TYPE_NS);
-            pos_abs(str,xpos,ypos);
-
-            /*** das Type-Icon itself! ***/
-            put(str,yw_FRGetTypeIcon(ywd,FR.start_drag));
+        /*** bei Multidragging aktuelles Item 2x zeichnen ***/
+        if (FR.flags & FRF_IsMultiDrag) {
+            str = yw_FRPutDragIcon(ywd, str,
+                     FR.icon_x + (FR.type_icon_width>>2), 
+                     FR.icon_y + (ywd->FontH>>2));
         };
     };
 
@@ -852,7 +897,7 @@ BOOL yw_FRDoDragging(struct ypaworld_data *ywd, struct ClickInfo *ci)
 void yw_FREndDragging(struct ypaworld_data *ywd, struct ClickInfo *ci)
 /*
 **  FUNCTION
-**      Beendet den aktuellen Drag-Vorgang und löst u.U.
+**      Beendet den aktuellen Drag-Vorgang und loest u.U.
 **      den Transfer aus...
 **
 **  CHANGED
@@ -861,12 +906,13 @@ void yw_FREndDragging(struct ypaworld_data *ywd, struct ClickInfo *ci)
 **      27-Jul-96   floh    revised & updated (Dynamic Layout)
 **      10-Apr-97   floh    + Drag-Bact -> New Command funktioniert jetzt
 **      08-Dec-97   floh    + falls Ziel die Robo-Zeile ist, Fehler
+**      12-Jun-98   floh    + Multidragging Implementierung
 */
 {
-    struct organize_msg om;
     ULONG is_cmdr = (FR.start_drag->robo==FR.start_drag->master);
+    struct organize_msg om;
 
-    /*** Maus über gültiger Finder-Position? ***/
+    /*** Maus ueber gueltiger Finder-Position? ***/
     if ((ci->box==&(FR.l.Req.req_cbox)) && (ci->btn>=LV_NUM_STD_BTN)) {
 
         LONG item,entry;
@@ -876,12 +922,44 @@ void yw_FREndDragging(struct ypaworld_data *ywd, struct ClickInfo *ci)
 
             /*** ueber gueltigem Geschwader losgelassen: umschichten ***/
             struct Bacterium *cmdr = FR.b_map[item];
+            
             if (cmdr && (cmdr != ywd->URBact)) {
-                
-                /*** "umschichten" ***/
-                om.mode        = ORG_NEWCHIEF;
-                om.specialbact = cmdr;
-                _methoda(FR.start_drag->BactObject, YBM_ORGANIZE, &om);
+            
+                /*** falls ueber selben Squad losgelassen, nix machen ***/
+                if (is_cmdr) {
+                    if (cmdr == FR.start_drag) return;
+                } else {
+                    if (cmdr == FR.start_drag->master_bact) return;
+                };
+            
+                /*** MultiDrag oder SingleDrag? ***/
+                if (FR.flags & FRF_IsMultiDrag) {
+                    /*** Multidragging ***/                
+                    if (is_cmdr) {                
+                        /*** bei einem Commander werden alle Untergebenen automatisch mitgenommen ***/
+                        om.mode        = ORG_NEWCHIEF;
+                        om.specialbact = cmdr;
+                        _methoda(FR.start_drag->BactObject, YBM_ORGANIZE, &om);
+                    } else {
+                        /*** eine Einzelbakterie nimmt alle Nachfolger mit ***/
+                        struct MinNode *nd;
+                        struct MinNode *next;
+                        nd = &(FR.start_drag->slave_node.nd);                        
+                        while (nd->mln_Succ) {
+                            Object *o = ((struct OBNode *)nd)->o;
+                            next = nd->mln_Succ;                 
+                            om.mode        = ORG_NEWCHIEF;
+                            om.specialbact = cmdr;
+                            _methoda(o, YBM_ORGANIZE, &om);
+                            nd = next;
+                        };          
+                    };
+                } else {
+                    /*** Singledragging ***/
+                    om.mode        = ORG_ADDSLAVE;
+                    om.specialbact = FR.start_drag;
+                    _methoda(cmdr->BactObject, YBM_ORGANIZE, &om);
+                };
 
                 /*** Ziel-Geschwader selecten und Tabellen remappen ***/
                 ywd->ActCmdID = cmdr->CommandID;
@@ -895,13 +973,38 @@ void yw_FREndDragging(struct ypaworld_data *ywd, struct ClickInfo *ci)
     };
 
     /*** ab hier: Drag ging in "leeren" Bereich, oder in die Robo-Zeile ***/
-    om.mode        = ORG_NEWCOMMAND;
-    om.specialbact = NULL;
-    _methoda(FR.start_drag->BactObject,YBM_ORGANIZE,&om);
+    if (FR.flags & FRF_IsMultiDrag) {
 
-    /*** wenn die DragBact ein Commander war, diesen an Anfang der Liste ***/
-    if (is_cmdr) {
-        _methoda(FR.start_drag->robo,YBM_ADDSLAVE,FR.start_drag->BactObject);
+        /*** Multidragging (macht hier nur Sinn, wenn kein Commander) ***/
+        if (!is_cmdr) {    
+            struct MinNode *nd;
+            struct MinNode *next;
+            Object *first_object = NULL;
+            nd = &(FR.start_drag->slave_node.nd);
+            while (nd->mln_Succ) {
+                Object *o = ((struct OBNode *)nd)->o;
+                struct Bacterium *b = ((struct OBNode *)nd)->bact;
+                next = nd->mln_Succ;
+                if (!first_object) {
+                    /*** das erste Vehicle wird Commander ***/
+                    first_object   = o;
+                    om.mode        = ORG_NEWCOMMAND;
+                    om.specialbact = NULL;
+                    _methoda(first_object,YBM_ORGANIZE,&om);
+                } else {
+                    /*** alle anderen werden an die FirstBact rangehaengt ***/
+                    om.mode        = ORG_ADDSLAVE;
+                    om.specialbact = b;
+                    _methoda(first_object, YBM_ORGANIZE, &om);
+                };
+                nd = next;
+            };
+        };
+    } else {        
+        /*** Single-Drag ***/
+        om.mode        = ORG_NEWCOMMAND;
+        om.specialbact = NULL;
+        _methoda(FR.start_drag->BactObject,YBM_ORGANIZE,&om);
     };
 
     /*** neues Geschwader selecten und alle Tabellen remappen ***/
@@ -962,6 +1065,7 @@ void yw_HandleInputFR(struct ypaworld_data *ywd, struct VFMInput *ip)
 **                            gemacht habe" zu eliminieren
 **      23-Oct-97   floh    + Sound
 **      07-Dec-97   floh    + Robo in Finder uebernommen
+**      12-Jun-98   floh    + Multi-Dragging
 */
 {
     if (!(FR.l.Req.flags & (REQF_Iconified|REQF_Closed))) {
@@ -982,7 +1086,7 @@ void yw_HandleInputFR(struct ypaworld_data *ywd, struct VFMInput *ip)
                 {
                     /*** beide Maustasten gleichzeitig gedrückt: ***/
                     /*** Dragselect abbrechen                    ***/
-                    FR.flags &= ~FRF_Dragging;
+                    FR.flags &= ~(FRF_Dragging|FRF_IsMultiDrag);
                 } else if (ci->flags & (CIF_RMOUSEHOLD|CIF_MOUSEHOLD)) {
                     /*** eine der beiden Maustasten:      ***/
                     /*** aktuelle Icon-Position ermitteln ***/
@@ -991,11 +1095,11 @@ void yw_HandleInputFR(struct ypaworld_data *ywd, struct VFMInput *ip)
                 } else {
                     /*** irgendwas anderes: Dragging beenden ***/
                     yw_FREndDragging(ywd,ci);
-                    FR.flags &= ~FRF_Dragging;
+                    FR.flags &= ~(FRF_Dragging|FRF_IsMultiDrag);
                 };
             } else {
                 /*** die Geschwader-Struktur hat sich verändert, verdammt... ***/
-                FR.flags &= ~FRF_Dragging;
+                FR.flags &= ~(FRF_Dragging|FRF_IsMultiDrag);
             };
 
         } else if (ci->box == &(FR.l.Req.req_cbox)) {
@@ -1041,13 +1145,15 @@ void yw_HandleInputFR(struct ypaworld_data *ywd, struct VFMInput *ip)
             if (ci->flags & (CIF_RMOUSEDOWN|CIF_MOUSEDOWN)) {
                 if (yw_FRStartDragging(ywd,ci)) {
                     /*** yo ***/
-                    FR.flags  |= FRF_Dragging;
+                    FR.flags &= ~(FRF_Dragging|FRF_IsMultiDrag);
+                    FR.flags |= FRF_Dragging;
+                    if (ci->flags & CIF_RMOUSEDOWN) FR.flags |= FRF_IsMultiDrag; 
                     FR.icon_x  = FR.orig_x + ci->act.scrx;
                     FR.icon_y  = FR.orig_y + ci->act.scry;
                 };
             };
 
-            /*** Tooltip-Handling für die aktuelle Geschwader-Aktion ***/
+            /*** Tooltip-Handling fuer die aktuelle Geschwader-Aktion ***/
             if (FR.l.MouseItem != -1) {
                 LONG item = FR.l.MouseItem - FR.l.FirstShown;
                 if ((item >= 0) && (item < FR.l.MaxShown)) {

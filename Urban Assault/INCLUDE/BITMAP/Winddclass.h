@@ -223,6 +223,7 @@ extern void wdd_Log(char *,...);
         ULONG forcealphatextures;
         ULONG usedrawprimitive;
         ULONG disablelowres;
+        ULONG exportwindowmode;
 
         ULONG id;
         ULONG flags;
@@ -399,6 +400,7 @@ extern void wdd_Log(char *,...);
         unsigned long forcealphatextures;
         unsigned long usedrawprimitive;
         unsigned long disablelowres;
+        unsigned long exportwindowmode;
 
         unsigned long id;                   // momentan eingestellte "Display-ID"
         unsigned long flags;                // siehe unten

@@ -65,6 +65,7 @@ struct YPAFinder {
 
 /*** Defs für YPAFinder.flags ***/
 #define FRF_Dragging    (1<<0)  // about to drag...
+#define FRF_IsMultiDrag (1<<1)  // zusaetzlich gesetzt, falls ein Multi-Drag
 
 /*** Aktions-Icon-Konstanten ***/
 #define FR_ACTION_NONE      ('a')       // FIXME

@@ -83,7 +83,7 @@ _dispatcher(void, wdd_WINDDM_QueryDevice, struct windd_device *);
 _dispatcher(void, wdd_WINDDM_SetDevice, struct windd_device *);
 
 /*** WinBox Prototypes ***/
-ULONG wdd_DDrawCreate();
+ULONG wdd_DDrawCreate(ULONG);
 void wdd_DDrawDestroy(void);
 ULONG wdd_InitDDrawStuff(struct windd_data *wdd, UBYTE *cm, ULONG w, ULONG h, ULONG bpp);
 void wdd_KillDDrawStuff(struct windd_data *);
@@ -118,7 +118,7 @@ void wdd_Log(char *string,...);
 struct MinList wdd_IDList;
 struct MinList wdd_DevList;
 
-#define WINDD_NUM_CONFIG_ITEMS (6)
+#define WINDD_NUM_CONFIG_ITEMS (7)
 struct ConfigItem wdd_ConfigItems[WINDD_NUM_CONFIG_ITEMS] = {
     {"gfx.force_soft_cursor",       CONFIG_BOOL, FALSE },
     {"gfx.all_modes",               CONFIG_BOOL, FALSE },
@@ -126,6 +126,7 @@ struct ConfigItem wdd_ConfigItems[WINDD_NUM_CONFIG_ITEMS] = {
     {"gfx.force_alpha_textures",    CONFIG_BOOL, FALSE },
     {"gfx.use_draw_primitive",      CONFIG_BOOL, FALSE },
     {"gfx.disable_lowres",          CONFIG_BOOL, FALSE },
+    {"gfx.export_window_mode",      CONFIG_BOOL, FALSE },
 };
 
 extern unsigned long wdd_ForceAlphaTextures;
@@ -521,6 +522,7 @@ _dispatcher(Object *, wdd_OM_NEW, struct TagItem *attrs)
 **      26-May-98   floh    + disable_lowres Handling
 **      02-Jun-98   floh    + liest AlphaTextureStatus jetzt aus
 **                            einem ENV-File.
+**      12-Jun-98   floh    + "export_window_mode" Keyword.
 */
 {
     struct disp_idnode *idnode = NULL;
@@ -533,6 +535,7 @@ _dispatcher(Object *, wdd_OM_NEW, struct TagItem *attrs)
     struct TagItem *txt_ti;
     ULONG force_alpha_textures;
     ULONG use_draw_primitive;
+    ULONG export_window_mode;
     memset(ti,0,sizeof(ti));
     
     /*** Konfiguration auslesen ***/
@@ -542,9 +545,10 @@ _dispatcher(Object *, wdd_OM_NEW, struct TagItem *attrs)
     _GetConfigItems(NULL,wdd_ConfigItems,WINDD_NUM_CONFIG_ITEMS);
     _NewList((struct List *) &wdd_IDList);
     _NewList((struct List *) &wdd_DevList);
+    export_window_mode     = wdd_ConfigItems[6].data;
 
     /*** DirectDraw Object erzeugen ***/
-    if (!wdd_DDrawCreate()) return(NULL);
+    if (!wdd_DDrawCreate(export_window_mode)) return(NULL);
 
     /*** (I) Attribute abfragen ***/
     id = (ULONG)   _GetTagData(DISPA_DisplayID,0,attrs);
@@ -577,6 +581,7 @@ _dispatcher(Object *, wdd_OM_NEW, struct TagItem *attrs)
     wdd->disablelowres      = wdd_ConfigItems[5].data;
     wdd->forcealphatextures = force_alpha_textures;
     wdd->usedrawprimitive   = use_draw_primitive;
+    wdd->exportwindowmode   = export_window_mode;
     
     /*** Mode-Flags auswerten ***/
     if (idnode->data[0] & WINDDF_IsWindowed)    wdd->flags |= WINDDF_IsWindowed;

@@ -1097,7 +1097,7 @@ int wdd_ModeCompare(const void *elm1, const void *elm2)
 }
 
 /*-----------------------------------------------------------------*/
-unsigned long wdd_DDrawCreate()
+unsigned long wdd_DDrawCreate(unsigned long export_window_mode)
 /*
 **  FUNCTION
 **      Erzeugt DirectDraw und evtl. Direct3D Object,
@@ -1135,6 +1135,8 @@ unsigned long wdd_DDrawCreate()
 **                            externen Files guid3d.def.
 **      18-Mar-98   floh    + Bei AddDisplayMode wird der zur Verfügung
 **                            Display-Mem mit beachtet.
+**      12-Jun-98   floh    + exportiert jetzt nur noch Windowed-Modes,
+**                            wenn <export_window_mode == TRUE> ist
 */
 {
     HRESULT ddrval;
@@ -1339,20 +1341,22 @@ unsigned long wdd_DDrawCreate()
         };
     };
     /*** noch ein paar Windowed-Modes dazu ***/
-    if (wdd_DoDirect3D) {
-        if (wdd_Data.Driver.CanDoWindow) {
-            wdd_AddDisplayMode(320,200,wdd_Data.Desktop.ddpfPixelFormat.dwRGBBitCount,
-                               WINDDF_IsWindowed|WINDDF_IsDirect3D);
-            wdd_Log("dd init: export windowed mode %dx%dx%d\n",320,200,wdd_Data.Desktop.ddpfPixelFormat.dwRGBBitCount);
+    if (export_window_mode) {
+        if (wdd_DoDirect3D) {
+            if (wdd_Data.Driver.CanDoWindow) {
+                wdd_AddDisplayMode(320,200,wdd_Data.Desktop.ddpfPixelFormat.dwRGBBitCount,
+                                   WINDDF_IsWindowed|WINDDF_IsDirect3D);
+                wdd_Log("dd init: export windowed mode %dx%dx%d\n",320,200,wdd_Data.Desktop.ddpfPixelFormat.dwRGBBitCount);
 
-        };
-    } else {
-        if (wdd_Data.Desktop.ddpfPixelFormat.dwRGBBitCount == 8) {
-            wdd_AddDisplayMode(320,200,8,WINDDF_IsWindowed|WINDDF_IsSysMem);
-            wdd_Log("dd init: export windowed mode %dx%dx%d\n",320,200,wdd_Data.Desktop.ddpfPixelFormat.dwRGBBitCount);
+            };
+        } else {
+            if (wdd_Data.Desktop.ddpfPixelFormat.dwRGBBitCount == 8) {
+                wdd_AddDisplayMode(320,200,8,WINDDF_IsWindowed|WINDDF_IsSysMem);
+                wdd_Log("dd init: export windowed mode %dx%dx%d\n",320,200,wdd_Data.Desktop.ddpfPixelFormat.dwRGBBitCount);
+            };
         };
     };
-
+    
     /*** Der Rest wird in wdd_InitDDDrawStuff erledigt ***/
     wdd_Log("dd/d3d init: wdd_DDrawCreate() left\n");
     return(TRUE);

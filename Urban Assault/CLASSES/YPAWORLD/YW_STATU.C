@@ -788,6 +788,22 @@ int yw_SRBlgCompareHook(const void *elm1, const void *elm2)
     else return(0);
 }
 
+/*-----------------------------------------------------------------*/
+int yw_SRCmdrCompareHook(struct Bacterium **p_b1, struct Bacterium **p_b2)
+/*
+**  FUNCTION
+**      Sortiert Commander im CmdrRemap-Array
+**
+**  CHANGED
+**      12-Jun-98   floh    created
+*/
+{
+    struct Bacterium *b1 = *p_b1;
+    struct Bacterium *b2 = *p_b2;
+    LONG val1 = (LONG) b1->CommandID;
+    LONG val2 = (LONG) b2->CommandID;
+    return(val1-val2);
+}
 
 /*-----------------------------------------------------------------*/
 void yw_RemapVehicles(struct ypaworld_data *ywd)
@@ -971,6 +987,8 @@ void yw_RemapCommanders(struct ypaworld_data *ywd)
 **                            nur noch NumSlaves. St¸rzte bei mehr als
 **                            256 Fahrzeugen im Geschwader ab.
 **      20-May-98   floh    + fuellt jetzt auch den LastMessageSender aus
+**      12-Jun-98   floh    + wird jetzt sortiert
+**                          + ACTION_BEAM wird rausgefiltert
 */
 {
     struct MinList *l;
@@ -981,7 +999,8 @@ void yw_RemapCommanders(struct ypaworld_data *ywd)
     if (l = ywd->URSlaves) {
         for (nd=l->mlh_TailPred; nd->mln_Pred; nd=nd->mln_Pred) {
             struct Bacterium *b = ((struct OBNode *)nd)->bact;
-            if ((b->MainState   != ACTION_DEAD) &&
+            if ((b->MainState   != ACTION_DEAD)   &&
+                (b->MainState   != ACTION_BEAM)   &&
                 (b->BactClassID != BCLID_YPAGUN))
             {
                 ywd->CmdrRemap[num_cmds++] = b;
@@ -989,6 +1008,9 @@ void yw_RemapCommanders(struct ypaworld_data *ywd)
         };
     };
     ywd->NumCmdrs = num_cmds;
+    
+    /*** sortieren ***/    
+    qsort(ywd->CmdrRemap, ywd->NumCmdrs, sizeof(ywd->CmdrRemap[0]), yw_SRCmdrCompareHook);
 
     /*** ywd->ActCmdID validieren ***/
     if (num_cmds==0) {
@@ -997,7 +1019,7 @@ void yw_RemapCommanders(struct ypaworld_data *ywd)
         ywd->ActCmdr  = -1;
     } else {
         if (ywd->ActCmdID==0) {
-            /*** ActCmdID ung¸ltig, im New/Add-Mode neuestes Squad ausw‰hlen ***/
+            /*** ActCmdID ungueltig, im New/Add-Mode neuestes Squad auswaehlen ***/
             if (SR.ActiveMode & (STAT_MODEF_NEW|STAT_MODEF_ADD)) {
                 ywd->ActCmdID = ywd->CmdrRemap[num_cmds-1]->CommandID;
                 ywd->ActCmdr  = num_cmds-1;
@@ -2572,6 +2594,70 @@ Object *yw_SRNextUnit(struct ypaworld_data *ywd)
 }
 
 /*-----------------------------------------------------------------*/
+Object *yw_GetDefaultCmdr(struct ypaworld_data *ywd)
+/*
+**  FUNCTION
+**      Falls ActCmdr existiert, wird dieser zurueckgegeben,
+**      sonst falls Geschwader existieren, der 1.Commander,
+**      sonst der User-Robo.
+**
+**  CHANGED
+**      12-Jun-98   floh    created
+*/
+{
+    if (ywd->ActCmdr != -1)     return(ywd->CmdrRemap[ywd->ActCmdr]->BactObject);
+    else if (ywd->NumCmdrs > 0) return(ywd->CmdrRemap[0]->BactObject);
+    else                        return(ywd->UserRobo);
+}
+
+/*-----------------------------------------------------------------*/
+Object *yw_GetCmdrByCmdID(struct ypaworld_data *ywd, ULONG cmd_id)
+/*
+**  FUNCTION
+**      Returniert den Commander zur CommandID, oder den
+**      Default-Cmdr, wenn das Squad nicht mehr ex.
+**
+**  CHANGED
+**      12-Jun-98   floh    created
+*/
+{
+    ULONG i;
+    Object *cmdr = NULL;
+    for (i=0; i<ywd->NumCmdrs; i++) {
+        if (ywd->CmdrRemap[i]->CommandID == cmd_id) {
+            /*** Treffer... ***/
+            return(ywd->CmdrRemap[i]->BactObject);
+        };
+    };
+    /*** ooops, Geschwader gibts nicht (mehr), ausgewaehltes nehmen ***/
+    return(yw_GetDefaultCmdr(ywd));
+}
+
+/*-----------------------------------------------------------------*/
+Object *yw_GetNextCmdrByCmdID(struct ypaworld_data *ywd, ULONG cmd_id)
+/*
+**  FUNCTION
+**      Returniert den folgenden Commander zur CommandID, oder den
+**      Default-Cmdr, wenn das Squad nicht mehr ex.
+**
+**  CHANGED
+**      12-Jun-98   floh    created
+*/
+{
+    ULONG i;
+    Object *cmdr = NULL;
+    for (i=0; i<ywd->NumCmdrs; i++) {
+        if (ywd->CmdrRemap[i]->CommandID == cmd_id) {
+            /*** Treffer... den naechsten nehmen ***/
+            if ((i+1) < ywd->NumCmdrs) return(ywd->CmdrRemap[i+1]->BactObject);
+            else                       return(ywd->CmdrRemap[0]->BactObject);
+        };
+    };
+    /*** ooops, Geschwader gibts nicht (mehr), ausgewaehltes nehmen ***/
+    return(yw_GetDefaultCmdr(ywd));
+}
+
+/*-----------------------------------------------------------------*/
 Object *yw_SRNextCom(struct ypaworld_data *ywd)
 /*
 **  FUNCTION
@@ -2585,94 +2671,29 @@ Object *yw_SRNextCom(struct ypaworld_data *ywd)
 **                            ACTION_BEAM-Zustand
 **      29-Jan-98   floh    + beachtet jetzt auch den Sonderfall
 **                            Unit ist tot...
+**      12-Jun-98   floh    + arbeitet jetzt ausschliesslich mit dem
+**                            CmdrRemap-Array
 */
 {
     struct MinNode *nd;
     Object *new_viewer = NULL;
 
     if ((ywd->UserRobo == ywd->UserVehicle) || (ywd->UserSitsInRoboFlak)) {
-
         /*** Sonderfall User sitzt im Robo, oder in Roboflak ***/
-        if (ywd->ActCmdr != -1) {
-            new_viewer = ywd->CmdrRemap[ywd->ActCmdr]->BactObject;
-            return(new_viewer);
-        } else {
-            /*** Fallback, kein ausgew‰hltes Squad ***/
-            nd = (struct MinNode *) ywd->URSlaves;
-        };
-
+        new_viewer = yw_GetDefaultCmdr(ywd);
     } else {
-
         /*** User sitzt in einem Vehikel ***/
         if (ACTION_DEAD == ywd->UVBact->MainState) {
-
             /*** Sonderfall totes Vehikel  ***/
-            ULONG cmd_id = ywd->UserVehicleCmdId;
-            ULONG i;
-            for (i=0; i<ywd->NumCmdrs; i++) {
-                if (ywd->CmdrRemap[i]->CommandID == cmd_id) {
-                    /*** Treffer... ***/
-                    new_viewer = ywd->CmdrRemap[i]->BactObject;
-                    return(new_viewer);
-                };
-            };
-            /*** ooops, Geschwader gibts nicht (mehr), ausgew‰hltes nehmen ***/
-            if (ywd->ActCmdr != -1) {
-                new_viewer = ywd->CmdrRemap[ywd->ActCmdr]->BactObject;
-                return(new_viewer);
-            } else {
-                nd = (struct MinNode *) ywd->URSlaves;
-            };
-
+            new_viewer = yw_GetCmdrByCmdID(ywd,ywd->UserVehicleCmdId);
         } else {
-
             /*** Vehikel lebt noch ***/
             if (ywd->UVBact->BactClassID == BCLID_YPAGUN){
-                /*** eine Flakstation -> nach ausgew‰hltem Squad! ***/
-                if (ywd->ActCmdr != -1){
-                    new_viewer = ywd->CmdrRemap[ywd->ActCmdr]->BactObject;
-                    return(new_viewer);
-                }else{
-                    nd = (struct MinNode *) ywd->URSlaves;
-                };
-            }else if (ywd->UVBact->master == ywd->UVBact->robo){
-
-                /*** ein "normaler" Commander ***/
-                nd = (struct MinNode *) &(ywd->UVBact->slave_node);
-
-            }else{
-
-                /*** ein "normaler" Slave ***/
-                Object *commander = ywd->UVBact->master;
-                if (commander > ((Object *)0x10)){
-                    struct Bacterium *b;
-                    _get(commander, YBA_Bacterium, &b);
-                    nd = (struct MinNode *) &(b->slave_node);
-                };
+                new_viewer = yw_GetDefaultCmdr(ywd);
+            } else { 
+                /*** ein "normaler" Commander oder Vehikel ***/
+                new_viewer = yw_GetNextCmdrByCmdID(ywd,ywd->UserVehicleCmdId);
             };
-        };
-    };
-
-    /*** das n‰chste g¸ltige Element in dieser Liste ***/
-    while ((nd = nd->mln_Succ)->mln_Succ) {
-        struct Bacterium *b = ((struct OBNode *)nd)->bact;
-        if ((ACTION_CREATE != b->MainState) &&
-            (ACTION_DEAD   != b->MainState) &&
-            (ACTION_BEAM   != b->MainState) &&
-            (BCLID_YPAGUN  != b->BactClassID))
-        {
-            new_viewer = b->BactObject;
-            break;
-        };
-    };
-
-    /*** Ende der Liste erreicht, wieder an Anfang zur¸ck ***/
-    if (!new_viewer) {
-        if (ywd->NumCmdrs > 0) {
-            new_viewer = ywd->CmdrRemap[ywd->NumCmdrs-1]->BactObject;
-        } else {
-            /*** can't happen (normalerweise) ***/
-            new_viewer = ywd->UserRobo;
         };
     };
 
@@ -2856,9 +2877,6 @@ void yw_ChangeViewer(struct ypaworld_data *ywd,
             _set(act_viewer, YBA_UserInput, FALSE);
             _set(new_viewer, YBA_Viewer, TRUE);
             _set(new_viewer, YBA_UserInput, TRUE);
-
-            /*** Window-Handling ***/
-            yw_SRHandleVehicleSwitch(ywd,act_vb,new_vb);
 
             /*** falls Submenu auf -> schlieﬂen ***/
             if (!(SubMenu.Req.flags & REQF_Closed)) yw_CloseReq(ywd,&(SubMenu.Req));
