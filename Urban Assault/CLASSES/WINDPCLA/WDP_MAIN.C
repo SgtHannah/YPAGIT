@@ -64,11 +64,13 @@ extern void wdp_FreeWinStuff( struct windp_data *wdp);
 extern unsigned long wdp_GetNumPlayers( void *wdata );
 extern unsigned long wdp_SetGuaranteedMode( void *wdata, unsigned long data );
 extern unsigned long wdp_SetVersionCheck(   void *wdata, BOOL data );
+extern void wdp_SetDebug ( void *wdata, BOOL data );
 
-#define WINDP_NUM_CONFIG_ITEMS (2)
+#define WINDP_NUM_CONFIG_ITEMS (3)
 struct ConfigItem wdp_ConfigItems[WINDP_NUM_CONFIG_ITEMS] = {
     {"net.gmode",        CONFIG_INTEGER, 0},
     {"net.versioncheck", CONFIG_BOOL,    TRUE},
+    {"game.debug",       CONFIG_BOOL,    FALSE}
 };
 
 /*-------------------------------------------------------------------
@@ -207,6 +209,7 @@ _dispatcher(Object *, wdp_OM_NEW, struct TagItem *attrs)
     _GetConfigItems(NULL,wdp_ConfigItems,WINDP_NUM_CONFIG_ITEMS);
     wdp_SetGuaranteedMode( wdp->win_data, wdp_ConfigItems[0].data );
     wdp_SetVersionCheck( wdp->win_data,   wdp_ConfigItems[1].data );
+    wdp_SetDebug( wdp->win_data,          wdp_ConfigItems[2].data );
 
     /*** wow, das war's schon ***/
     return(newo);
