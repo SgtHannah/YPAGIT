@@ -767,8 +767,9 @@ static UBYTE *ypa_GetStr(UBYTE **loc, ULONG id, UBYTE *def)
 #define STR_YPAERROR_KICKOFF_PLAYER2    (2428)
 #define STR_YPAERROR_WAITINGFORPLAYER1  (2429)
 #define STR_YPAERROR_WAITINGFORPLAYER2  (2430)
-#define STR_SGADGET_SAVED3D             (2431)
-#define STR_SGADGET_D3DMODUS            (2432)
+#define STR_VGADGET_16BITTEXTURE        (2431)
+#define STR_VGADGET_DRAWPRIMITIVE       (2432)
+
 
 /*** Anpassen! ***/
 #define STR_LAST_ITEM           (2600) 
