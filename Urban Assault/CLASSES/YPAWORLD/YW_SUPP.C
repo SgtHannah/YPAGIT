@@ -246,6 +246,20 @@ _dispatcher(void, yw_YWM_ADDCOMMANDER, Object *commander)
     _methoda(commander, YBM_NEWMASTER, &nw_msg);
 }
 
+BOOL yw_IsVisible( struct ypaworld_data *ywd, struct Bacterium *b, struct Bacterium *Viewer )
+{
+    /*** testet, ob b im Umfeld von Viewer und damit sichtbar ist ***/
+    LONG dx = Viewer->SectX - b->SectX;
+    LONG dy = Viewer->SectY - b->SectY;
+    dx = (dx < 0) ? -dx:dx;
+    dy = (dy < 0) ? -dy:dy;
+    if ((dx+dy) <= ((ywd->VisSectors-1)>>1)) 
+        return(TRUE);
+    else
+        return(FALSE);
+}        
+
+
 /*-----------------------------------------------------------------*/
 _dispatcher(ULONG, yw_YWM_ISVISIBLE, struct Bacterium *b)
 /*
@@ -261,14 +275,46 @@ _dispatcher(ULONG, yw_YWM_ISVISIBLE, struct Bacterium *b)
 */
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
+    struct OBNode *robo;
     ULONG retval = FALSE;
     if (ywd->Viewer) {
-        LONG dx = ywd->Viewer->SectX - b->SectX;
-        LONG dy = ywd->Viewer->SectY - b->SectY;
-        dx = (dx < 0) ? -dx:dx;
-        dy = (dy < 0) ? -dy:dy;
-        if ((dx+dy) <= ((ywd->VisSectors-1)>>1)) return(TRUE);
+        if( yw_IsVisible( ywd, b, ywd->Viewer ) ) return( TRUE );
     };
+    
+    /* -----------------------------------------------------------
+    ** Weiterhin kann es im Netzwerkspiel passieren, dass wir auf
+    ** einer Schattenmaschine sichtbar sind. Die einzige Info dazu
+    ** ist das EXTRA_ISVIEWER-feld. Somit muessen wir mal die
+    ** Commandlist durchgehen und testen....
+    ** ---------------------------------------------------------*/
+    robo = (struct OBNode *) ywd->CmdList.mlh_Head;
+    while( robo->nd.mln_Succ ) {
+        struct OBNode *com; 
+        
+        if( robo->bact->ExtraState & EXTRA_ISVIEWER )
+            if( yw_IsVisible( ywd, b, robo->bact )) return( TRUE );
+        
+        com = (struct OBNode *) robo->bact->slave_list.mlh_Head;
+        while( com->nd.mln_Succ ) {
+            struct OBNode *slave;
+            
+            if( com->bact->ExtraState & EXTRA_ISVIEWER )
+                if( yw_IsVisible( ywd, b, com->bact )) return( TRUE );
+                
+            slave = (struct OBNode *) com->bact->slave_list.mlh_Head;
+            while( slave->nd.mln_Succ ) {
+            
+                if( slave->bact->ExtraState & EXTRA_ISVIEWER )
+                    if( yw_IsVisible( ywd, b, slave->bact )) return( TRUE );
+                slave = (struct OBNode *) slave->nd.mln_Succ;
+                }
+                
+            com = (struct OBNode *) com->nd.mln_Succ;
+            }
+            
+        robo = (struct OBNode *) robo->nd.mln_Succ;
+        }
+            
     return(retval);
 }
 
