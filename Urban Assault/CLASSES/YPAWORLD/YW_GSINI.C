@@ -4193,35 +4193,35 @@ void yw_InitKeyTable( struct ypaworld_data *ywd )
 
     GlobalKeyTable[WINP_CODE_JB0].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_JB0,"JOYB0");
     GlobalKeyTable[WINP_CODE_JB0].ascii  = 0;
-    GlobalKeyTable[WINP_CODE_JB0].config = "joy_b0";
+    GlobalKeyTable[WINP_CODE_JB0].config = "joyb0";
 
     GlobalKeyTable[WINP_CODE_JB1].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_JB1,"JOYB1");
     GlobalKeyTable[WINP_CODE_JB1].ascii  = 0;
-    GlobalKeyTable[WINP_CODE_JB1].config = "joy_b1";
+    GlobalKeyTable[WINP_CODE_JB1].config = "joyb1";
 
     GlobalKeyTable[WINP_CODE_JB2].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_JB2,"JOYB2");
     GlobalKeyTable[WINP_CODE_JB2].ascii  = 0;
-    GlobalKeyTable[WINP_CODE_JB2].config = "joy_b2";
+    GlobalKeyTable[WINP_CODE_JB2].config = "joyb2";
 
     GlobalKeyTable[WINP_CODE_JB3].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_JB3,"JOYB3");
     GlobalKeyTable[WINP_CODE_JB3].ascii  = 0;
-    GlobalKeyTable[WINP_CODE_JB3].config = "joy_b3";
+    GlobalKeyTable[WINP_CODE_JB3].config = "joyb3";
 
     GlobalKeyTable[WINP_CODE_JB4].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_JB4,"JOYB4");
     GlobalKeyTable[WINP_CODE_JB4].ascii  = 0;
-    GlobalKeyTable[WINP_CODE_JB4].config = "joy_b4";
+    GlobalKeyTable[WINP_CODE_JB4].config = "joyb4";
 
     GlobalKeyTable[WINP_CODE_JB5].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_JB5,"JOYB5");
     GlobalKeyTable[WINP_CODE_JB5].ascii  = 0;
-    GlobalKeyTable[WINP_CODE_JB5].config = "joy_b5";
+    GlobalKeyTable[WINP_CODE_JB5].config = "joyb5";
 
     GlobalKeyTable[WINP_CODE_JB6].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_JB6,"JOYB6");
     GlobalKeyTable[WINP_CODE_JB6].ascii  = 0;
-    GlobalKeyTable[WINP_CODE_JB6].config = "joy_b6";
+    GlobalKeyTable[WINP_CODE_JB6].config = "joyb6";
 
     GlobalKeyTable[WINP_CODE_JB7].name   = ypa_GetStr(ywd->LocHandle,STR_KEY_JB7,"JOYB7");
     GlobalKeyTable[WINP_CODE_JB7].ascii  = 0;
-    GlobalKeyTable[WINP_CODE_JB7].config = "joy_b7";
+    GlobalKeyTable[WINP_CODE_JB7].config = "joyb7";
 ///
 
 }
