@@ -293,6 +293,16 @@ _dispatcher(BOOL, yb_YBM_FINDPATH, struct findpath_msg *fpath)
                     if( fabs( standing_sector->Height - sector->Height ) >=
                         SPV_WallHeight )
                         continue;
+                        
+                    /*** verbotener sektor (kompakt und extra koll.skeleton) ***/
+                    if( (SECTYPE_COMPACT == sector->SType) &&
+                        (sector != to_sector) ) {
+                    
+                        int nr;
+                        if( (nr = GET_LEGONUM( ywd, sector, 0, 0 )) &&
+                            (ywd->Legos[nr].altsklt != ywd->Legos[nr].colsklt) )
+                            continue;
+                        }
 
                     /* --------------------------------------------------
                     ** kritische Diagonale? Kritisch ist es genau dann,
