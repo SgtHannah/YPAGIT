@@ -84,15 +84,6 @@ struct __dbscore_qsort_struct {
     LONG score;
 };
 
-/*** Scoring Punkte ***/
-#define SCORE_AIAIKILL      (10)
-#define SCORE_USERAIKILL    (20)
-#define SCORE_USERUSERKILL  (200)
-#define SCORE_SECTOR        (1)
-#define SCORE_POWERSTATION  (100)
-#define SCORE_TECHUPGRADE   (500)
-#define SCORE_HOSTKILL      (1000)
-
 /*-----------------------------------------------------------------*/
 ULONG yw_DebriefingMapParser(struct ScriptParser *p)
 /*
@@ -492,8 +483,8 @@ void yw_DBMapDone(struct ypaworld_data *ywd,
 }
 
 /*-----------------------------------------------------------------*/
-void yw_DBScore(struct ypaworld_data *ywd, UBYTE *inst,
-                struct ypa_PlayerStats *stat)
+void yw_Score(struct ypaworld_data *ywd, UBYTE *inst,
+              struct ypa_PlayerStats *stat)
 /*
 **  FUNCTION
 **      Updated <stats> je nach <inst>.
@@ -562,13 +553,8 @@ void yw_DBScore(struct ypaworld_data *ywd, UBYTE *inst,
             {
                 struct ypa_HistTechUpgrade *hcs_inst = (struct ypa_HistTechUpgrade *) inst;
                 ULONG new_owner = hcs_inst->new_owner;
-                ULONG old_owner = hcs_inst->old_owner;
                 stat[new_owner].Techs++;
                 stat[new_owner].Score += SCORE_TECHUPGRADE;
-                if (ywd->WasNetworkSession) {
-                    stat[old_owner].Techs--;
-                    stat[old_owner].Score -= SCORE_TECHUPGRADE;
-                };
                 _LogMsg("-> Tech upgrade scored for %d.\n",new_owner);
             };
             break;
@@ -698,7 +684,7 @@ void yw_DBHandleConSec(struct ypaworld_data *ywd,
     /*** Sektor in die Ownermap eintragen und Score hochzählen ***/
     own_map[mb->OwnMapBmp->Width * sec_y + sec_x] = owner;
     if (scan_time == mb->ActFrameTimeStamp) {
-        yw_DBScore(ywd, (UBYTE *) act_inst, mb->LocalStats);
+        yw_Score(ywd, (UBYTE *) act_inst, mb->LocalStats);
         if (ywd->gsr) {
             _StartSoundSource(&(ywd->gsr->ShellSound1),SHELLSOUND_SECTORCONQUERED);
         };
@@ -749,7 +735,7 @@ void yw_DBHandleVhclKill(struct ypaworld_data *ywd,
 
     /*** Score updaten ***/
     if (scan_time == mb->ActFrameTimeStamp) {
-        yw_DBScore(ywd, (UBYTE *) act_inst, mb->LocalStats);
+        yw_Score(ywd, (UBYTE *) act_inst, mb->LocalStats);
         if (ywd->gsr) {
             _StartSoundSource(&(ywd->gsr->ShellSound1),SHELLSOUND_VHCLDESTROYED);
         };
@@ -854,7 +840,7 @@ void yw_DBHandlePowerStation(struct ypaworld_data *ywd,
 {
     /*** Score updaten ***/
     if (scan_time == mb->ActFrameTimeStamp) {
-        yw_DBScore(ywd, (UBYTE *) act_inst, mb->LocalStats);
+        yw_Score(ywd, (UBYTE *) act_inst, mb->LocalStats);
         if (ywd->gsr) {
             _StartSoundSource(&(ywd->gsr->ShellSound1),SHELLSOUND_BLDGCONQUERED);
         };
@@ -917,7 +903,7 @@ void yw_DBHandleTechUpgrade(struct ypaworld_data *ywd,
 {
     /*** Score updaten ***/
     if (scan_time == mb->ActFrameTimeStamp) {
-        yw_DBScore(ywd, (UBYTE *) act_inst, mb->LocalStats);
+        yw_Score(ywd, (UBYTE *) act_inst, mb->LocalStats);
         yw_DBRegisterTechupgrade(ywd,mb,act_inst);
         if (ywd->gsr) {
             _StartSoundSource(&(ywd->gsr->ShellSound1),SHELLSOUND_BLDGCONQUERED);
@@ -1765,27 +1751,27 @@ void yw_DBDoGlobalScore(struct ypaworld_data *ywd)
 
                     case YPAHIST_CONSEC:
                         size = sizeof(struct ypa_HistConSec);
-                        yw_DBScore(ywd,act_inst,ywd->GlobalStats);
+                        yw_Score(ywd,act_inst,ywd->GlobalStats);
                         break;
 
                     case YPAHIST_VHCLKILL:
                         size  = sizeof(struct ypa_HistVhclKill);
-                        yw_DBScore(ywd,act_inst,ywd->GlobalStats);
+                        yw_Score(ywd,act_inst,ywd->GlobalStats);
                         break;
 
                     case YPAHIST_VHCLCREATE:
                         size = sizeof(struct ypa_HistVhclCreate);
-                        yw_DBScore(ywd,act_inst,ywd->GlobalStats);
+                        yw_Score(ywd,act_inst,ywd->GlobalStats);
                         break;
 
                     case YPAHIST_POWERSTATION:
                         size = sizeof(struct ypa_HistConSec);
-                        yw_DBScore(ywd,act_inst,ywd->GlobalStats);
+                        yw_Score(ywd,act_inst,ywd->GlobalStats);
                         break;
 
                     case YPAHIST_TECHUPGRADE:
                         size = sizeof(struct ypa_HistTechUpgrade);
-                        yw_DBScore(ywd,act_inst,ywd->GlobalStats);
+                        yw_Score(ywd,act_inst,ywd->GlobalStats);
                         break;
                 };
                 act_inst += size;

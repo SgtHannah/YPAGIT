@@ -2198,6 +2198,7 @@ struct ypaworld_data {
 
     /*** globale Playerstats -> beim Userladen rücksetzen ***/
     struct ypa_PlayerStats GlobalStats[MAXNUM_ROBOS];
+    struct ypa_PlayerStats IngameStats[MAXNUM_ROBOS];
     LONG MaxRoboEnergy;     // die höchste Energie, die ein UserRobo hatte (bereits geviertelt!)
     LONG MaxReloadConst;    // die daran gekoppelte ReloadConst 
 

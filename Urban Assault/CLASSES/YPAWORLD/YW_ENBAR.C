@@ -235,9 +235,9 @@ UBYTE *yw_EBPutReloadBar(struct ypaworld_data *ywd,
     if (load_stat < 0) {
         sprintf(str_buf,"%d",-abs_real_load);
     } else {
-        // FIXME: bis die neuen LTracy-Zeichen kommen...
-        if ((abs_real_load == 0) || (reload_rel >= 1.0)) sprintf(str_buf,"%d",abs_real_load);
-        else                                             sprintf(str_buf,"%d/%d%%",abs_real_load,(int)(reload_rel*100));
+        if (abs_real_load == 0)     sprintf(str_buf,"%d",abs_real_load);
+        else if (reload_rel >= 1.0) sprintf(str_buf,"+%d",abs_real_load);
+        else                        sprintf(str_buf,"+%d   (%d%%)",abs_real_load,(int)(reload_rel*100));
     };
     overlay_text = str_buf;    
     str=yw_EBPutBar(ywd,str,xpos,ypos,icon_chr,

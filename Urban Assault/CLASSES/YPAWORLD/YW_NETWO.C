@@ -2863,10 +2863,10 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
                     vkill.owners |= (1<<7); // Killer war ein User
                 };
                 _get(robo->bact->BactObject,YBA_Viewer,&is_user);
-                if (is_user || (dv->ExtraState & EXTRA_ISVIEWER)) {
+                if (is_user || (robo->bact->ExtraState & EXTRA_ISVIEWER)) {
                     vkill.owners |= (1<<6); // Opfer war ein User
                 };
-                vkill.vp = dv->TypeID;
+                vkill.vp = robo->bact->TypeID;
                 if (BCLID_YPAROBO == robo->bact->BactClassID) {
                     vkill.vp |= (1<<15); // Opfer war ein Robo
                 };
@@ -3120,6 +3120,35 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
 
             if( bproto )
                 ywd->BP_Array[ bproto ].FootPrint  = 0;
+                
+            // FIXME FLOH: Wunderstein-History-Message
+            {
+                struct ypa_HistTechUpgrade htu;
+                
+                /*** Techupgrade als HistoryEvent registrieren ***/
+                htu.cmd       = YPAHIST_TECHUPGRADE;
+                htu.sec_x     = gem->sec_x;
+                htu.sec_y     = gem->sec_y;
+                htu.new_owner = owner;
+                switch( ywd->gsr->NPlayerOwner ) {
+                    case 1:  htu.vp_num = gem->nw_vproto_num[0];  htu.bp_num = gem->nw_bproto_num[0];  break;
+                    case 6:  htu.vp_num = gem->nw_vproto_num[1];  htu.bp_num = gem->nw_bproto_num[1];  break;
+                    case 3:  htu.vp_num = gem->nw_vproto_num[2];  htu.bp_num = gem->nw_bproto_num[2];  break;
+                    case 4:  htu.vp_num = gem->nw_vproto_num[3];  htu.bp_num = gem->nw_bproto_num[3];  break;
+                    default: htu.vp_num = 0; htu.bp_num = 0;
+                };
+                htu.wp_num    = 0;
+                switch(gem->type) {
+                    case LOGMSG_TECH_WEAPON:            htu.type = YPAHIST_TECHTYPE_WEAPON; break;
+                    case LOGMSG_TECH_ARMOR:             htu.type = YPAHIST_TECHTYPE_ARMOR;  break;
+                    case LOGMSG_TECH_VEHICLE:           htu.type = YPAHIST_TECHTYPE_VEHICLE; break;
+                    case LOGMSG_TECH_BUILDING:          htu.type = YPAHIST_TECHTYPE_BUILDING; break;
+                    case LOGMSG_TECH_RADAR:             htu.type = YPAHIST_TECHTYPE_RADAR; break;
+                    case LOGMSG_TECH_BUILDANDVEHICLE:   htu.type = YPAHIST_TECHTYPE_BUILDANDVEHICLE; break;
+                    default:                            htu.type = YPAHIST_TECHTYPE_GENERIC; break;
+                };
+                _methoda(ywd->world,YWM_NOTIFYHISTORYEVENT,&htu);
+            };     
 
             /*** Wunderstein wieder einschalten ***/
             if( sec->WType != WTYPE_Wunderstein ) {

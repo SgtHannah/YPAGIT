@@ -339,6 +339,7 @@ BOOL yw_InitHistory(struct ypaworld_data *);
 void yw_KillHistory(struct ypaworld_data *);
 ULONG yw_HistoryParser(struct ScriptParser *);
 BOOL yw_SaveHistory(struct ypaworld_data *, APTR);
+UBYTE *yw_RenderIngameScore(struct ypaworld_data *, UBYTE *, struct ypa_PlayerStats *, ULONG);
 
 /*** yw_debrief.c ***/
 BOOL yw_InitDebriefing(struct ypaworld_data *);
@@ -346,6 +347,7 @@ void yw_KillDebriefing(struct ypaworld_data *);
 void yw_TriggerDebriefing(struct ypaworld_data *,struct GameShellReq *,struct VFMInput *);
 void yw_DBDoGlobalScore(struct ypaworld_data *);
 ULONG yw_DebriefingMapParser(struct ScriptParser *);
+void yw_Score(struct ypaworld_data *, UBYTE *, struct ypa_PlayerStats *);
 
 /*** yw_voiceover.c ***/
 ULONG yw_InitVoiceOverSystem(struct ypaworld_data *);

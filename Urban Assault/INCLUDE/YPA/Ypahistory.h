@@ -24,6 +24,17 @@
 #endif
 
 /*-------------------------------------------------------------------
+**  Definitionen fuer Scoring.
+*/
+#define SCORE_AIAIKILL      (10)
+#define SCORE_USERAIKILL    (20)
+#define SCORE_USERUSERKILL  (200)
+#define SCORE_SECTOR        (1)
+#define SCORE_POWERSTATION  (100)
+#define SCORE_TECHUPGRADE   (500)
+#define SCORE_HOSTKILL      (1000)
+
+/*-------------------------------------------------------------------
 **  Die History-Struktur hält Statusinformationen und eine Liste
 **  von History-Puffern, welche mit Hilfe der Methode YWM_NOTIFYEVENT
 **  gefüllt wird. Das Debriefing wertet diese History-Informationen
@@ -77,9 +88,9 @@ struct ypa_HistTechUpgrade {
     UBYTE cmd;              // YPAHIST_TECHUPGRADE
     UBYTE sec_x;
     UBYTE sec_y;
-    UBYTE old_owner;
     UBYTE new_owner;
     UBYTE type;             // siehe unten
+    UBYTE pad;
     WORD  vp_num;           // Prototype-Nummer des betroffenen Vehicles
     WORD  wp_num;
     WORD  bp_num;

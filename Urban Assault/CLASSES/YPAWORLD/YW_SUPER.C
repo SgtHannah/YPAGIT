@@ -658,6 +658,8 @@ void yw_RenderSuperItemStatus(struct ypaworld_data *ywd)
 **      16-Feb-98   floh    + Name lokalisiert
 **      03-Apr-98   floh    + Countdown sollte jetzt korrekt angezeigt
 **                            werden
+**      27-May-98   floh    + handelt jetzt auch das Multiplayer-Score
+**                            Rendering ab.
 */
 {
     ULONG i;
@@ -666,13 +668,14 @@ void yw_RenderSuperItemStatus(struct ypaworld_data *ywd)
     WORD xpos,ypos;
     struct rast_text rt;
 
-    /*** gibts überhaupt Super-Items? ***/
-    if (ywd->Level->NumItems == 0) return;
-
     xpos = (ywd->DspXRes*2)/3;
     new_font(str,FONTID_TRACY);
-    ypos_brel(str,EB.bar_height + (ywd->FontH>>1));
+    pos_brel(str,xpos,EB.bar_height + (ywd->FontH>>1));
+    
+    /*** Ingame-Score rendern ***/    
+    str = yw_RenderIngameScore(ywd,str,&(ywd->IngameStats),(ywd->DspXRes-xpos));
 
+    /*** Superitem-Status ***/
     for (i=0; i<ywd->Level->NumItems; i++) {
         struct SuperItem *item = &(ywd->Level->Item[i]);
         if (item->type != SI_TYPE_NONE) {

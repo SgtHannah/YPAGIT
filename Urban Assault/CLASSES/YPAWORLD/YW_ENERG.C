@@ -1051,7 +1051,6 @@ _dispatcher(void, yw_YWM_MODSECTORENERGY, struct energymod_msg *msg)
             ULONG old_lego;
             ULONG new_lego;
             LONG lego_adder;
-            ULONG old_owner;
 
             /*** Array Index ermitteln ***/
             if (sec->SType == SECTYPE_COMPACT) {
@@ -1090,7 +1089,6 @@ _dispatcher(void, yw_YWM_MODSECTORENERGY, struct energymod_msg *msg)
             yw_CheckUnderAttack(ywd, sec, msg);            
 
             /*** neuer Owner? ***/
-            old_owner = sec->Owner;
             yw_CheckSector(ywd, sec, secx, secy, msg->owner, msg);
 
             /*** Wunderstein erobert??? ***/
@@ -1105,7 +1103,6 @@ _dispatcher(void, yw_YWM_MODSECTORENERGY, struct energymod_msg *msg)
                     htu.cmd       = YPAHIST_TECHUPGRADE;
                     htu.sec_x     = secx;
                     htu.sec_y     = secy;
-                    htu.old_owner = old_owner;
                     htu.new_owner = sec->Owner;
                     htu.vp_num    = ywd->touch_stone.vp_num;
                     htu.wp_num    = ywd->touch_stone.wp_num;
@@ -1271,7 +1268,6 @@ _dispatcher(void, yw_YWM_NOTIFYDEADROBO, struct notifydeadrobo_msg *msg)
                     htu.cmd       = YPAHIST_TECHUPGRADE;
                     htu.sec_x     = sec_x;
                     htu.sec_y     = sec_y;
-                    htu.old_owner = 0;
                     htu.new_owner = sec->Owner;
                     htu.vp_num    = ywd->touch_stone.vp_num;
                     htu.wp_num    = ywd->touch_stone.wp_num;

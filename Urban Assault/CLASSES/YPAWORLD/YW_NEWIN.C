@@ -2183,6 +2183,7 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
 **                            den Font neu
 **      16-May-98   floh    + nucleus.ini Auswertung
 **      22-May-98   floh    + ywd->FireDown Initialisierung
+**      27-May-98   floh    + Ingame-Stats werden zurueckgesetzt.
 */
 {
     BOOL retval = FALSE;
@@ -2194,6 +2195,7 @@ BOOL yw_CommonLevelInit(struct ypaworld_data *ywd,
 
     /*** allgemeine Initialisierung ***/
     memset(ld,0,sizeof(struct LevelDesc));
+    memset(&(ywd->IngameStats),0,sizeof(struct ypa_PlayerStats));
     ywd->TimeStamp            = 0;
     ywd->UserInRoboTimeStamp  = 0;
     ywd->EnemySectorTimeStamp = 0;

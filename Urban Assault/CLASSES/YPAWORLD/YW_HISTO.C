@@ -21,6 +21,11 @@
 
 #include "yw_protos.h"
 
+struct __score_qsort_struct {
+    LONG owner;
+    LONG score;
+};
+
 /*-----------------------------------------------------------------*/
 _extern_use_nucleus
 
@@ -135,6 +140,7 @@ BOOL yw_AddHistoryEvent(struct ypaworld_data *ywd,
 **
 **  CHANGED
 **      25-Aug-97   floh    created
+**      26-May-98   floh    + Scoring
 */
 {
     UBYTE type = *event;
@@ -182,6 +188,9 @@ BOOL yw_AddHistoryEvent(struct ypaworld_data *ywd,
         memcpy(hhead->inst_ptr,event,size);
         hhead->inst_ptr += size;
     };
+    
+    /*** Ingame Scoring ***/
+    yw_Score(ywd, event, &(ywd->IngameStats));
 
     /*** Ende ***/
 }
@@ -367,5 +376,101 @@ ULONG yw_HistoryParser(struct ScriptParser *p)
 
     /*** can't happen ***/
     return(PARSE_UNKNOWN_KEYWORD);
+}
+
+/*-----------------------------------------------------------------*/
+int __score_qsort_hook(struct __score_qsort_struct *elm1,
+                       struct __score_qsort_struct *elm2)
+{
+    return(elm2->score-elm1->score);
+}
+
+/*-----------------------------------------------------------------*/
+UBYTE *yw_RenderIngameScore(struct ypaworld_data *ywd,
+                            UBYTE *str,
+                            struct ypa_PlayerStats *stats,
+                            ULONG w)
+/*
+**  CHANGED
+**      26-May-98   floh    created
+*/
+{
+    if (ywd->playing_network) {
+    
+        struct __score_qsort_struct score_array[MAXNUM_OWNERS];
+        ULONG i,num_owners;    
+
+        /*** initialisiere und sortiere Owner-Array ***/    
+        num_owners=0;
+        for (i=0; i<MAXNUM_OWNERS; i++) {
+            if (ywd->Level->OwnerMask & (1<<i)) {
+                score_array[num_owners].owner=i;
+                score_array[num_owners].score=stats[i].Score;
+                num_owners++;
+            };
+        };
+        qsort(score_array,num_owners,sizeof(struct __score_qsort_struct),__score_qsort_hook);
+        
+        /*** layoute jede Zeile ***/
+        for (i=0; i<num_owners; i++) {
+            UBYTE *name;
+            ULONG c_index;
+            struct ypa_ColumnItem col[2];
+            UBYTE buf_0[32];
+            switch(score_array[i].owner) {
+                case 1:
+                    c_index = YPACOLOR_OWNER_1;
+                    name = ypa_GetStr(ywd->LocHandle,STR_RACE_RESISTANCE,"RESISTANCE");
+                    break;
+                case 2:
+                    c_index = YPACOLOR_OWNER_2;
+                    name = ypa_GetStr(ywd->LocHandle,STR_RACE_SULG,"SULGOGARS");
+                    break;
+                case 3:
+                    c_index = YPACOLOR_OWNER_3;
+                    name = ypa_GetStr(ywd->LocHandle,STR_RACE_MYKO,"MYKONIANS");
+                    break;
+                case 4:
+                    c_index = YPACOLOR_OWNER_4;
+                    name = ypa_GetStr(ywd->LocHandle,STR_RACE_TAER,"TAERKASTEN");
+                    break;
+                case 5:
+                    c_index = YPACOLOR_OWNER_5;
+                    name = ypa_GetStr(ywd->LocHandle,STR_RACE_BLACK,"BLACK SECT");
+                    break;
+                case 6:
+                    c_index = YPACOLOR_OWNER_6;
+                    name = ypa_GetStr(ywd->LocHandle,STR_RACE_KYT,"GHORKOV");
+                    break;
+                default:  
+                    c_index = YPACOLOR_OWNER_7;
+                    name = ypa_GetStr(ywd->LocHandle,STR_RACE_NEUTRAL,"NEUTRAL");
+                    break;
+            };
+            dbcs_color(str,yw_Red(ywd,c_index),yw_Green(ywd,c_index),yw_Blue(ywd,c_index));    
+            
+            /*** Column-Layout initialisieren ***/        
+            col[0].string       = name;
+            col[0].width        = w * 0.5;
+            col[0].font_id      = FONTID_TRACY;
+            col[0].space_chr    = ' ';
+            col[0].prefix_chr   = 0;
+            col[0].postfix_chr  = 0;
+            col[0].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
+             
+            sprintf(buf_0,"%d",stats[score_array[i].owner].Score);         
+            col[1].string       = buf_0;
+            col[1].width        = w * 0.5;
+            col[1].font_id      = FONTID_TRACY;
+            col[1].space_chr    = ' ';
+            col[1].prefix_chr   = 0;
+            col[1].postfix_chr  = 0;
+            col[1].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
+            str = yw_BuildColumnItem(ywd,str,2,col);
+            new_line(str);
+        };
+        new_line(str);
+    };
+    return(str);
 }
 
