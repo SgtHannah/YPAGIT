@@ -242,6 +242,35 @@ void yw_CheckWinStatus(struct ypaworld_data *ywd,
 }
 
 /*-----------------------------------------------------------------*/
+yw_CheckMapStatus(struct ypaworld_data *ywd,
+                  struct YPAWinStatus *win_stat) 
+/*
+**  FUNCTION
+**      Spezieller MapStatus Checker, der auch das
+**      ZipZap-Rechteck testet.
+**
+**  CHANGED
+**      22-Jun-98   floh    created
+*/
+{
+    /*** zuerst der normale Test ***/
+    yw_CheckWinStatus(ywd, win_stat);
+    if (win_stat->IsValid) {
+        /*** Minimax-Rechteck-Test ***/
+        LONG x = ywd->Prefs.RoboMapStatus.Data[3];
+        LONG y = ywd->Prefs.RoboMapStatus.Data[4];
+        LONG w = ywd->Prefs.RoboMapStatus.Data[5];
+        LONG h = ywd->Prefs.RoboMapStatus.Data[6];
+        if ((y < ywd->UpperTabu) ||
+            ((x + w) > ywd->DspXRes) ||
+            ((y + h) > (ywd->DspYRes-ywd->LowerTabu)))
+        {
+            win_stat->IsValid = FALSE;
+        };
+    };
+}  
+
+/*-----------------------------------------------------------------*/
 void yw_OpenSubMenu(struct ypaworld_data *ywd,
                     BOOL immediate,
                     ULONG for_mode)
@@ -416,9 +445,9 @@ BOOL yw_InitStatusReq(Object *o, struct ypaworld_data *ywd)
     };
     
     /*** wuerden die Fenster ins aktuelle Display passen? ***/
-    yw_CheckWinStatus(ywd,&(ywd->Prefs.RoboMapStatus));
+    yw_CheckMapStatus(ywd,&(ywd->Prefs.RoboMapStatus));
     yw_CheckWinStatus(ywd,&(ywd->Prefs.RoboFinderStatus));
-    yw_CheckWinStatus(ywd,&(ywd->Prefs.VhclMapStatus));
+    yw_CheckMapStatus(ywd,&(ywd->Prefs.VhclMapStatus));
     yw_CheckWinStatus(ywd,&(ywd->Prefs.VhclFinderStatus));
     
     /*** spezieller ZipZap-Status-Check fuer die Map ***/
@@ -1019,8 +1048,8 @@ void yw_RemapCommanders(struct ypaworld_data *ywd)
 
     /*** ywd->ActCmdID validieren ***/
     if (num_cmds==0) {
-        /*** kein Geschwader vorhanden ***/
-        ywd->ActCmdID = 0;
+        /*** kein Geschwader vorhanden, ActCmdID ganz lassen, fuer den Fall, ***/
+        /*** dass es wieder auftaucht...                                     ***/
         ywd->ActCmdr  = -1;
     } else {
         if (ywd->ActCmdID==0) {
@@ -1038,9 +1067,9 @@ void yw_RemapCommanders(struct ypaworld_data *ywd)
                     break;
                 };
             };
-            /*** exististiert aktuelles Squad nicht mehr -> invalidieren? ***/
+            /*** exististiert aktuelles Squad nicht mehr -> invalidieren, aber ***/
+            /*** ActCmdID ganz lassen, falls es mal wieder auftaucht           ***/
             if (i==num_cmds) {
-                ywd->ActCmdID = 0;
                 ywd->ActCmdr  = -1;
             };
         };

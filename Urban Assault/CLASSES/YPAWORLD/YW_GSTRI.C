@@ -595,13 +595,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
 
         switch( GSR->input->HotKey ) {
 
-            case HOTKEY_QUIT:
-                sp.modus = SP_NOPUBLISH;
-                _methoda( GSR->Titel, BTM_SWITCHPUBLISH, &sp );
-                GSR->GSA.LastAction  = A_QUIT;
-                _StartSoundSource( &(GSR->ShellSound1), SHELLSOUND_QUIT );
-                break;
-
             case HOTKEY_HELP:
 
                 ywd->Url = ypa_GetStr( GlobalLocaleHandle, STR_HELP_ROOT,

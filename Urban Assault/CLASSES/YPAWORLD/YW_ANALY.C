@@ -350,6 +350,7 @@ ULONG yw_EnemyStationVisible(struct ypaworld_data *ywd)
 **
 **  CHANGED
 **      05-Aug-97   floh    created
+**      22-Jun-98   floh    + macht jetzt ACTION_DEAD Test
 */
 {
     struct MinList *ls = &(ywd->CmdList);
@@ -358,6 +359,7 @@ ULONG yw_EnemyStationVisible(struct ypaworld_data *ywd)
         struct Bacterium *b = ((struct OBNode *)nd)->bact;
         if ((b != ywd->URBact) &&
             (b->BactClassID == BCLID_YPAROBO) &&
+            (b->MainState   != ACTION_DEAD)   &&
             (b->Sector->FootPrint & (1<<ywd->URBact->Owner)))
         {
             return(TRUE);
@@ -718,11 +720,13 @@ void yw_AnalyzeGameState(struct ypaworld_data *ywd)
         str = yw_AdvBeamToStrongestPowerStation(ywd,str);
     } else if (yw_UserSeesEnemyPowerStation(ywd))
         str = yw_AdvConquerEnemyPowerStation(ywd,str);
-    else if (yw_UserCanBuildPowerStation(ywd))
+    else if ((!yw_UserOwnsPowerStation(ywd)) && 
+             yw_UserCanBuildPowerStation(ywd)) 
+    {
         str = yw_AdvBuildPowerStation(ywd,str);
 
     /*** Tech Upgrades ***/
-    else if (yw_UserCanSeeTechUpgrade(ywd))
+    } else if (yw_UserCanSeeTechUpgrade(ywd))
         str = yw_AdvConquerTechUpgrade(ywd,str);
     else if (yw_UserCanSeeBeamGate(ywd))
         str = yw_AdvConquerBeamGate(ywd,str);
