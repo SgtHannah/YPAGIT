@@ -2078,12 +2078,12 @@ struct ypaworld_data {
     FLOAT RoughRatio[MAXNUM_ROBOS];     // Energy-Reload-Ratio-Cache (>1)
 
     struct Bacterium *CmdrRemap[512];    // Remap-Tabelle für GUI
-
     LONG ActCmdID;          // Command-ID des aktuellen Geschwaders
     LONG ActCmdr;           // Index! des aktuellen Commanders, -1 keiner
     LONG NumCmdrs;          // aktuelle Anzahl Untergebener des Player-Robo
     LONG NumSlaves;         // Anzahl Untergebener des ActCmdr
     ULONG LastOccupiedID;   // Bacterium.ident des letzten okkupierten Vehicles
+    struct Bacterium *LastMessageSender;    // fuer 10 Sekunden Sender der letzten Message
 
     /*** Snapshot-, SeqDig-, Scene-Recorder-Data ***/
     ULONG snap_num;         // Nummer des aktuellen Snapshots

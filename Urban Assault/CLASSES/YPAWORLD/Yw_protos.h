@@ -226,6 +226,7 @@ void yw_DbgKill(struct ypaworld_data *);
 void yw_ClipFloatRect(struct rast_rect *);
 ULONG yw_WorldMiscParser(struct ScriptParser *);
 void yw_ParseAssignRegistryKeys(void);
+struct Bacterium *yw_GetLastMessageSender(struct ypaworld_data *);
 
 /*** yw_record.c ***/
 void yw_FreeSequenceData(struct YPASeqData *);

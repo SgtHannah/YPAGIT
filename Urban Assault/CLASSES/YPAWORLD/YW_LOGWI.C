@@ -324,6 +324,9 @@ _dispatcher(void, yw_YWM_LOGMSG, struct logmsg_msg *msg)
 **                          + <lm_numlines> wird initialisiert
 **      22-Sep-97   floh    + Filter für unerlaubte Buchstaben rausgehauen.
 **      24-Sep-97   floh    + yw_StartVoiceOver()
+**      20-May-98   floh    + wenn es sich um eine VoiceOver Only Message
+**                            handelte, klappte das gesamte LastMessage
+**                            Handling nicht.
 */
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
@@ -332,7 +335,16 @@ _dispatcher(void, yw_YWM_LOGMSG, struct logmsg_msg *msg)
     if (msg->code != LOGMSG_NOP) {
         yw_StartVoiceOver(ywd,msg->bact,msg->pri,msg->code);
     };
+    
+    /*** LastMessage aufheben ***/
+    if (msg->bact) LW.lm_senderid = msg->bact->ident;
+    else           LW.lm_senderid = 0;
+    LW.lm_timestamp = ywd->TimeStamp;
+    LW.lm_code      = msg->code;
 
+    _LogMsg("-> LOGMSG, bact=0%X, pri=%d, code=%d, msg=%s\n",
+            msg->bact, msg->pri, msg->code, msg->msg); 
+    
     /*** hängt auch ein Text dran??? ***/
     if (msg->msg) {
 
@@ -387,12 +399,6 @@ _dispatcher(void, yw_YWM_LOGMSG, struct logmsg_msg *msg)
         /*** FirstShown korrigieren ***/
         w->l.FirstShown = w->l.NumEntries - w->l.ShownEntries;
         if (w->l.FirstShown < 0) w->l.FirstShown = 0;
-
-        /*** LastMessage aufheben ***/
-        if (msg->bact) LW.lm_senderid = msg->bact->ident;
-        else           LW.lm_senderid = 0;
-        LW.lm_timestamp = ywd->TimeStamp;
-        LW.lm_code      = msg->code;
     };
 }
 

@@ -294,6 +294,7 @@ UBYTE *yw_FRBuildCmdrItem(struct ypaworld_data *ywd,
 **                            Melder der letzten Message
 **      08-Dec-97   floh    + wird nur noch Selected dargestellt, wenn
 **                            Beamzustand nicht aktiviert
+**      20-May-98   floh    + Last-Message-Indikator gefixt...
 */
 {
     UBYTE str_buf[64];
@@ -301,7 +302,11 @@ UBYTE *yw_FRBuildCmdrItem(struct ypaworld_data *ywd,
     struct MinList *ls;
     struct MinNode *nd;
     ULONG fnt_id;
-
+    struct Bacterium *lm_bact;
+    
+    /*** hole Sender der letzten Message ***/
+    lm_bact = ywd->LastMessageSender;    
+    
     /*** Action-Item und Leerzeichen ***/
     str_buf[i++] = yw_FRGetActionIcon(cmdr);
     str_buf[i++] = '@';
@@ -310,10 +315,7 @@ UBYTE *yw_FRBuildCmdrItem(struct ypaworld_data *ywd,
     if ((cmdr == ywd->UVBact) && ((ywd->TimeStamp/300)&1)) {
         /*** falls Viewer, Indikator blinken ***/
         str_buf[i++] = '!';
-    }else if ((LW.lm_senderid == cmdr->ident) &&
-              ((ywd->TimeStamp - LW.line_buf[LW.last_log].time_stamp)<10000) &&
-              ((ywd->TimeStamp/300)&1))
-    {
+    }else if ((lm_bact==cmdr) && ((ywd->TimeStamp/300)&1)) {
         /*** falls Last-Message-Originator, Indikator blinken lassen ***/
         str_buf[i++] = '"';
     }else{
@@ -334,6 +336,9 @@ UBYTE *yw_FRBuildCmdrItem(struct ypaworld_data *ywd,
         {
             if ((b == ywd->UVBact) && ((ywd->TimeStamp/300)&1)) {
                 str_buf[i++] = '!';
+            }else if ((lm_bact==b) && ((ywd->TimeStamp/300)&1)) {
+                /*** falls Last-Message-Originator, Indikator blinken lassen ***/
+                str_buf[i++] = '"';
             }else{
                 str_buf[i++] = yw_FRGetTypeIcon(ywd,b);
             };

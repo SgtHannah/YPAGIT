@@ -530,13 +530,13 @@ void yw_MapTargetVecs(struct ypaworld_data *ywd, struct Bacterium *b)
                         next_x = b->waypoint[i].x;
                         next_z = b->waypoint[i].z;
                         yw_MapLine(ywd->GfxObject,last_x,last_z,
-                                   next_x,next_z, yw_GetColor(ywd,YPACOLOR_MAP_COMMANDER));
+                                   next_x,next_z, yw_GetColor(ywd,YPACOLOR_MAP_PRIMTARGET));
                     };
                     last_x = next_x; last_z = next_z;
                     next_x = b->waypoint[0].x;
                     next_z = b->waypoint[0].z;
                     yw_MapLine(ywd->GfxObject,last_x,last_z,
-                               next_x,next_z, yw_GetColor(ywd,YPACOLOR_MAP_COMMANDER));
+                               next_x,next_z, yw_GetColor(ywd,YPACOLOR_MAP_PRIMTARGET));
                 } else {
                     if (b->num_waypoints > 0) {
                         for (i=b->count_waypoints; i<(b->num_waypoints-1); i++) {
@@ -545,7 +545,7 @@ void yw_MapTargetVecs(struct ypaworld_data *ywd, struct Bacterium *b)
                             next_x = b->waypoint[i+1].x;
                             next_z = b->waypoint[i+1].z;
                             yw_MapLine(ywd->GfxObject,last_x,last_z,
-                                       next_x,next_z, yw_GetColor(ywd,YPACOLOR_MAP_COMMANDER));
+                                       next_x,next_z, yw_GetColor(ywd,YPACOLOR_MAP_PRIMTARGET));
                         };
                     };
                 };
@@ -1159,11 +1159,13 @@ UBYTE *yw_RenderMapCursors(struct ypaworld_data *ywd, UBYTE *str)
 **                            dem TypeNS-Font übereinzustimmen
 **      15-Dec-97   floh    + Bugfix: Robo possibly selected war broken
 **                          + Bugfix: Robo selected war auch broken
+**      20-May-98   floh    + LastMessage-Sender-Anzeige war broken
 */
 {
     /*** FontID und Size für Sector-Cursors ***/
     ULONG sec_fid,vhc_fid,sec_size,vhc_width,vhc_height;
     ULONG robo_char,robo_selchar,robo_posselchar;
+    struct Bacterium *lm_bact;
 
     switch(MR.zoom) {
         case 0:
@@ -1386,21 +1388,10 @@ UBYTE *yw_RenderMapCursors(struct ypaworld_data *ywd, UBYTE *str)
     };
 
     /*** Blinkender LastMessage Cursor ***/
-    if (LW.lm_senderid) {
-        ULONG j;
-        for (j=0; j<ywd->NumCmdrs; j++) {
-            if (ywd->CmdrRemap[j]->ident == LW.lm_senderid) {
-                struct Bacterium *b = ywd->CmdrRemap[j];
-                if (((ywd->TimeStamp-LW.line_buf[LW.last_log].time_stamp)<10000) &&
-                   ((ywd->TimeStamp/300)&1))
-                {
-                    str = yw_MapFontChar(str,vhc_fid,
-                            b->pos.x, b->pos.z,
-                            MAP_CURSOR_LASTMESSAGE,
-                            vhc_width, vhc_height);
-                    j = ywd->NumCmdrs;
-                };
-            };
+    if (lm_bact = ywd->LastMessageSender) {
+        if ((ywd->TimeStamp / 300) & 1) {
+            str = yw_MapFontChar(str,vhc_fid, lm_bact->pos.x, lm_bact->pos.z,
+                  MAP_CURSOR_LASTMESSAGE, vhc_width, vhc_height);
         };
     };
 

@@ -190,10 +190,12 @@ UBYTE *yw_EBPutBar(struct ypaworld_data *ywd,
 /*-----------------------------------------------------------------*/
 UBYTE *yw_EBPutReloadBar(struct ypaworld_data *ywd,
                          UBYTE *str, WORD xpos, WORD ypos,
-                         LONG load_stat, LONG efact, LONG reload)
+                         LONG load_stat, LONG efact, LONG reload,
+                         LONG abs_real_load, LONG abs_full_load)
 /*
 **  CHANGED
 **      09-Oct-97   floh    created
+**      20-May-98   floh    jetzt mit absoluten Zahlen
 */
 {
     UBYTE icon_chr;
@@ -230,12 +232,14 @@ UBYTE *yw_EBPutReloadBar(struct ypaworld_data *ywd,
         fuel_width_1 = 0.0;
         fuel_width_2 = 0.0;
     };
-    sprintf(str_buf,"%d%%",(int)(reload_rel*100));
-    if ((efact > 0) && (ywd->URBact->Sector->Owner == ywd->URBact->Owner)) {
-        overlay_text=str_buf;
+    if (load_stat < 0) {
+        sprintf(str_buf,"%d",-abs_real_load);
     } else {
-        overlay_text=NULL;
+        // FIXME: bis die neuen LTracy-Zeichen kommen...
+        if ((abs_real_load == 0) || (reload_rel >= 1.0)) sprintf(str_buf,"%d",abs_real_load);
+        else                                             sprintf(str_buf,"%d/%d%%",abs_real_load,(int)(reload_rel*100));
     };
+    overlay_text = str_buf;    
     str=yw_EBPutBar(ywd,str,xpos,ypos,icon_chr,
                     fuel_chr_1,fuel_chr_2,fuel_width_1,fuel_width_2,
                     overlay_text);
@@ -386,6 +390,7 @@ void yw_LayoutEB(struct ypaworld_data *ywd)
 **      16-Oct-97   floh    + EB wird nicht mehr angezeigt, wenn
 **                            Hoststation toooot...
 **      12-Dec-97   floh    + Build Balken ist raus
+**      20-May-98   floh    + Reload-Bar mit Absolut-Nummern
 */
 {
     BYTE *str = EB_ReqString;
@@ -398,6 +403,7 @@ void yw_LayoutEB(struct ypaworld_data *ywd)
         LONG load_stat,sys_stat,vhcl_stat,beam_stat; 
         struct getrldratio_msg grm;
         LONG efact,reload;
+        LONG abs_real_load, abs_full_load;
 
         /*** Daten besorgen ***/
         _method(ywd->UserRobo, OM_GET,
@@ -413,6 +419,11 @@ void yw_LayoutEB(struct ypaworld_data *ywd)
         _methoda(ywd->world,YWM_GETRLDRATIO,&grm);
         efact  = ywd->URBact->Sector->EnergyFactor;
         reload = (LONG) (efact * grm.ratio);
+        _get(ywd->UserRobo,YRA_AbsReload,&abs_full_load);
+        abs_real_load = (LONG) (((FLOAT)abs_full_load) * grm.ratio);
+        abs_full_load = (abs_full_load * 10) / 100; // Energie-Punkte pro 10 Sekunden
+        abs_real_load = (abs_real_load * 10) / 100; // ditto         
+        
         if (ywd->URBact->Owner == ywd->URBact->Sector->Owner) {
             if (reload == 0) load_stat = 0;
             else             load_stat = +1;
@@ -420,6 +431,7 @@ void yw_LayoutEB(struct ypaworld_data *ywd)
             if (reload == 0) load_stat = 0;
             else             { load_stat = -1; reload=efact; };
         };
+        
         if (load_flags & YRF_Fill_System)       sys_stat=+1;
         else if (loss_flags & YRF_Fill_System)  sys_stat=-1;
         else                                    sys_stat=0;
@@ -434,7 +446,7 @@ void yw_LayoutEB(struct ypaworld_data *ywd)
         _RemClickBox(&(EB.req.req_cbox));
         _AddClickBox(&(EB.req.req_cbox),IE_CBX_ADDHEAD);
         xpos += EB.bar_start;
-        str = yw_EBPutReloadBar(ywd,str,xpos,ypos,load_stat,efact,reload);
+        str = yw_EBPutReloadBar(ywd,str,xpos,ypos,load_stat,efact,reload,abs_real_load,abs_full_load);
         xpos += next_bar;
         str = yw_EBPutSystemBar(ywd,str,xpos,ypos,fill_modus,sys_stat,b_sys,b_max);
         xpos += next_bar;

@@ -1411,16 +1411,24 @@ UBYTE *yw_RenderHUDVecs(struct ypaworld_data *ywd, UBYTE *str)
 **  CHANGED
 **      22-Apr-97   floh    created
 **      14-Dec-97   floh    + yw_RenderVID()
+**      20-May-98   floh    + Visor wird nicht mehr gegen Map geclippt
 */
 {
     struct YPAHud *h = &(ywd->Hud);
     struct rast_rect rr;
     struct rast_intrect inv_rr;
+    struct rast_intrect zero_inv_rr;
 
     /*** Cliprect voll aufziehen ***/
     rr.xmin = -1.0;  rr.xmax = +1.0;
     rr.ymin = -1.0;  rr.ymax = +1.0;
     _methoda(ywd->GfxObject, RASTM_ClipRegion, &rr);
+    
+    /*** manche HUD-Elemente werden nicht gegen die Map geclippt... ***/    
+    zero_inv_rr.xmin = 0;
+    zero_inv_rr.xmax = 0;
+    zero_inv_rr.ymin = 0;
+    zero_inv_rr.ymax = 0;    
 
     /*** inverses Cliprect auf Map  (falls offen) ***/
     if (!(MR.req.flags & REQF_Closed)) {
@@ -1428,18 +1436,19 @@ UBYTE *yw_RenderHUDVecs(struct ypaworld_data *ywd, UBYTE *str)
         inv_rr.ymin = MR.req.req_cbox.rect.y - (ywd->DspYRes>>1);
         inv_rr.xmax = inv_rr.xmin + MR.req.req_cbox.rect.w;
         inv_rr.ymax = inv_rr.ymin + MR.req.req_cbox.rect.h;
-        _methoda(ywd->GfxObject, RASTM_IntInvClipRegion, &inv_rr);
     } else {
         inv_rr.xmin = 0;
         inv_rr.xmax = 0;
         inv_rr.ymin = 0;
         inv_rr.ymax = 0;
-        _methoda(ywd->GfxObject, RASTM_IntInvClipRegion, &inv_rr);
     };
 
     /*** HUD rendern ***/
+    _methoda(ywd->GfxObject, RASTM_IntInvClipRegion, &inv_rr);
     yw_VecRenderCompass(ywd,h);
+    _methoda(ywd->GfxObject, RASTM_IntInvClipRegion, &zero_inv_rr);
     yw_VecRenderVisor(ywd,h);
+    _methoda(ywd->GfxObject, RASTM_IntInvClipRegion, &inv_rr);
     str = yw_RenderVID(ywd,h,str,-0.7,0.3,ywd->UVBact,-1,HUDVID_SCALEUP);
     yw_3DOverlayCursors(ywd);
 

@@ -286,14 +286,25 @@ void yw_HandleInputCR(struct ypaworld_data *ywd, struct VFMInput *ip)
 /*
 **  CHANGED
 **      22-Apr-98   floh    created
+**      20-May-98   floh    + Tasteninterface
 */
 {
     if (!(CR.l.Req.flags & REQF_Closed)) {
         struct ClickInfo *ci = &(ip->ClickInfo);
         ULONG down_flags = 0;
         
-        /*** Input auswerten ***/
-        if (ci->box == &(CR.l.Req.req_cbox)) {
+        /*** Tastatur? ***/
+        if (ip->NormKey == KEYCODE_RETURN) {
+            yw_CloseCR(ywd,TRUE);
+            ip->NormKey = 0;
+            ip->ContKey = 0;
+            ip->HotKey  = 0;
+        } else if (ip->NormKey == KEYCODE_ESCAPE) {
+            yw_CloseCR(ywd,FALSE);
+            ip->NormKey = 0;
+            ip->ContKey = 0;
+            ip->HotKey  = 0;
+        } else if (ci->box == &(CR.l.Req.req_cbox)) {
         
             /*** Sound ***/
             if ((ywd->gsr) && (ci->btn>=LV_NUM_STD_BTN) && (ci->flags & CIF_BUTTONDOWN)) {

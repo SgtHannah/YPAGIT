@@ -195,7 +195,7 @@
 #define YRA_RecDelay        (YRA_BASE+27)
 #define YRA_LoadFlags       (YRA_BASE+28)       // (G) FLOH 28-Apr-98
 #define YRA_LossFlags       (YRA_BASE+29)       // (G) FLOH 28-Apr-98 
-
+#define YRA_AbsReload       (YRA_BASE+30)       // (G) FLOH 20-May-98
 
 /*-------------------------------------------------------------------
 **  Defaults für Attribute
@@ -380,13 +380,15 @@ struct yparobo_data {
     struct gun_data gun[ NUMBER_OF_GUNS ];         // 8 Kanonen
 
     /*** User-Batterien, Maximum wird von Max(s.struct_Bact.) bestimmt ***/
-    LONG         BattVehicle;       // derzeitige Energie für Vehicle
-    LONG         BattBuilding;      // Batterie fürs Bauen
-    LONG         BattBeam;          // Batterie fürs Bauen
+    LONG        BattVehicle;        // derzeitige Energie für Vehicle
+    LONG        BattBuilding;       // Batterie fürs Bauen
+    LONG        BattBeam;           // Batterie fürs Bauen
 
-    UBYTE        FillModus;         // sollen all diese Batterien gefüllt wern?
-    UBYTE        LoadFlags;         // alle Batterien, die gerade aufgeladen werde
-    UBYTE        LossFlags;         // alle Batterien, die gerade Energie verlieren
+    UBYTE       FillModus;          // sollen all diese Batterien gefüllt wern?
+    UBYTE       LoadFlags;          // alle Batterien, die gerade aufgeladen werde
+    UBYTE       LossFlags;          // alle Batterien, die gerade Energie verlieren
+    UBYTE       Pad;
+    LONG        AbsReload;          // Energie-Reload pro Zeiteinheit
 
     /*** AI-Batterien / Sparbuecher ***/
     LONG         BuildSpare;        // Sparbuch nur fuer Baujobs!

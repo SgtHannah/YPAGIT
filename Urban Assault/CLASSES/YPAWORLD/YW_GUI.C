@@ -237,6 +237,8 @@ void yw_HandleGUIInput(struct ypaworld_data *ywd,
 **                            Draggen per ywd->UpperTabu und ywd->LowerTabu
 **      10-Dec-97   floh    + yw_HandleInputER() ist raus (Energiewindow)
 **      23-Apr-98   floh    + yw_HandleInputCR() 
+**      20-May-98   floh    + yw_HandleInputCR() jetzt am Anfang, weil
+**                            der Tasten schlucken kann
 */
 {
     struct ClickInfo *ci = &(ip->ClickInfo);
@@ -405,18 +407,14 @@ void yw_HandleGUIInput(struct ypaworld_data *ywd,
 
         /*** externe Handler aufrufen ***/
 
-        #ifdef __NETWORK__
-        /*** Zuerst der MessageRequester, der offen Tasten schluckt ***/
-        if( ywd->playing_network )
-            yw_HandleInputMW(ywd,ip);
-        #endif
-
+        /*** Chat- und Confirm-Req koennen Tasten schlucken ***/
+        if(ywd->playing_network) yw_HandleInputMW(ywd,ip);
+        yw_HandleInputCR(ywd,ip);
         yw_HandleInputAMR(ywd,ip);
         yw_HandleInputMR(ywd,ip);
         yw_HandleInputFR(ywd,ip);
         yw_HandleInputLW(ywd,ip);
         yw_HandleInputEB(ywd,ip);
-        yw_HandleInputCR(ywd,ip);
     };
 
     /*** der Status-Req wird immer aufgerufen, weil er das ***/

@@ -29,6 +29,7 @@
 #include "ypa/ypaworldclass.h"
 #include "ypa/ypabactclass.h"   /* wegen <struct newmaster_msg> */
 #include "bitmap/winddclass.h"
+#include "ypa/guilogwin.h"
 
 #include "yw_protos.h"
 
@@ -43,6 +44,8 @@ extern unsigned long wdd_DoDirect3D;
 
 /*** HACK: globale VFMInput Struktur ***/
 extern struct VFMInput Ip;
+
+extern struct YPALogWin LW;
 
 /*-----------------------------------------------------------------*/
 _dispatcher(ULONG, yw_YWM_GETSECTORINFO, struct getsectorinfo_msg *msg)
@@ -1262,7 +1265,55 @@ void yw_ParseAssignRegistryKeys(void)
         };
     };
 }
+
+/*-----------------------------------------------------------------*/
+struct Bacterium *yw_GetLastMessageSender(struct ypaworld_data *ywd)
+/*
+**  FUNCTION
+**      Parst Hierarchie, ob zum letzten Message-Sender
+**      noch das Bakterium da ist, und liefert einen 
+**      Pointer darauf zurueck, wenn die Message juenger
+**      als 10 sec ist.
+**
+**  CHANGED
+**      20-May-98   floh    created
+*/        
+{
+    struct Bacterium *sender_bact = NULL;
+    if (LW.lm_senderid) {
+        ULONG j;
+        for (j=0; ((j<ywd->NumCmdrs) && (!sender_bact)); j++) {
+            struct Bacterium *cmdr = ywd->CmdrRemap[j];
+            if (cmdr->ident == LW.lm_senderid) {
+                /*** Commander hat die Senderid ***/    
+                sender_bact = cmdr;
+            } else {
+                /*** alle Untergebenen durchrattern ***/
+                struct MinList *ls;
+                struct MinNode *nd;
+                ls = &(cmdr->slave_list);
+                for (nd=ls->mlh_Head; nd->mln_Succ; nd=nd->mln_Succ) {
+
+                    struct Bacterium *b = ((struct OBNode *)nd)->bact;
+
+                    /*** nur "untote" Bakterien beachten ***/
+                    if ((b->MainState != ACTION_DEAD)   &&
+                        (b->MainState != ACTION_CREATE) &&
+                        (b->MainState != ACTION_BEAM))
+                    {
+                        if (b->ident == LW.lm_senderid) {                    
+                            sender_bact = b;
+                            break;
+                        };
+                    };
+                };
+            };
+        };
         
-    
-    
-    
+        if (sender_bact) {
+            /*** juenger als 10 sec? ***/
+            if ((ywd->TimeStamp - LW.lm_timestamp) > 10000) sender_bact = NULL;
+        };
+    };
+    return(sender_bact);
+}

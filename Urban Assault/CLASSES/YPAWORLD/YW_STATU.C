@@ -915,6 +915,7 @@ void yw_RemapCommanders(struct ypaworld_data *ywd)
 **      22-Mar-98   floh    + SlaveRemap Array wird nicht mehr ausgefüllt,
 **                            nur noch NumSlaves. Stürzte bei mehr als
 **                            256 Fahrzeugen im Geschwader ab.
+**      20-May-98   floh    + fuellt jetzt auch den LastMessageSender aus
 */
 {
     struct MinList *l;
@@ -978,6 +979,9 @@ void yw_RemapCommanders(struct ypaworld_data *ywd)
         /*** kein Commander -> keine Slaves! ***/
         ywd->NumSlaves = 0;
     };
+    
+    /*** LastMessageSender ausfuellen ***/
+    ywd->LastMessageSender = yw_GetLastMessageSender(ywd);    
 
     /*** Ende ***/
 }
@@ -2579,21 +2583,14 @@ Object *yw_SRCtrl2LM(struct ypaworld_data *ywd)
 **
 **  CHANGED
 **      28-Sep-96   floh    created
+**      20-May-98   floh    umgeschrieben
 */
 {
-    /*** existiert das Meldungs-Geschwader noch??? ***/
-    if (LW.lm_senderid != 0) {
-        ULONG i;
-        for (i=0; i<ywd->NumCmdrs; i++) {
-            if (ywd->CmdrRemap[i]->ident == LW.lm_senderid) {
-                /*** Erfolg! ***/
-                return(ywd->CmdrRemap[i]->BactObject);
-            };
-        };
-    };
+    struct Bacterium *lm_bact;
 
-    /*** nö, schon tot oder so... ***/
-    return(NULL);
+    /*** existiert das Meldungs-Geschwader noch??? ***/
+    if (lm_bact = yw_GetLastMessageSender(ywd)) return(lm_bact->BactObject);
+    else                                        return(NULL);
 }
 
 /*-----------------------------------------------------------------*/

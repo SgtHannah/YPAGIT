@@ -559,7 +559,8 @@ void yr_getAttrs(Object *o, struct yparobo_data *yrd, struct TagItem *attrs)
 **
 **  CHANGED
 **      24-Apr-95   floh    created
-**      28-Apr-98   floh    YRA_LoadFlags und YRA_LossFlags
+**      28-Apr-98   floh    + YRA_LoadFlags und YRA_LossFlags
+**      20-May-98   floh    + YRA_AbsReload
 */
 {
     register ULONG tag;
@@ -707,7 +708,11 @@ void yr_getAttrs(Object *o, struct yparobo_data *yrd, struct TagItem *attrs)
                     
                 case YRA_LossFlags:
                     *value = yrd->LossFlags;
-                    break;                    
+                    break;                 
+                    
+                case YRA_AbsReload:
+                    *value = yrd->AbsReload;
+                    break;
             };
         };
     };

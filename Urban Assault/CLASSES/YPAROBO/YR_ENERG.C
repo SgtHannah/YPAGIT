@@ -27,228 +27,6 @@
 _extern_use_nucleus
 _extern_use_tform_engine
 
-
-#ifdef nondef
-
-/*-----------------------------------------------------------**
-**                                                           **
-**  *** OBSOLETE *** OBSOLETE *** OBSOLETE *** OBSOLETE ***  **
-**                                                           **
-**-----------------------------------------------------------*/
-
-_dispatcher(void, yr_YBM_GENERALENERGY, struct trigger_logic_msg *msg)
-{
-
-/*
-**  FUNCTION    Neue Art der generalEnergy für den Robo. Hierbei kommt
-**              eine Energie rein oder raus und dann gleichen sich alle
-**              Batterien aus.
-**
-**              Normalerweise müßte der Fluß in der Summe 0 sein, aber
-**              weil das, was fließen darf, manchmal mehr ist als das,
-**              was zum Ausgleich noch fließen muß, mache ich kleine
-**              fehler, die das Gesamtniveau verändern können.
-**
-**  INPUTS      Johnny Walker
-**
-**  CHANGED     created auch heute abend af
-**      21-Apr-98   floh    Aufladung nicht mehr relativ zu Maximum,
-**                          sondern zu RoboReloadConst
-*/
-
-    struct yparobo_data *yrd;
-    LONG  multi, num_batt, common_energy, change, num_up, num_down, to_flow;
-    FLOAT time, flow;
-    struct getrldratio_msg gr;
-
-
-    yrd = INST_DATA( cl, o);
-
-    multi = yrd->bact->Sector->EnergyFactor;
-    gr.owner = yrd->bact->Sector->Owner;
-    _methoda( yrd->world, YWM_GETRLDRATIO, &gr );
-    multi = (LONG)( ((FLOAT) multi) * gr.ratio );
-
-    /*
-    ** Wenn wir schon tot sind, dürfen wir uns nicht mehr aufladen. Das bringt
-    ** die Energiebilanz durcheinander. 
-    */
-    
-    if( yrd->bact->MainState == ACTION_DEAD ) return;
-
-    /*** Auf grund von Rundungsfehlern muß time groß sein ***/
-    if( (yrd->bact->internal_time - yrd->bact->time_energy) < 1500 ) return;
-
-    time = (FLOAT) (yrd->bact->internal_time - yrd->bact->time_energy) / 1000.0;
-    yrd->bact->time_energy = yrd->bact->internal_time;
-
-    /* -----------------------------------------------------------
-    ** autonomer Robo? Wie vehicle, aber mit Spareffekt in
-    ** "Bausparbatterie". Diese Batterie dient nur dem Sparen, hat
-    ** NICHTS mit UserBatterien zu tun!
-    ** ---------------------------------------------------------*/
-    if( !(yrd->RoboState & ROBO_USERROBO ) ) {
-
-        LONG fluss;
-
-        fluss = ((yrd->bact->RoboReloadConst * time * multi)/7000);
-
-        if( yrd->bact->Owner == yrd->bact->Sector->Owner ) {
-
-            /* -----------------------------------------
-            ** NUR beim Aufladen verteilen wir auf beide
-            ** Batterien
-            ** ---------------------------------------*/
-            yrd->BuildSpare   += (LONG)(0.15 * fluss);
-            yrd->VehicleSpare += (LONG)(0.15 * fluss);
-            yrd->bact->Energy += (LONG)(0.70 * fluss);
-            }
-        else
-            yrd->bact->Energy -= fluss;
-
-        if( yrd->bact->Energy < 0 )
-            yrd->bact->Energy = 0;
-        if( yrd->bact->Energy > yrd->bact->Maximum )
-            yrd->bact->Energy = yrd->bact->Maximum;
-        if( yrd->BuildSpare   > yrd->bact->Maximum )
-            yrd->BuildSpare   = yrd->bact->Maximum;
-        if( yrd->VehicleSpare > yrd->bact->Maximum )
-            yrd->VehicleSpare = yrd->bact->Maximum;
-
-        return;
-        }
-
-
-
-    /*** Wieviel Batterien müssen wir füllen? ***/
-    num_batt      = 0;
-    common_energy = 0;
-    if( yrd->FillModus & YRF_Fill_System ) {
-        num_batt++; common_energy += yrd->bact->Energy; }
-
-    if( yrd->FillModus & YRF_Fill_Vehicle ) {
-        num_batt++; common_energy += yrd->BattVehicle; }
-
-    if( yrd->FillModus & YRF_Fill_Beam ) {
-        num_batt++; common_energy += yrd->BattBeam; }
-
-    /*** Wenn nix passiert, dann weg! ***/
-    if( !num_batt ) return;
-
-    /*** was fließt? ***/
-    if( 0 == yrd->bact->Sector->Owner )
-        flow = 0;
-    else
-        if( yrd->bact->Owner == yrd->bact->Sector->Owner )
-            flow =  yrd->bact->RoboReloadConst * time * multi / 3000;
-        else
-            flow = -yrd->bact->RoboReloadConst * time * multi / 3000;
-
-    /* -----------------------------------------------------------------
-    ** Wir ermitteln das Gesamtenergieniveau, bilden dann den Mittelwert
-    ** und gleichen soweit wie möglich an.
-    ** ---------------------------------------------------------------*/
-
-    common_energy += (LONG)flow;
-    common_energy /= num_batt;
-
-    /*** Change gibt an, was maximal fließen darf ***/
-    change         = (LONG)(time * yrd->bact->RoboReloadConst / 60); // dann 1min zum Aufladen
-    
-    /* ---------------------------------------------------------------
-    ** Was "nach oben" fließt, ist die gleiche Menge, die "nach unten"
-    ** fließt. Das ist,weil wir ja schon den Mittelwert haben, die
-    ** Hälfte aller Differenzen aus den energien und dem Mittelwert
-    ** -------------------------------------------------------------*/
-    to_flow = 0;
-    num_up  = num_down = 0;
-
-    if( yrd->FillModus & YRF_Fill_System ) {
-        to_flow += abs( yrd->bact->Energy - common_energy );
-        if( yrd->bact->Energy <= common_energy )
-            num_up++;
-        else
-            num_down++;
-        }
-
-    if( yrd->FillModus & YRF_Fill_Vehicle ) {
-        to_flow += abs( yrd->BattVehicle - common_energy );
-        if( yrd->BattVehicle <= common_energy )
-            num_up++;
-        else
-            num_down++;
-        }
-
-    if( yrd->FillModus & YRF_Fill_Beam ) {
-        to_flow += abs( yrd->BattBeam - common_energy );
-        if( yrd->BattBeam <= common_energy )
-            num_up++;
-        else
-            num_down++;
-        }
-
-    to_flow /= 2;
-
-    /*** Ausgleich notwendig ? ***/
-    if( to_flow < 10 ) return;
-
-    /*** Wenn die Ausgleichsmenge größer als der maximale Fluß ist, begrenzen ***/
-    if( to_flow < change ) change = to_flow;
-
-    /*** Ausgleich der Batterien ***/
-    if( yrd->FillModus & YRF_Fill_System )
-        if( yrd->bact->Energy <= common_energy ) {
-            if( num_up )
-                yrd->bact->Energy = min( yrd->bact->Energy + change / num_up,
-                                         common_energy );
-            }
-        else {
-            if( num_down )
-                yrd->bact->Energy = max( yrd->bact->Energy - change / num_down,
-                                         common_energy );
-            }
-
-    if( yrd->FillModus & YRF_Fill_Vehicle )
-        if( yrd->BattVehicle <= common_energy ) {
-            if( num_up )
-                yrd->BattVehicle = min( yrd->BattVehicle + change / num_up,
-                                        common_energy );
-            }
-        else {
-            if( num_down )
-                yrd->BattVehicle = max( yrd->BattVehicle - change / num_down,
-                                        common_energy );
-            }
-
-    if( yrd->FillModus & YRF_Fill_Beam )
-        if( yrd->BattBeam <= common_energy ) {
-            if( num_up )
-                yrd->BattBeam = min( yrd->BattBeam + change / num_up,
-                                     common_energy );
-            }
-        else {
-            if( num_down )
-                yrd->BattBeam = max( yrd->BattBeam - change / num_down,
-                                     common_energy );
-            }
-
-
-    /*** Die Energie der Bewegung ist sinnlos ***/
-    
-    /*** Begrenzungen ***/
-    if( yrd->bact->Energy < 0 )   yrd->bact->Energy = 0;
-    if( yrd->BattVehicle  < 0 )   yrd->BattVehicle  = 0;
-    if( yrd->BattBeam     < 0 )   yrd->BattBeam     = 0;
-
-    if( yrd->bact->Energy > yrd->bact->Maximum )
-        yrd->bact->Energy = yrd->bact->Maximum;
-    if( yrd->BattVehicle  > yrd->bact->Maximum )
-        yrd->BattVehicle  = yrd->bact->Maximum;
-    if( yrd->BattBeam     > yrd->bact->Maximum )
-        yrd->BattBeam     = yrd->bact->Maximum;
-}
-#endif
-
 /*-----------------------------------------------------------------*/
 _dispatcher(void, yr_YBM_GENERALENERGY, struct trigger_logic_msg *msg)
 /*
@@ -281,13 +59,14 @@ _dispatcher(void, yr_YBM_GENERALENERGY, struct trigger_logic_msg *msg)
         /*** berechne Multiplikator aus Energie-Faktor und ReloadRatio ***/
         gr.owner = b->Sector->Owner;
         _methoda(yrd->world, YWM_GETRLDRATIO, &gr);
-        factor = ((FLOAT)b->Sector->EnergyFactor) * gr.ratio;
+        factor = ((FLOAT)b->Sector->EnergyFactor);
 
         /*** unterschiedliches Handling fuer User und autonome ***/
         if (!(yrd->RoboState & ROBO_USERROBO)) {
 
             /*** autonome Robos ***/
-            FLOAT flow = (reload_const * td * factor) / 7000.0;
+            FLOAT flow = (reload_const * td * factor * gr.ratio) / 7000.0;
+            yrd->AbsReload = (LONG)((reload_const * factor) / 7000.0); // Reload pro Sekunde
             if (b->Owner == b->Sector->Owner) {
                 /*** bei Aufladung werden die "Baukonten" mit geladen ***/
                 yrd->BuildSpare   += (LONG)(0.15 * flow);
@@ -305,7 +84,7 @@ _dispatcher(void, yr_YBM_GENERALENERGY, struct trigger_logic_msg *msg)
             FLOAT flow;
             
             /*** genereller Energie-Fluss ***/
-            flow = (reload_const * td * factor) / 6000.0;                
+            flow = (reload_const * td * factor * gr.ratio) / 6000.0;                
             if (b->Sector->Owner == 0)             flow = 0.0;
             else if (b->Sector->Owner != b->Owner) flow = -flow;
             
@@ -313,6 +92,7 @@ _dispatcher(void, yr_YBM_GENERALENERGY, struct trigger_logic_msg *msg)
             if ((yrd->FillModus & YRF_Fill_System) || (flow < 0.0))  num_batt++;
             if (yrd->FillModus & YRF_Fill_Vehicle) num_batt++; 
             if (yrd->FillModus & YRF_Fill_Beam)    num_batt++;
+            yrd->AbsReload = ((LONG)((reload_const * factor) / 6000.0)) / num_batt; // Reload pro Sekunde
             if (num_batt > 0) {
             
                 FLOAT max_balance_flow;
