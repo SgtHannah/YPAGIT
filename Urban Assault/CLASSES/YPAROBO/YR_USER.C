@@ -67,6 +67,7 @@ yr_DoBeamStuff( struct yparobo_data *yrd, LONG frame_time );
 BOOL yr_AreThereGroundVehicles( struct Bacterium *commander );
 void yr_SetBactTarget( struct Bacterium *commander, struct Bacterium *targetbact );
 void yr_SetSectorTarget( struct Bacterium *commander, FLOAT tarpoint_x, FLOAT tarpoint_z );
+void yb_TakeCommandersTarget( struct Bacterium *slave, struct Bacterium *chief, Object *world );
 
 
 /*-----------------------------------------------------------------*/
@@ -605,6 +606,8 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
     Object *com, *slave; 
     ULONG  BC;
     struct bact_message log;
+    struct findpath_msg fpath;
+    int    merke_waypoints;
                                                                                                 
     #ifdef __NETWORK__
     struct ypamessage_newvehicle nvm;
@@ -717,13 +720,42 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
 
             /*** Flags ***/
             msg->selbact->ExtraState |= EXTRA_DOINGWAYPOINT;
+            
+            if( yr_AreThereGroundVehicles( msg->selbact ) ) {
+            
+                fpath.from_x        = msg->selbact->pos.x;
+                fpath.from_z        = msg->selbact->pos.z;
+                fpath.to_x          = msg->tarpoint.x;
+                fpath.to_z          = msg->tarpoint.z;
+                fpath.num_waypoints = MAXNUM_WAYPOINTS;
+                fpath.flags         = WPF_Normal;
+                if( _methoda( yrd->bact->BactObject, YBM_FINDPATH, &fpath) &&
+                    (fpath.num_waypoints > 0) ) {
+                
+                    int i;
+                    for( i = 0; i < fpath.num_waypoints; i++ ) {
+                        msg->selbact->waypoint[ i ].x = fpath.waypoint[ i ].x;
+                        msg->selbact->waypoint[ i ].z = fpath.waypoint[ i ].z;
+                        }
+                    msg->selbact->num_waypoints = fpath.num_waypoints;
+                    }
+                else {
+                    
+                    /*** Punkte kopieren ***/
+                    msg->selbact->num_waypoints   = 1;
+                    msg->selbact->waypoint[ 0 ].x = msg->tarpoint.x;
+                    msg->selbact->waypoint[ 0 ].z = msg->tarpoint.z;
+                    }
+                }
+            else {
 
-            /*** Punkte kopieren ***/
-            msg->selbact->waypoint[ 0 ].x = msg->tarpoint.x;
-            msg->selbact->waypoint[ 0 ].z = msg->tarpoint.z;
+                /*** Punkte kopieren ***/
+                msg->selbact->num_waypoints   = 1;
+                msg->selbact->waypoint[ 0 ].x = msg->tarpoint.x;
+                msg->selbact->waypoint[ 0 ].z = msg->tarpoint.z;
+                }
 
             /*** Anzahl ***/
-            msg->selbact->num_waypoints   = 1;
             msg->selbact->count_waypoints = 0;
 
             /*** ersten Punkt als Ziel setzen ***/
@@ -737,16 +769,7 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
             /*** Vor dem Umschichten des GEschwaders! ***/
             yr_GiveWayPointToSlaves( msg->selbact );
 
-            /*** Geschwader evtl. umschichten ***/
-            if( !yr_IsComNearest( msg->selbact ) ) {
-
-                /*** Itze grundsätzlich ***/
-                struct organize_msg org;
-
-                org.specialbact = NULL;
-                org.mode        = ORG_NEARTOCOM;
-                _methoda( msg->selbact->BactObject, YBM_ORGANIZE, &org );
-                }
+            /*** Geschwader umschichten loescht Wegpunkte ***/
 
             /*** Slaves Nebenziele loeschen ***/
             yr_ClearSecondaryTargets( msg->selbact );
@@ -767,8 +790,40 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
                 break;
 
             /*** Punkte kopieren ***/
-            msg->selbact->waypoint[ msg->selbact->num_waypoints ].x = msg->tarpoint.x;
-            msg->selbact->waypoint[ msg->selbact->num_waypoints ].z = msg->tarpoint.z;
+            merke_waypoints = msg->selbact->num_waypoints;
+            if( yr_AreThereGroundVehicles( msg->selbact ) ) {
+            
+                fpath.from_x        = msg->selbact->waypoint[ msg->selbact->num_waypoints-1 ].x;
+                fpath.from_z        = msg->selbact->waypoint[ msg->selbact->num_waypoints-1 ].z;
+                fpath.to_x          = msg->tarpoint.x;
+                fpath.to_z          = msg->tarpoint.z;
+                fpath.num_waypoints = MAXNUM_WAYPOINTS - msg->selbact->num_waypoints;
+                fpath.flags         = WPF_Normal;
+                if( (_methoda( yrd->bact->BactObject, YBM_FINDPATH, &fpath)) &&
+                    (fpath.num_waypoints > 0) ) {
+                
+                    int i;
+                    for( i = 0; i < fpath.num_waypoints; i++ ) {
+                        msg->selbact->waypoint[ msg->selbact->num_waypoints + i ].x = fpath.waypoint[ i ].x;
+                        msg->selbact->waypoint[ msg->selbact->num_waypoints + i ].z = fpath.waypoint[ i ].z;
+                        }
+                    msg->selbact->num_waypoints += fpath.num_waypoints;
+                    }
+                else {
+                    
+                    /*** Punkte kopieren ***/
+                    msg->selbact->waypoint[ msg->selbact->num_waypoints ].x = msg->tarpoint.x;
+                    msg->selbact->waypoint[ msg->selbact->num_waypoints ].z = msg->tarpoint.z;
+                    msg->selbact->num_waypoints  += 1;
+                    }
+                }
+            else {
+
+                /*** Punkte kopieren ***/
+                msg->selbact->waypoint[ msg->selbact->num_waypoints ].x = msg->tarpoint.x;
+                msg->selbact->waypoint[ msg->selbact->num_waypoints ].z = msg->tarpoint.z;
+                msg->selbact->num_waypoints  += 1;
+                }
 
             /*** Schon vorherigen Punkt erreicht? ***/
             if( !( msg->selbact->ExtraState & EXTRA_DOINGWAYPOINT ) ) {
@@ -780,16 +835,13 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
                 msg->selbact->ExtraState |= EXTRA_DOINGWAYPOINT;
 
                 /*** ersten Punkt als Ziel setzen ***/
-                target.pos.x       = msg->selbact->waypoint[ msg->selbact->num_waypoints ].x;
-                target.pos.z       = msg->selbact->waypoint[ msg->selbact->num_waypoints ].z;
+                target.pos.x       = msg->selbact->waypoint[ merke_waypoints ].x;
+                target.pos.z       = msg->selbact->waypoint[ merke_waypoints ].z;
                 target.target_type = TARTYPE_SECTOR;
                 target.priority    = 0;
                 _methoda( msg->selbact->BactObject,
                           YBM_SETTARGET, &target);
                 }
-
-            /*** Anzahl ***/
-            msg->selbact->num_waypoints++;
 
             yr_GiveWayPointToSlaves( msg->selbact );
 
@@ -986,29 +1038,8 @@ void yr_HandleSurfaceStuff( struct yparobo_data *yrd,
                     ** Wir übernehmen einfach den Zustand des Com.
                     ** Waypoints können dann überschreiben.
                     ** -----------------------------------------*/
-                    target.target.bact = msg->selbact->PrimaryTarget.Bact;
-                    target.target_type = msg->selbact->PrimTargetType;
-                    target.pos         = msg->selbact->PrimPos;
-                    target.priority    = 0;
-                    _methoda( slave, YBM_SETTARGET, &target );
-
-                    bact->num_waypoints      = msg->selbact->num_waypoints;
-                    bact->count_waypoints    = 0; // damit er am Anfang anfängt!!
-                    memcpy( bact->waypoint, msg->selbact->waypoint,
-                            sizeof( bact->waypoint ) );
-                    if( msg->selbact->ExtraState & EXTRA_DOINGWAYPOINT ) {
-
-                        /*** Dann ersten Wegpunkt als Ziel setzen ***/
-                        bact->ExtraState |= EXTRA_DOINGWAYPOINT;
-                        if( msg->selbact->ExtraState & EXTRA_WAYPOINTCYCLE )
-                            bact->ExtraState |= EXTRA_WAYPOINTCYCLE;
-                        target.pos.x       = bact->waypoint[ 0 ].x;
-                        target.pos.z       = bact->waypoint[ 0 ].z;
-                        target.target_type = TARTYPE_SECTOR;
-                        target.priority    = 0;
-                        _methoda( bact->BactObject, YBM_SETTARGET, &target );
-                        }
-                    }
+                    yb_TakeCommandersTarget( bact, msg->selbact, yrd->world );
+                   }
                 }
             break;
             

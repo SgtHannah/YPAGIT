@@ -49,6 +49,8 @@ void yb_SendSquadronStructure( struct ypaworld_data *ywd, UBYTE owner );
 void yb_CopyWayPoints( struct Bacterium *from, struct Bacterium *to );
 void yb_CopyTargetToSlave( struct Bacterium *com, struct Bacterium *slave );
 void yb_CopyTarget( struct Bacterium *com, struct Bacterium *slave );   
+void yb_TakeCommandersTarget( struct Bacterium *slave, struct Bacterium *chief, Object *world );
+struct Bacterium *yb_SearchBact( Object *world, ULONG commandid, UBYTE owner );
 
 /*** Arrays mach ma global ***/
 FLOAT yb_delta[8][2] = { { -SECTOR_SIZE, -SECTOR_SIZE}, {0.0, -SECTOR_SIZE},
@@ -636,11 +638,6 @@ _dispatcher( void, yb_YBM_ORGANIZE, struct organize_msg *org )
                 (&(ybd->bact)     == org->specialbact) )
                 return;
 
-            /*** Hauptziel abmelden ***/
-            target.priority    = 0;
-            target.target_type = TARTYPE_NONE;
-            _methoda( o, YBM_SETTARGET, &target );
-
             /*** ID übernehmen (muß ich immer machen) ***/
             ybd->bact.CommandID = org->specialbact->CommandID;;
 
@@ -659,24 +656,22 @@ _dispatcher( void, yb_YBM_ORGANIZE, struct organize_msg *org )
 
                 slave->bact->Aggression = org->specialbact->Aggression;
                 slave->bact->CommandID  = org->specialbact->CommandID;
+                
+                /*** Ziel des Commanders uebernehmen ***/
+                yb_TakeCommandersTarget( slave->bact, org->specialbact, ybd->world ); 
 
                 /*** Umschichten ***/
                 _methoda( org->specialbact->BactObject, YBM_ADDSLAVE, slave->o );
             };
-            
-            /* --------------------------------------------------
-            ** Ziel des Commanders auf selbigen nochmal anwenden, 
-            ** der Slaves wegen
-            ** ------------------------------------------------*/
-            yb_CopyTarget( org->specialbact, NULL );
+                            
+            /*** Ziel des Commanders uebernehmen ***/
+            yb_TakeCommandersTarget( &(ybd->bact), org->specialbact, ybd->world ); 
 
-            #ifdef __NETWORK__
             /* -----------------------------------------------------------
             ** org->specialbact wird Commander. Slaves sind seine Slaves,
             ** ich und meine Slaves. Aber die hängen ja alle schon drunter
             ** ---------------------------------------------------------*/
             yb_SendCommand( ybd, org->specialbact, ORG_NEWCHIEF );
-            #endif
 
             break;
 
@@ -711,16 +706,7 @@ _dispatcher( void, yb_YBM_ORGANIZE, struct organize_msg *org )
             if( org->specialbact ) {
 
                 /*** Ziel übernehmen ***/
-                target.target_type = org->specialbact->PrimTargetType;
-                target.target.bact = org->specialbact->PrimaryTarget.Bact;
-                target.pos         = org->specialbact->PrimPos;
-                target.priority    = 0;
-                _methoda( o, YBM_SETTARGET, &target );
-                yb_CopyWayPoints( org->specialbact, &(ybd->bact) );
-
-                target.target_type = TARTYPE_NONE;
-                target.priority    = 0;
-                _methoda( org->specialbact->BactObject, YBM_SETTARGET, &target );
+                yb_TakeCommandersTarget( &(ybd->bact), org->specialbact, ybd->world );
 
                 /*** Aggression übernehmen ***/
                 ybd->bact.Aggression = org->specialbact->Aggression;
@@ -739,10 +725,13 @@ _dispatcher( void, yb_YBM_ORGANIZE, struct organize_msg *org )
 
                     slave = (struct OBNode *) list->mlh_Head;
 
-                    slave->bact->Aggression = org->specialbact->Aggression;
-
                     /*** Umschichten ***/
                     _methoda( o, YBM_ADDSLAVE, slave->o );
+
+                    slave->bact->Aggression = org->specialbact->Aggression;
+                    
+                    /*** Ziel ubernehmen ***/
+                    yb_TakeCommandersTarget( slave->bact, &(ybd->bact), ybd->world );
                 };
 
 
@@ -760,17 +749,10 @@ _dispatcher( void, yb_YBM_ORGANIZE, struct organize_msg *org )
                     ybd->bact.CommandID |= (((ULONG)ybd->bact.Owner) << 24);
                     cc++;
                     _set( ybd->bact.robo, YRA_CommandCount, cc );
-                    
-                    /*** Ziel löschen ***/
-                    target.target_type = TARTYPE_NONE;
-                    target.priority    = 0;
-                    _methoda( org->specialbact->BactObject, YBM_SETTARGET, &target );
                     }
                 }
 
-            #ifdef __NETWORK__
             yb_SendCommand( ybd, &(ybd->bact), ORG_BECOMECHIEF );
-            #endif
 
             break;
 
@@ -814,10 +796,8 @@ _dispatcher( void, yb_YBM_ORGANIZE, struct organize_msg *org )
             cc++;
             _set( ybd->bact.robo, YRA_CommandCount, cc );
 
-            #ifdef __NETWORK__
             /*** ich bin jetzt neues geschwader ***/
             yb_SendCommand( ybd, &(ybd->bact), ORG_NEWCOMMAND );
-            #endif
 
             break;
 
@@ -837,11 +817,9 @@ _dispatcher( void, yb_YBM_ORGANIZE, struct organize_msg *org )
                 /*** Der neue ist ein Commander, Slaves abkoppeln ***/
                 master = yb_MakeCommandFromSlaves( org->specialbact, 0 );
 
-                #ifdef __NETWORK__
                 /*** Hier entstand (VIELLEICHT) ein neues geschwader ***/
                 if( master )
                     yb_SendCommand( ybd, master, ORG_ADDSLAVE+10 );
-                #endif
                 }
 
             /*** Ankoppeln ***/
@@ -851,11 +829,9 @@ _dispatcher( void, yb_YBM_ORGANIZE, struct organize_msg *org )
             org->specialbact->CommandID = ybd->bact.CommandID;
             
             /*** to this slave only ***/
-            yb_CopyTarget( &(ybd->bact), org->specialbact );
+            yb_TakeCommandersTarget( org->specialbact, &(ybd->bact), ybd->world );
 
-            #ifdef __NETWORK__
             yb_SendCommand( ybd, &(ybd->bact), ORG_ADDSLAVE );
-            #endif
 
             break;
 
@@ -885,23 +861,14 @@ _dispatcher( void, yb_YBM_ORGANIZE, struct organize_msg *org )
                     _methoda( chef->BactObject, YBM_ADDSLAVE, o );
                     chef->CommandID = ybd->bact.CommandID;
 
-                    #ifdef __NETWORK__
                     /*** Chef ist der neue ***/
                     yb_SendCommand( ybd, chef, ORG_NEARTOCOM );
-                    #endif
                     }
                 }
 
             break;
 
         }
-
-    // Nicht mehr ....
-    // #ifdef __NETWORK__
-    // ywd = INST_DATA( ((struct nucleusdata *)ybd->world)->o_Class, ybd->world);
-    // if( ywd->playing_network )
-    //     yb_SendSquadronStructure( ywd, ybd->bact.Owner );
-    // #endif
 }
 
 
@@ -926,6 +893,9 @@ struct Bacterium *yb_MakeCommandFromSlaves( struct Bacterium *bact, UBYTE k )
         struct Bacterium *newchief;
         struct settarget_msg target;
         struct OBNode *slave;
+        Object  *world;
+        
+        _get( bact->BactObject, YBA_World, &world );
 
         if( k == 0 )
             newchief = yb_GetBestChief( bact );
@@ -944,6 +914,9 @@ struct Bacterium *yb_MakeCommandFromSlaves( struct Bacterium *bact, UBYTE k )
 
         /*** Unter dem Robo einklinken ***/
         _methoda( bact->robo, YBM_ADDSLAVE, newchief->BactObject);
+        
+        /*** Der neue bekommt mein Ziel ***/
+        yb_TakeCommandersTarget( newchief, bact, world );
 
         /* ----------------------------------------------------
         ** jetzt ist der neue raus und alle, die noch unter mir
@@ -954,16 +927,14 @@ struct Bacterium *yb_MakeCommandFromSlaves( struct Bacterium *bact, UBYTE k )
 
             struct OBNode *next_slave = (struct OBNode *) slave->nd.mln_Succ;
             _methoda( newchief->BactObject, YBM_ADDSLAVE, slave->o );
+            
+            /*** nimm das Ziel des Commanders ***/
+            yb_TakeCommandersTarget( slave->bact, newchief, world );
+            
             slave = next_slave;
             }
 
         /*** Was fehlt noch? Das Ziel! ***/
-        target.priority    = 0;
-        target.target.bact = bact->PrimaryTarget.Bact;
-        target.target_type = bact->PrimTargetType;
-        target.pos         = bact->PrimPos;
-        _methoda( newchief->BactObject, YBM_SETTARGET, &target );
-        yb_CopyWayPoints( bact, newchief );
 
         newchief->CommandID = bact->CommandID;
 
@@ -1170,3 +1141,123 @@ void yb_CopyTargetToSlave( struct Bacterium *com, struct Bacterium *slave )
         _methoda( slave->BactObject, YBM_SETTARGET, &target );
         }
 }
+
+
+void yb_TakeCommandersTarget( struct Bacterium *slave, struct Bacterium *chief, Object *world )
+{
+/* ------------------------------------------------------------------------------
+** So, das ist wieder mal ne Routine, die Ziele von einem Vehicle zum anderen
+** schaufelt und hoffentlich die letzte ihrer Art. 
+** Der Slave soll das Ziel des Commanders nehmen. Aber nicht einfach uebernehmen,
+** weil das bei Panzern haeufig probleme bringt.
+** Wir ermitteln das Ziel des chiefs, das kann sein:
+**      PrimSektor, PrimBact oder letzter Wegpunkt oder gemerktes BactZiel
+**      fuer Wegpunkte.
+** Dann geben wir das Ziel weiter:
+**      Als Wegpunktliste fuer Panzer und normal fuer den ganzen Rest.
+** ---------------------------------------------------------------------------*/
+
+
+    struct Bacterium *tbact = NULL;
+    struct flt_triple tpos;
+    ULONG   ttype;
+    
+    /*** erstmal alles aufraeumen! ***/
+    slave->ExtraState   &= ~(EXTRA_DOINGWAYPOINT|EXTRA_WAYPOINTCYCLE);
+    slave->num_waypoints = 0;
+    
+    /*** Was ist das Ziel ***/
+    if( chief->ExtraState & EXTRA_DOINGWAYPOINT ) {
+    
+        /*** ist das "Ende" ein Geschwader? ***/
+        if( chief->mt_commandid ) {
+        
+            /*** BactZiel ***/
+            if( tbact = yb_SearchBact( world, chief->mt_commandid, chief->mt_owner ) ) 
+                ttype = TARTYPE_BACTERIUM;
+            else
+                ttype = TARTYPE_NONE;
+            }
+        else {
+        
+            /*** SectorZiel ***/
+            tpos.x = chief->waypoint[ chief->num_waypoints - 1 ].x;
+            tpos.z = chief->waypoint[ chief->num_waypoints - 1 ].z;
+            ttype  = TARTYPE_SECTOR;
+            }
+        }
+    else {
+    
+        if( TARTYPE_BACTERIUM == chief->PrimTargetType ) {
+            tbact = chief->PrimaryTarget.Bact;
+            ttype = TARTYPE_BACTERIUM;
+            }
+        else {
+        
+            if( TARTYPE_SECTOR == chief->PrimTargetType ) {
+                tpos.x = chief->PrimPos.x;
+                tpos.z = chief->PrimPos.z;
+                ttype  = TARTYPE_SECTOR;
+                }
+            else {
+            
+                ttype = TARTYPE_NONE;
+                }
+            }
+        }
+        
+    /*** Wenn kein Ziel dann wenigstens den Commander als Ziel nehmen ***/
+    if( TARTYPE_NONE == ttype ) {
+    
+        ttype = TARTYPE_BACTERIUM;
+        tbact = chief;
+        }
+        
+    /*** Nun Ziele zuweisen ***/
+    if( (BCLID_YPATANK == slave->BactClassID) ||
+        (BCLID_YPACAR  == slave->BactClassID) ) {
+        
+        struct findpath_msg fpath;
+        
+        /*** Bodenvehicle ***/
+        if( TARTYPE_BACTERIUM == ttype ) {
+            fpath.to_x  = tbact->pos.x;
+            fpath.to_z  = tbact->pos.z;
+            }
+        else {
+            fpath.to_x  = tpos.x;
+            fpath.to_z  = tpos.z;
+            }
+            
+        fpath.num_waypoints = MAXNUM_WAYPOINTS;
+        fpath.from_x        = slave->pos.x;
+        fpath.from_z        = slave->pos.z;
+        fpath.flags         = WPF_Normal;
+        
+        _methoda( slave->BactObject, YBM_SETWAY, &fpath );
+
+        if( TARTYPE_BACTERIUM == ttype ) {
+        
+            slave->mt_commandid = tbact->CommandID;
+            slave->mt_owner     = tbact->Owner;
+            }
+        }
+    else {
+    
+        /*** Luftvehicle. Ziel direkt setzen ***/
+        struct settarget_msg target;
+        
+        target.target_type = ttype;
+        target.priority    = 0;
+        
+        if( TARTYPE_BACTERIUM == ttype ) {
+            target.target.bact = tbact;
+            }
+        else {
+            target.pos.x = tpos.x;
+            target.pos.z = tpos.z;
+            }   
+            
+        _methoda( slave->BactObject, YBM_SETTARGET, &target ); 
+        }
+}    
