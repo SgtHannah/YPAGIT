@@ -278,7 +278,7 @@ BOOL yw_LoadLocaleLng(struct ypaworld_data *ywd, UBYTE *lang)
     BOOL retval = FALSE;
 
     /*** Parse-Parameter initialisieren ***/
-    sprintf(fname, "data:locale/%s.lng", lang);
+    sprintf(fname, "locale/%s.lng", lang);
     memset(p,0,sizeof(p));
     p[0].parse_func = yw_LocaleScriptParser;
     p[0].target     = ywd;
@@ -296,6 +296,7 @@ _dispatcher(ULONG, yw_YWM_SETLANGUAGE, struct setlanguage_msg *msg)
 **  CHANGED
 **      24-Jul-96   floh    created
 **      31-Jul-96   floh    kopiert msg->lang nach ywd->LocaleLang
+**      24-May-98   floh    Locale jetzt in Root.
 */
 {
     struct ypaworld_data *ywd = INST_DATA(cl,o);
@@ -309,7 +310,7 @@ _dispatcher(ULONG, yw_YWM_SETLANGUAGE, struct setlanguage_msg *msg)
     strcpy(ywd->LocaleLang,msg->lang);
 
     /*** Windows: zuerst DLL versuchen ***/
-    sprintf(buf1,"data:locale/%s.dll",ywd->LocaleLang);
+    sprintf(buf1,"locale/%s.dll",ywd->LocaleLang);
     _ManglePath(buf1,buf2,sizeof(buf2));
     if (yw_LoadLocaleDll(buf2, ywd->LocaleStrBuf,
                          ywd->LocaleEOB, ywd->LocaleArray,
