@@ -211,7 +211,7 @@ BOOL yw_InitTooltips(struct ypaworld_data *ywd)
         t[TOOLTIP_SHELL_PLAY]           = "GO TO LEVEL SELECTION MAP";
         t[TOOLTIP_SHELL_TUTORIAL]       = "GO TO TRAINING AREA";
 
-        t[TOOLTIP_SHELL_DB_PAUSE]           = "PAUSE DEBRIEFING";
+        t[TOOLTIP_SHELL_PL_GOTOLOADSAVE]    = "GOTO LOAD SAVE";
         t[TOOLTIP_SHELL_DB_STOP]            = "EXIT DEBRIEFING";
         t[TOOLTIP_SHELL_DB_REWIND]          = "REWIND DEBRIEFING";
         t[TOOLTIP_SHELL_DB_TIME_LOC]        = "PLAYING TIME - THIS LEVEL";

@@ -771,6 +771,13 @@ static UBYTE *ypa_GetStr(UBYTE **loc, ULONG id, UBYTE *def)
 #define STR_VGADGET_DRAWPRIMITIVE       (2432)
 #define STR_IGADGET_ALTJOYSTICK         (2433)
 
+#define STR_DEBRIEF_KILLS               (2450)
+#define STR_DEBRIEF_KILLSBYPLAYER       (2451)
+#define STR_DEBRIEF_KILLSALL            (2452)
+#define STR_DEBRIEF_SCORE               (2453)
+#define STR_DEBRIEF_TIMETHISMISSION     (2454)
+#define STR_DEBRIEF_TIMEOVERALL         (2455)
+#define STR_DEBRIEF_PLAYINGTIME         (2456)
 
 /*** Anpassen! ***/
 #define STR_LAST_ITEM           (2600) 

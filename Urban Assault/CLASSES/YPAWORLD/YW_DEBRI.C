@@ -911,13 +911,14 @@ UBYTE *yw_DBLayoutKillsTitle(struct ypaworld_data *ywd,
 /*
 **  CHANGED
 **      08-May-98   floh    created
+**      18-May-98   floh    + Texte localized
 */
 {
     struct ypa_ColumnItem col[3];
     dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_DEBRIEFING),yw_Green(ywd,YPACOLOR_TEXT_DEBRIEFING),yw_Blue(ywd,YPACOLOR_TEXT_DEBRIEFING));    
 
     /*** Column-Layout initialisieren ***/        
-    col[0].string       = "KILLS";     // FIXME!
+    col[0].string       = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_KILLS,"KILLS");
     col[0].width        = w * 0.4;
     col[0].font_id      = FONTID_TRACY;
     col[0].space_chr    = ' ';
@@ -925,7 +926,7 @@ UBYTE *yw_DBLayoutKillsTitle(struct ypaworld_data *ywd,
     col[0].postfix_chr  = 0;
     col[0].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
      
-    col[1].string       = "BY PLAYER";     // FIXME!
+    col[1].string       = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_KILLSBYPLAYER,"BY PLAYER");
     col[1].width        = w * 0.3;
     col[1].font_id      = FONTID_TRACY;
     col[1].space_chr    = ' ';
@@ -933,7 +934,7 @@ UBYTE *yw_DBLayoutKillsTitle(struct ypaworld_data *ywd,
     col[1].postfix_chr  = 0;
     col[1].flags        = YPACOLF_TEXT|YPACOLF_ALIGNLEFT;
 
-    col[2].string       = "ALL";           // FIXME
+    col[2].string       = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_KILLSALL,"ALL");
     col[2].width        = w * 0.3;
     col[2].font_id      = FONTID_TRACY;
     col[2].space_chr    = ' ';
@@ -1063,7 +1064,7 @@ UBYTE *yw_DBLayoutScoreTitle(struct ypaworld_data *ywd,
     dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_DEBRIEFING),yw_Green(ywd,YPACOLOR_TEXT_DEBRIEFING),yw_Blue(ywd,YPACOLOR_TEXT_DEBRIEFING));    
 
     /*** Column-Layout initialisieren ***/        
-    col[0].string       = "SCORE";     // FIXME!
+    col[0].string       = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_SCORE,"SCORE");
     col[0].width        = w;
     col[0].font_id      = FONTID_TRACY;
     col[0].space_chr    = ' ';
@@ -1184,7 +1185,7 @@ UBYTE *yw_DBLayoutTime(struct ypaworld_data *ywd,
 
         dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_DEBRIEFING),yw_Green(ywd,YPACOLOR_TEXT_DEBRIEFING),yw_Blue(ywd,YPACOLOR_TEXT_DEBRIEFING));    
 
-        col[0].string       = "PLAYING TIME:";
+        col[0].string       = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_PLAYINGTIME,"PLAYING TIME:");
         col[0].width        = w * 0.7;
         col[0].font_id      = FONTID_TRACY;
         col[0].space_chr    = ' ';
@@ -1215,7 +1216,7 @@ UBYTE *yw_DBLayoutTime(struct ypaworld_data *ywd,
 
         dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_DEBRIEFING),yw_Green(ywd,YPACOLOR_TEXT_DEBRIEFING),yw_Blue(ywd,YPACOLOR_TEXT_DEBRIEFING));    
 
-        col[0].string       = "PLAYING TIME THIS MISSION:";
+        col[0].string       = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_TIMETHISMISSION,"PLAYING TIME THIS MISSION:");
         col[0].width        = w * 0.7;
         col[0].font_id      = FONTID_TRACY;
         col[0].space_chr    = ' ';
@@ -1238,7 +1239,7 @@ UBYTE *yw_DBLayoutTime(struct ypaworld_data *ywd,
         str = yw_BuildColumnItem(ywd,str,2,col);
         new_line(str);
 
-        col[0].string       = "PLAYING TIME OVERALL:";
+        col[0].string       = ypa_GetStr(ywd->LocHandle,STR_DEBRIEF_TIMEOVERALL,"PLAYING TIME OVERALL:");
         col[0].width        = w * 0.7;
         col[0].font_id      = FONTID_TRACY;
         col[0].space_chr    = ' ';

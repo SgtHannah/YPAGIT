@@ -360,12 +360,19 @@ BOOL yw_InitMissionBriefing(struct ypaworld_data *ywd, ULONG lnum)
 **      07-May-98   floh    + Listview wurde im Fehlerfall nicht
 **                            korrekt aufgeraeumt
 **      18-May-98   floh    + loescht jetzt zuerst den Screen.
+**                          + stoppt CD Player
 */
 {
     struct MissionBriefing *mb = &(ywd->Mission);
+    struct snd_cdcontrol_msg cd;
+
     memset(mb,0,sizeof(struct MissionBriefing));
     mb->MouseOverElm = -1;
     mb->ElmSlot      = -1;
+    
+    /*** CD Player starten ***/
+    cd.command = SND_CD_STOP;
+    _ControlCDPlayer(&cd);
     
     /*** Text Listview initialisieren ***/
     if (!yw_MBInitListView(ywd)) return(FALSE);    

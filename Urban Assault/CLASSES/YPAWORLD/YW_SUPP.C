@@ -473,6 +473,7 @@ void yw_ShowDiskAccess(struct ypaworld_data *ywd)
 **      31-May-97   floh    created
 **      17-Sep-97   floh    + CD-Player-Support
 **      18-May-98   floh    + kein CD Track mehr...
+**                          + CDROM wird gestoppt
 */
 {
     UBYTE *filename;
@@ -480,12 +481,14 @@ void yw_ShowDiskAccess(struct ypaworld_data *ywd)
     UBYTE old_path[128];
     struct snd_cdcontrol_msg cd;
 
+    /*** CDROM stoppen ***/
+    cd.command = SND_CD_STOP;
+    _ControlCDPlayer(&cd);
+
     /*** wähle Mipmap-Stufe des Disk-Access-Bild ***/
     if (ywd->DspXRes <= 360)      filename="disk320.ilbm";
     else if (ywd->DspXRes <= 600) filename="disk512.ilbm";
     else                          filename="disk640.ilbm";
-
-
     strcpy(old_path,_GetAssign("rsrc"));
     _SetAssign("rsrc","data:mc2res");
     pic = _new("ilbm.class", RSA_Name, filename,

@@ -154,24 +154,24 @@
 #define TOOLTIP_SHELL_BACKTOPLAYER      (148)
 #define TOOLTIP_SHELL_BACKTOSESSION     (149)
 
-#define TOOLTIP_SHELL_DB_PAUSE        (150) // Debriefing pausieren
-#define TOOLTIP_SHELL_DB_STOP         (151) // Debriefing abbrechen
-#define TOOLTIP_SHELL_DB_REWIND       (152) // Debriefing zurückspulen
-#define TOOLTIP_SHELL_DB_TIME_LOC     (153) // Debr.: Playing Time dieser Levels
-#define TOOLTIP_SHELL_DB_TIME_GLOB    (154) // Debr.: Playing Time gesamt
-#define TOOLTIP_SHELL_DB_KILLS_LOC    (155) // Debr.: Kills dieser Level
-#define TOOLTIP_SHELL_DB_KILLS_GLOB   (156) // Debr.: Kills gesamt
-#define TOOLTIP_SHELL_DB_LOSS_LOC     (157) // Debr.: Losses dieser Level
-#define TOOLTIP_SHELL_DB_LOSS_GLOB    (158) // Debr.: Losses gesamt
-#define TOOLTIP_SHELL_DB_SECS_LOC     (159) // Debr.: Sectors dieser Level
-#define TOOLTIP_SHELL_DB_SECS_GLOB    (160) // Debr.: Sectors gesamt
-#define TOOLTIP_SHELL_DB_SCORE_LOC    (161) // Debr.: Score dieser Level
-#define TOOLTIP_SHELL_DB_SCORE_GLOB   (162) // Debr.: Score gesamt
-#define TOOLTIP_SHELL_DB_POWER_LOC    (163) // Debr.: Powerstation Conquers
-#define TOOLTIP_SHELL_DB_POWER_GLOB   (164)
-#define TOOLTIP_SHELL_DB_UPGRADE_LOC  (165) // Debr.: Techupgrades
-#define TOOLTIP_SHELL_DB_UPGRADE_GLOB (166)
-#define TOOLTIP_SHELL_DB_RACE         (167)   // Debr.: switch race
+#define TOOLTIP_SHELL_PL_GOTOLOADSAVE   (150) // Level Selection, Goto Load Save Screen
+#define TOOLTIP_SHELL_DB_STOP           (151) // <OBSOLETE>
+#define TOOLTIP_SHELL_DB_REWIND         (152) // Debriefing zurückspulen
+#define TOOLTIP_SHELL_DB_TIME_LOC       (153) // <OBSOLETE>
+#define TOOLTIP_SHELL_DB_TIME_GLOB      (154) // <OBSOLETE>
+#define TOOLTIP_SHELL_DB_KILLS_LOC      (155) // <OBSOLETE>
+#define TOOLTIP_SHELL_DB_KILLS_GLOB     (156) // <OBSOLETE>
+#define TOOLTIP_SHELL_DB_LOSS_LOC       (157) // <OBSOLETE>
+#define TOOLTIP_SHELL_DB_LOSS_GLOB      (158) // <OBSOLETE>
+#define TOOLTIP_SHELL_DB_SECS_LOC       (159) // <OBSOLETE>
+#define TOOLTIP_SHELL_DB_SECS_GLOB      (160) // <OBSOLETE>
+#define TOOLTIP_SHELL_DB_SCORE_LOC      (161) // <OBSOLETE>
+#define TOOLTIP_SHELL_DB_SCORE_GLOB     (162) // <OBSOLETE>
+#define TOOLTIP_SHELL_DB_POWER_LOC      (163) // <OBSOLETE>
+#define TOOLTIP_SHELL_DB_POWER_GLOB     (164) // <OBSOLETE>
+#define TOOLTIP_SHELL_DB_UPGRADE_LOC    (165) // <OBSOLETE>
+#define TOOLTIP_SHELL_DB_UPGRADE_GLOB   (166) // <OBSOLETE>
+#define TOOLTIP_SHELL_DB_RACE           (167) // <OBSOLETE>
 
 /*** weiter Shell ***/
 #define TOOLTIP_SHELL_DELETE            (168)
@@ -206,7 +206,7 @@
 #define TOOLTIP_SHELL_FORCEFEEDBACK     (197)
 #define TOOLTIP_SHELL_SWITCHOFF         (198)
 #define TOOLTIP_SHELL_EXITDEBRIEFING    (199)
-#define TOOLTIP_SHELL_PL_GOTOLOADSAVE   (200)
+
 
 // ***ANPASSEN***
 #define TOOLTIP_LAST    (201)
