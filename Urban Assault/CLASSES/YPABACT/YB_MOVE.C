@@ -41,7 +41,6 @@ void yb_DoSpecialEffect( struct ypabact_data *ybd, LONG frame_time );
 void yb_RandomSpeed( struct ypabact_data *ybd );
 
 
-
 /*-----------------------------------------------------------------*/
 _dispatcher(void, yb_YBM_MOVE, struct move_msg *move)
 {
@@ -121,7 +120,7 @@ _dispatcher(void, yb_YBM_MOVE, struct move_msg *move)
         schub.y = -(ybd->bact.dir.m22);
         schub.z = -(ybd->bact.dir.m23);
         schub.v = ybd->bact.act_force;
-
+            
         /*** User-Korrektur ***/
         if( ybd->flags & YBF_UserInput ) {
 

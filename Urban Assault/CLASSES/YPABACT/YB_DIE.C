@@ -451,6 +451,15 @@ _dispatcher(void, yb_YBM_DIE, void *nix)
     if( ybd->bact.PrimTargetType == TARTYPE_BACTERIUM )
         _Remove( (struct Node *) &(ybd->pt_attck_node) );
     ybd->bact.PrimTargetType = ybd->bact.SecTargetType = TARTYPE_NONE;
+    
+    if( ybd->st_attck_node.nd.mln_Succ && ybd->st_attck_node.nd.mln_Pred ) {
+        _LogMsg("ALARM!!! st-Node noch in liste!!! owner %d, class %d\n", ybd->bact.Owner, ybd->bact.BactClassID);
+        _Remove((struct Node *) &(ybd->st_attck_node));
+        }
+    if( ybd->pt_attck_node.nd.mln_Succ && ybd->pt_attck_node.nd.mln_Pred ) {
+        _LogMsg("ALARM!!! pt-Node noch in liste!!! owner %d, class %d\n", ybd->bact.Owner, ybd->bact.BactClassID);
+        _Remove((struct Node *) &(ybd->pt_attck_node));
+        }
 
 
     /* -----------------------------------------------------------------------
@@ -651,6 +660,18 @@ _dispatcher( void, yb_YBM_REINCARNATE, void *nix )
 
     /*** Extra-Visprotos loeschen samt flags und Schnickschnack ***/
     memset( ybd->bact.extravp, 0, sizeof( ybd->bact.extravp ));
+
+    /* -----------------------------------------------------------
+    ** Sollte eigentlich bei korrekter Aufraeumung nicht notwendig
+    ** sein, aber....
+    ** ---------------------------------------------------------*/
+    _NewList((struct List *) &(ybd->attck_list));
+    _NewList((struct List *) &(ybd->bact.slave_list));
+    _NewList((struct List *) &(ybd->bact.auto_list));
+    ybd->st_attck_node.nd.mln_Succ   = NULL;
+    ybd->pt_attck_node.nd.mln_Succ   = NULL;
+    ybd->st_attck_node.nd.mln_Pred   = NULL;
+    ybd->pt_attck_node.nd.mln_Pred   = NULL;
 }
 
 _dispatcher( void, yb_YBM_RELEASEVEHICLE, Object *dead_man )

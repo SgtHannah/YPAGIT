@@ -1938,11 +1938,32 @@ _dispatcher(void, yw_YWM_KILLLEVEL, void *ignored)
     ** Hilfe eines Flags in Form eines Files
     ** -----------------------------------------------------------*/
     if( (ywd->Level->Status == LEVELSTAT_FINISHED) && ywd->gsr ) {
-        FILE *f;
-        char filename[ 300 ];
+        
+        FILE  *f;
+        char   filename[ 300 ];
+        struct saveloadsettings_msg sls;
+    
         sprintf( filename, "save:%s/sgisold.txt", ywd->gsr->UserName );
         if( f = _FOpen( filename, "w" ))
             _FClose(f);
+        
+        /*** Abspeichern der Default-settings ***/
+        sprintf( filename, "%s/user.txt", ywd->gsr->UserName );
+        sls.filename = filename;
+        sls.username = ywd->gsr->UserName;
+        sls.gsr      = ywd->gsr;
+        sls.mask     = DM_SCORE|DM_USER|DM_INPUT|DM_VIDEO|DM_SHELL|DM_SOUND|
+                       DM_BUILD|DM_BUDDY;
+        sls.flags    = 0;
+        _methoda( o, YWM_SAVESETTINGS, &sls );
+    
+        /*** Abspeichern des letzten Spielers ***/
+        if( f = _FOpen( "env:user.def", "w") ) {
+    
+            strcpy( filename, ywd->gsr->UserName );
+            _FWrite( filename, strlen( filename ), 1, f );
+            _FClose( f );
+            }
         }
         
     if( ywd->playing_network ) {
@@ -2023,6 +2044,14 @@ _dispatcher(void, yw_YWM_KILLLEVEL, void *ignored)
         }
 
         _dispose(cmd);
+    };
+    
+    
+    /*** durch RemoveAllShadows sind wieder welche im DeathCache ***/
+    while (ywd->DeathCache.mlh_Head->mln_Succ) {
+    
+        Object *death = ((struct OBNode *)ywd->DeathCache.mlh_Head)->o;
+        _dispose(death);
     };
 
     /*** Vehicle, Weapon, Building-Soundsamples killen ***/

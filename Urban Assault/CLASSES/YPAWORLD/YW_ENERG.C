@@ -1356,7 +1356,10 @@ _dispatcher(void, yw_YWM_NOTIFYDEADROBO, struct notifydeadrobo_msg *msg)
                     struct ypa_HistTechUpgrade htu;
 
                     /*** YAY! ***/
-                    yw_ActivateWunderstein(ywd,sec,sec->WIndex);
+                    if (ywd->playing_network) 
+                        yw_ActivateNetWunderstein(ywd,sec,sec->WIndex);
+                    else
+                        yw_ActivateWunderstein(ywd,sec,sec->WIndex);
 
                     /*** Techupgrade als HistoryEvent registrieren ***/
                     htu.cmd       = YPAHIST_TECHUPGRADE;

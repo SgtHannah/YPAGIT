@@ -2833,7 +2833,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
       if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
 
        nb.y             = 4 * (ywd->FontH + ReqDeltaY);
-       nb.unpressed_text= "Stefan 'Metzel Hetzel' Karau, Silvius Lack,";
+       nb.unpressed_text= "Stefan 'Metzel Hetzel' Karau, Sylvius Lack,";
        
        if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
 
@@ -2878,7 +2878,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
                if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
     
                 nb.y             = 13 * (ywd->FontH + ReqDeltaY);
-                nb.unpressed_text= "Robert Birker, Andre 'Goetz' Blechschmidt, Jan Blechschmidt, Stefan Bludau,";
+                nb.unpressed_text= "Robert Birker, Andre 'Goetz' Blechschmidt, Jan Blechschmidt, Stephan Bludau,";
                
                 if( _methoda(GSR->babout, BTM_NEWBUTTON, &nb ) ) {
     

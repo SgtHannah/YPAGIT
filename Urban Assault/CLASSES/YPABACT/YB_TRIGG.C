@@ -685,7 +685,7 @@ void yb_DoBeamStuff( struct ypabact_data *ybd )
                     sprintf( filename, "save:%s/%d.rst\0", ywd->gsr->UserName, ywd->Level->Num );
                     _FDelete( filename );
                     }
-
+                    
                 /* --------------------------------------------
                 ** Solange es keine neue Strategie gibt, Slaves
                 ** töten. Neu: Wenn vorher EXTRA_CLEANUP, dann
@@ -799,6 +799,7 @@ void yb_m_rot_round_lokal_x( struct flt_m3x3 *m, FLOAT angle)
 
     *m = neu_dir;
 }
+
 
 
 

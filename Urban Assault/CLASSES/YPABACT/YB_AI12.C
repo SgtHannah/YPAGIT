@@ -270,41 +270,6 @@ _dispatcher(void, yb_YBM_AI_LEVEL1, struct trigger_logic_msg *msg)
                         }
                     }    
                 }
-            else {
-
-                /* -------------------------------------------------------------
-                ** Wir haben kein Ziel. Wenn aber die PrimCommandID noch gesetzt
-                ** ist, dann heißt das, daß wir ein Geschwader bekämpfen und
-                ** evtl. noch Leute übrig sind. Fragen wir also den Robo,
-                ** ob es noch Leute dieses Geschwaders gibt und fragen wir
-                ** nach dem anführer.
-                ** -----------------------------------------------------------*/
-                if( (ybd->bact.robo != NULL) && (ybd->bact.PrimCommandID != 0) ) {
-
-                    target.priority = ybd->bact.PrimCommandID; // Mißbrauch
-                    if( _methoda( ybd->bact.robo, YRM_GETENEMY, &target ) ) {
-
-                        /*** Es gibt jemanden ***/
-                        target.priority = 0;
-                        _methoda( o, YBM_SETTARGET, &target );
-                        }
-                    else {
-
-                        /*** Es gibt niemaanden mehr ***/
-                        ybd->bact.PrimCommandID = 0;
-
-                        /* -------------------------------------------
-                        ** noch Sektorziel setzen, wo frueher mal das
-                        ** Hauptziel war. PrimPos haelt jetzt auch die
-                        ** VehiclePosition (in fight.c und target.c )
-                        ** -----------------------------------------*/
-                        target.priority    = 0;
-                        target.target_type = TARTYPE_SECTOR;
-                        target.pos         = ybd->bact.PrimPos;
-                        _methoda( o, YBM_SETTARGET, &target );
-                        }
-                    }
-                }
             break;
 
         case ACTION_WAIT:
@@ -318,6 +283,42 @@ _dispatcher(void, yb_YBM_AI_LEVEL1, struct trigger_logic_msg *msg)
             break;
         }
 
+    if( TARTYPE_NONE == ybd->bact.PrimTargetType ) {
+
+        /* -------------------------------------------------------------
+        ** Wir haben kein Ziel. Wenn aber die PrimCommandID noch gesetzt
+        ** ist, dann heißt das, daß wir ein Geschwader bekämpfen und
+        ** evtl. noch Leute übrig sind. Fragen wir also den Robo,
+        ** ob es noch Leute dieses Geschwaders gibt und fragen wir
+        ** nach dem anführer.
+        ** Das machen wir immer, denn wir koennen schon in WAIT sein.
+        ** -----------------------------------------------------------*/
+        if( (ybd->bact.robo != NULL) && (ybd->bact.PrimCommandID != 0) ) {
+
+            target.priority = ybd->bact.PrimCommandID; // Mißbrauch
+            if( _methoda( ybd->bact.robo, YRM_GETENEMY, &target ) ) {
+
+                /*** Es gibt jemanden ***/
+                target.priority = 0;
+                _methoda( o, YBM_SETTARGET, &target );
+                }
+            else {
+
+                /*** Es gibt niemaanden mehr ***/
+                ybd->bact.PrimCommandID = 0;
+
+                /* -------------------------------------------
+                ** noch Sektorziel setzen, wo frueher mal das
+                ** Hauptziel war. PrimPos haelt jetzt auch die
+                ** VehiclePosition (in fight.c und target.c )
+                ** -----------------------------------------*/
+                target.priority    = 0;
+                target.target_type = TARTYPE_SECTOR;
+                target.pos         = ybd->bact.PrimPos;
+                _methoda( o, YBM_SETTARGET, &target );
+                }
+            }
+        }
 
     /*** Zusatzarbeit ***/
     if( ybd->flags & YBF_UserInput ) {
@@ -671,14 +672,23 @@ _dispatcher(void, yb_YBM_AI_LEVEL2, struct trigger_logic_msg *msg)
     /* --------------------------------------------------------------
     ** Wenn ich User bin, dann schalte ich das NZ ab, wenn es nicht
     ** sichtbar ist (denn bei mir wird FIGHTBACT ja nicht aufgerufen.
+    ** Und natuerlich, wenn die Entfernung zu gross ist.
     ** ------------------------------------------------------------*/
     if (ybd->flags & YBF_UserInput) {
 
         if( (TARTYPE_BACTERIUM == ybd->bact.SecTargetType) &&
             (NULL != ybd->bact.SecondaryTarget.Bact) ) {
+            
+            FLOAT distance;
+            
+            distance = nc_sqrt( (ybd->bact.pos.x - ybd->bact.SecondaryTarget.Bact->pos.x) *
+                                (ybd->bact.pos.x - ybd->bact.SecondaryTarget.Bact->pos.x) +
+                                (ybd->bact.pos.z - ybd->bact.SecondaryTarget.Bact->pos.z) *
+                                (ybd->bact.pos.z - ybd->bact.SecondaryTarget.Bact->pos.z));
 
-            if( !(ybd->bact.SecondaryTarget.Bact->Sector->FootPrint &
-                 (UBYTE) (1 << ybd->bact.Owner) ) ) {
+            if( (!(ybd->bact.SecondaryTarget.Bact->Sector->FootPrint &
+                  (UBYTE) (1 << ybd->bact.Owner))) ||
+                (distance > SECTARGET_FORGET) ) {
 
                 /*** Ziel abmelden ***/
                 target.priority = 1;
@@ -792,7 +802,7 @@ _dispatcher( void, yb_YBM_GETSECTARGET, struct getsectar_msg *st)
         FLOAT  distance;
         int    i, j;
 
-        distance      = 1.0 * SECTOR_SIZE;
+        distance      = SECTARGET_TAKE;
         points        = 0;
         st->SecTarget = NULL;
 

@@ -79,6 +79,12 @@ _dispatcher(void, yb_YBM_SETTARGET, struct settarget_msg *msg)
 
     /*** auf jeden Fall Test-Zeit rücksetzen!! ***/
     ybd->bact.assess_time = 0;
+    
+    if( (ybd->bact.ExtraState & EXTRA_LOGICDEATH) && (TARTYPE_BACTERIUM == msg->target_type) ) {
+        _LogMsg("ALARM!!! bact-settarget auf logische Leiche owner %d, class %d, prio %d\n",
+            ybd->bact.Owner, ybd->bact.BactClassID, msg->priority );
+        return;
+        }
 
     /*** Um welches Ziel handelt es sich? ***/
     if( msg->priority == 0 ) {
@@ -168,7 +174,15 @@ _dispatcher(void, yb_YBM_SETTARGET, struct settarget_msg *msg)
                 if( ybd->bact.PrimaryTarget.Bact ) {
 
                     struct List *list;
-
+                    
+                    /*** Das Ziel schon tot? ***/
+                    if( ybd->bact.PrimaryTarget.Bact->ExtraState & EXTRA_LOGICDEATH ) {
+                        _LogMsg("totes vehicle als hauptziel, owner %d, class %d - ich bin class %d\n",
+                                msg->target.bact->Owner, msg->target.bact->BactClassID, ybd->bact.BactClassID );
+                        ybd->bact.PrimTargetType = TARTYPE_NONE;
+                        return;
+                        }
+                        
                     ybd->bact.PrimPos.x = ybd->bact.PrimaryTarget.Bact->pos.x;
                     ybd->bact.PrimPos.y = ybd->bact.PrimaryTarget.Bact->pos.y;
                     ybd->bact.PrimPos.z = ybd->bact.PrimaryTarget.Bact->pos.z;
@@ -181,8 +195,11 @@ _dispatcher(void, yb_YBM_SETTARGET, struct settarget_msg *msg)
                     /*** CommanderID eintragen, wenn er eine hat ***/
                     ybd->bact.PrimCommandID = msg->target.bact->CommandID;
                     }
-                else
+                else {
+                    
                     _LogMsg("PrimT. without a pointer\n");
+                    ybd->bact.PrimTargetType = TARTYPE_NONE;
+                    }
 
 
                 break;
@@ -344,6 +361,14 @@ _dispatcher(void, yb_YBM_SETTARGET, struct settarget_msg *msg)
 
                     struct List *list;
 
+                    /*** Das Ziel schon tot? ***/
+                    if( ybd->bact.SecondaryTarget.Bact->ExtraState & EXTRA_LOGICDEATH ) {
+                        _LogMsg("totes vehicle als nebenziel, owner %d, class %d\n",
+                                msg->target.bact->Owner, msg->target.bact->BactClassID );
+                        ybd->bact.SecTargetType = TARTYPE_NONE;
+                        return;
+                        }
+                        
                     ybd->bact.SecPos.x = ybd->bact.SecondaryTarget.Bact->pos.x;
                     ybd->bact.SecPos.y = ybd->bact.SecondaryTarget.Bact->pos.y;
                     ybd->bact.SecPos.z = ybd->bact.SecondaryTarget.Bact->pos.z;
@@ -358,7 +383,8 @@ _dispatcher(void, yb_YBM_SETTARGET, struct settarget_msg *msg)
                     }
                 else {
                     _LogMsg("Yppsn\n");
-                }
+                    ybd->bact.SecTargetType = TARTYPE_NONE;
+                    }
 
                 break;
 
@@ -522,8 +548,19 @@ _dispatcher( ULONG, yb_YBM_ASSESSTARGET, struct assesstarget_msg *at )
                 /*** Immer-Kampf-Aggression? ***/
                 if( ybd->bact.Aggression >= AGGR_ALL ) {
 
-                    /*** Bekämpfen, egal, was ***/
-                    return( AT_FIGHT );
+                    /* ------------------------------------------------------
+                    ** Bekämpfen, egal, was. Nebenziele aber auch bei grosser
+                    ** entfernung abmelden. 
+                    ** ----------------------------------------------------*/
+                    if( sec_target ) {
+                        
+                        if( distance > SECTARGET_FORGET )
+                            return( AT_REMOVE );
+                        else
+                            return( AT_FIGHT );
+                        }
+                    else
+                        return( AT_FIGHT );
                     }
                 else {
 
@@ -576,7 +613,7 @@ _dispatcher( ULONG, yb_YBM_ASSESSTARGET, struct assesstarget_msg *at )
                                         struct flt_triple tpos;
                                         
                                         /*** Zu weit weg? ***/
-                                        if( distance > (1.5 * SECTOR_SIZE) )
+                                        if( distance > SECTARGET_FORGET )
                                             return( AT_REMOVE );
 
                                         // Das Hauptziel kennt meistens nur der Chef...
@@ -939,11 +976,15 @@ ULONG yb_DoingWaypoint( struct ypabact_data *ybd, struct assesstarget_msg *at )
                     /*** Ziel suchen ***/
                     if( t = yb_SearchBact( ybd->world, ybd->bact.mt_commandid,
                                            ybd->bact.mt_owner ) ) {
+                                           
+                        /*** noch sichtbar? ***/
+                        if( t->Sector->FootPrint & (UBYTE)(1<<ybd->bact.Owner) ) {
 
-                        target.target_type = TARTYPE_BACTERIUM;
-                        target.priority    = 0;
-                        target.target.bact = t;
-                        _methoda( ybd->bact.BactObject, YBM_SETTARGET, &target );
+                            target.target_type = TARTYPE_BACTERIUM;
+                            target.priority    = 0;
+                            target.target.bact = t;
+                            _methoda( ybd->bact.BactObject, YBM_SETTARGET, &target );
+                            }
                         }
                     }
 
@@ -990,7 +1031,10 @@ void yb_CopyWayPoints( struct Bacterium *from, struct Bacterium *to )
 
 struct Bacterium *yb_SearchBact( Object *world, ULONG commandid, UBYTE owner )
 {
-    /*** Sucht an Hand der übergebenen Informationen einen Commander ***/
+    /* ---------------------------------------------------------------------------
+    ** Sucht an Hand der übergebenen Informationen einen Commander. Da dieser fuer
+    ** Zielsetzungen verwendet wird, sollte er nicht tot sein. 
+    ** -------------------------------------------------------------------------*/
     struct ypaworld_data *ywd;
     struct OBNode *robo;
 
@@ -1005,15 +1049,23 @@ struct Bacterium *yb_SearchBact( Object *world, ULONG commandid, UBYTE owner )
             struct OBNode *commander;
 
             /*** Ok, der Robo. wars der zufaellig? ***/
-            if( robo->bact->CommandID == commandid )
-                return( robo->bact );
+            if( robo->bact->CommandID == commandid ) {
+                if( ACTION_DEAD == robo->bact->MainState )
+                    return( NULL );
+                else
+                    return( robo->bact );
+                }
 
             commander = (struct OBNode *) robo->bact->slave_list.mlh_Head;
             while( commander->nd.mln_Succ ) {
 
-                if( commandid == commander->bact->CommandID )
-                    return( commander->bact );
-
+                if( commandid == commander->bact->CommandID ) {
+                    if( ACTION_DEAD == commander->bact->MainState )
+                        return( NULL );
+                    else
+                        return( commander->bact );
+                    }
+                    
                 commander = (struct OBNode *) commander->nd.mln_Succ;
                 }
             }

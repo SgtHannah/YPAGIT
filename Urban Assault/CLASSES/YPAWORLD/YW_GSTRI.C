@@ -486,6 +486,11 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                         yw_EAR_Save( GSR );
                         break;
                         
+                    case CONFIRM_CREATEANDOVERWRITE:
+                    
+                        yw_EAR_Create( GSR );
+                        break;
+                        
                     case CONFIRM_MORECDS:
                     
                         /*** nur Bestaetigung. Nix machen ***/
@@ -507,6 +512,7 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 switch( GSR->confirm_modus ) {
                 
                     case CONFIRM_SAVEANDOVERWRITE:
+                    case CONFIRM_CREATEANDOVERWRITE:
                         
                         GSR->D_InputMode = DIM_NONE;
                         break;
@@ -528,6 +534,7 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 switch( GSR->confirm_modus ) {
                 
                     case CONFIRM_SAVEANDOVERWRITE:
+                    case CONFIRM_CREATEANDOVERWRITE:
                         
                         GSR->D_InputMode = DIM_NONE;
                         break;
@@ -556,6 +563,11 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                     case CONFIRM_SAVEANDOVERWRITE:
                     
                         yw_EAR_Save( GSR );
+                        break;
+                        
+                    case CONFIRM_CREATEANDOVERWRITE:
+                    
+                        yw_EAR_Create( GSR );
                         break;
                         
                     case CONFIRM_MORECDS:
@@ -1652,7 +1664,15 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
 
                             case DIM_CREATE:
 
-                                yw_EAR_Create( GSR );
+                                /*** Existiert das schon? ***/
+                                if( GSR->d_actualitem )
+                                    yw_OpenConfirmRequester( GSR, CONFIRM_CREATEANDOVERWRITE,
+                                    ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_SAVEANDOVERWRITE,
+                                    "DO YOU WANT TO OVERWRITE THIS PLAYER STATUS?"),
+                                    ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_SAVEANDOVERWRITE2,
+                                    "2441"), 0);
+                                else
+                                    yw_EAR_Create( GSR );
                                 break;
                             }
                         break;
@@ -1789,6 +1809,7 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                         break;
 
                     case DIM_SAVE:
+                      
                       if( GSR->d_actualitem )
                             yw_OpenConfirmRequester( GSR, CONFIRM_SAVEANDOVERWRITE,
                             ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_SAVEANDOVERWRITE,
@@ -1801,7 +1822,14 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
 
                     case DIM_CREATE:
 
-                        yw_EAR_Create( GSR );
+                      if( GSR->d_actualitem )
+                            yw_OpenConfirmRequester( GSR, CONFIRM_CREATEANDOVERWRITE,
+                            ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_SAVEANDOVERWRITE,
+                            "DO YOU WANT TO OVERWRITE THIS PLAYER STATUS?"),
+                            ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_SAVEANDOVERWRITE2,
+                            "2441"), 0);
+                        else
+                            yw_EAR_Create( GSR );
                         break;
                     }
                 break;
@@ -5114,14 +5142,14 @@ void yw_OpenDisk( struct GameShellReq *GSR )
     GSR->shell_mode = SHELLMODE_DISK;
 
     /*** Spielzeit fuer aktuellen User erneuern ***/
-    //nd = (struct fileinfonode *) GSR->flist.mlh_Head;
-    //while( nd->node.mln_Succ ) {
-    //    if( stricmp( nd->username, GSR->UserName ) == 0 ) {
-    //        nd->global_time = GSR->ywd->GlobalStats[ 1 ].Time;
-    //        break;
-    //        }
-    //    nd = (struct fileinfonode *) nd->node.mln_Succ;
-    //    }
+    nd = (struct fileinfonode *) GSR->flist.mlh_Head;
+    while( nd->node.mln_Succ ) {
+        if( stricmp( nd->username, GSR->UserName ) == 0 ) {
+            nd->global_time = GSR->ywd->GlobalStats[ 1 ].Time;
+            break;
+            }
+        nd = (struct fileinfonode *) nd->node.mln_Succ;
+        }
 
     yw_CloseReq(GSR->ywd, &(GSR->dmenu.Req));
     yw_OpenReq(GSR->ywd, &(GSR->dmenu.Req));
@@ -5533,14 +5561,14 @@ void yw_EAR_Save( struct GameShellReq *GSR )
     strncpy( GSR->UserName, GSR->D_Name, USERNAMELEN );
 
     /*** Spielzeit fuer aktuellen User erneuern ***/
-    node = (struct fileinfonode *) GSR->flist.mlh_Head;
-    while( node->node.mln_Succ ) {
-        if( stricmp( node->username, GSR->UserName ) == 0 ) {
-            node->global_time = GSR->ywd->GlobalStats[ 1 ].Time;
-            break;
-            }
-        node = (struct fileinfonode *) node->node.mln_Succ;
-        }
+    //node = (struct fileinfonode *) GSR->flist.mlh_Head;
+    //while( node->node.mln_Succ ) {
+    //    if( stricmp( node->username, GSR->UserName ) == 0 ) {
+    //        node->global_time = GSR->ywd->GlobalStats[ 1 ].Time;
+    //        break;
+    //        }
+    //    node = (struct fileinfonode *) node->node.mln_Succ;
+    //    }
 
     sp.modus = SP_NOPUBLISH;
     _methoda( GSR->bdisk, BTM_SWITCHPUBLISH, &sp );

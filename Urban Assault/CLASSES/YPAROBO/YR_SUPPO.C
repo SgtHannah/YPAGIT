@@ -587,33 +587,10 @@ _dispatcher( BOOL, yr_YRM_EXTERNMAKECOMMAND, struct externmakecommand_msg *emc )
     raster = 100; 
     count  = 0;    
     cv.y   = emc->pos.y;
-    
-//    while( 1 ) {
-//    
-//        struct getsectorinfo_msg gsi;
-//        struct intersect_msg inter;
-    
-        cv.x = emc->pos.x + (count % x - x/2) * raster;
-        cv.z = emc->pos.z + (count / x) * raster;
-        count++;
+    cv.x = emc->pos.x + (count % x - x/2) * raster;
+    cv.z = emc->pos.z + (count / x) * raster;
+    count++;
         
-//        /*** guenstige Abwurfposition ? ***/
-//        gsi.abspos_x = cv.x;
-//        gsi.abspos_z = cv.z;
-//        _methoda( yrd->world, YWM_GETSECTORINFO, &gsi );
-//        
-//        inter.pnt.x = cv.x;
-//        inter.pnt.y = cv.y - 10000.0;
-//        inter.pnt.z = cv.z;
-//        inter.vec.x = inter.vec.z = 0.0;
-//        inter.vec.y = 20000.0;
-//        inter.flags = INTERSECTF_CHEAT;
-//        _methoda( yrd->world, YWM_INTERSECT, &inter );
-//        
-//        if( inter.insect && 
-//            ( fabs(inter.ipnt.y - gsi.sector->Height) < 50.0) )
-//            break;
-//        }
 
     if( emc->varray )
         cv.vp = (UBYTE)(emc->varray[ 0 ]);
@@ -656,34 +633,9 @@ _dispatcher( BOOL, yr_YRM_EXTERNMAKECOMMAND, struct externmakecommand_msg *emc )
         ** Rechteck mit Grundseite sqrt( anzahl)+1 mit pos in der
         ** mitte. Von da aus nach vorn
         ** ----------------------------------------------------*/
-//        while( 1 ) {
-//        
-//            struct getsectorinfo_msg gsi;
-//            struct intersect_msg inter;
-//            BOOL    ret;
-        
-            cv.x = emc->pos.x + (count % x - x/2) * raster;
-            cv.z = emc->pos.z + (count / x) * raster;
-            count++;
-            
-//            /*** guenstige Abwurfposition ? ***/
-//            gsi.abspos_x = cv.x;
-//            gsi.abspos_z = cv.z;
-//            ret = _methoda( yrd->world, YWM_GETSECTORINFO, &gsi );
-//            
-//            inter.pnt.x = cv.x;
-//            inter.pnt.y = cv.y - 10000.0;
-//            inter.pnt.z = cv.z;
-//            inter.vec.x = inter.vec.z = 0.0;
-//            inter.vec.y = 20000.0;
-//            inter.flags = INTERSECTF_CHEAT;
-//            _methoda( yrd->world, YWM_INTERSECT, &inter );
-//            
-//            if( inter.insect && 
-//                ret &&
-//                ( fabs(inter.ipnt.y - gsi.sector->Height) < 30.0) )
-//                break;
-//            }
+        cv.x = emc->pos.x + (count % x - x/2) * raster;
+        cv.z = emc->pos.z + (count / x) * raster;
+        count++;
 
         if( !(Slave = (Object *) _methoda( yrd->world, YWM_CREATEVEHICLE, &cv ))) 
             break;

@@ -447,6 +447,10 @@ struct Bacterium {
 /*** Wie lange kann ich maximal tot sein ***/
 #define DEATH_TIME          5000        // zu bact.dead_entry
 
+/*** Distanzen fuer das Aufnehmen und vergessen von Fahrzeugen ***/
+#define SECTARGET_FORGET    (1.8 * SECTOR_SIZE)
+#define SECTARGET_TAKE      (1.5 * SECTOR_SIZE)
+
 #endif
 
 
