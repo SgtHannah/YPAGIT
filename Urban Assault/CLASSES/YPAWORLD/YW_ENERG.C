@@ -1104,13 +1104,13 @@ _dispatcher(void, yw_YWM_MODSECTORENERGY, struct energymod_msg *msg)
                     htu.wp_num    = ywd->touch_stone.wp_num;
                     htu.bp_num    = ywd->touch_stone.bp_num;
                     switch(ywd->gem[ywd->touch_stone.gem].type) {
-                        case 1:  htu.type = YPAHIST_TECHTYPE_WEAPON; break;
-                        case 2:  htu.type = YPAHIST_TECHTYPE_ARMOR;  break;
-                        case 3:  htu.type = YPAHIST_TECHTYPE_VEHICLE; break;
-                        case 4:  htu.type = YPAHIST_TECHTYPE_BUILDING; break;
-                        case 5:  htu.type = YPAHIST_TECHTYPE_RADAR; break;
-                        case 6:  htu.type = YPAHIST_TECHTYPE_BUILDANDVEHICLE; break;
-                        default: htu.type = YPAHIST_TECHTYPE_GENERIC; break;
+                        case LOGMSG_TECH_WEAPON:            htu.type = YPAHIST_TECHTYPE_WEAPON; break;
+                        case LOGMSG_TECH_ARMOR:             htu.type = YPAHIST_TECHTYPE_ARMOR;  break;
+                        case LOGMSG_TECH_VEHICLE:           htu.type = YPAHIST_TECHTYPE_VEHICLE; break;
+                        case LOGMSG_TECH_BUILDING:          htu.type = YPAHIST_TECHTYPE_BUILDING; break;
+                        case LOGMSG_TECH_RADAR:             htu.type = YPAHIST_TECHTYPE_RADAR; break;
+                        case LOGMSG_TECH_BUILDANDVEHICLE:   htu.type = YPAHIST_TECHTYPE_BUILDANDVEHICLE; break;
+                        default:                            htu.type = YPAHIST_TECHTYPE_GENERIC; break;
                     };
                     _methoda(o,YWM_NOTIFYHISTORYEVENT,&htu);
                 };

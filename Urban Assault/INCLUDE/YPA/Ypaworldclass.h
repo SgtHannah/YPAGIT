@@ -1727,6 +1727,17 @@ struct MBElm {
 #define MBWIRE_WPNEXPLODE   (2)
 #define MBWIRE_CONSEC       (3)
 
+/*** Techupgrade-Beschreibung fuer Debriefing ***/
+struct DBTechUpgrade {
+    UWORD type;             // siehe unten
+    WORD  vp_num;           // Prototype-Nummer des betroffenen Vehicles
+    WORD  wp_num;
+    WORD  bp_num;
+};    
+
+/*** Debriefing: maximale Anzahl Debriefing-Techupgrades ***/
+#define DB_MAXNUM_TECHUPGRADES (5)
+
 /*** Missionbriefing/Debriefing Struktur ***/
 struct MissionBriefing {
     Object *MissionMap;             // die Missions-Briefing-Map
@@ -1773,6 +1784,9 @@ struct MissionBriefing {
     struct ypa_PlayerStats GlobalStats[MAXNUM_ROBOS];   // Kopie von ywd->GlobalStats
     struct ypa_PlayerStats LocalStats[MAXNUM_ROBOS];    // für diesen Levels
     UBYTE Movie[256];               // falls Movie gespielt werden soll, hier Filename
+
+    ULONG ActTechUpgrade;
+    struct DBTechUpgrade TechUpgrades[DB_MAXNUM_TECHUPGRADES];
 };
 
 /*** MissionBriefing.TimerStatus ***/
