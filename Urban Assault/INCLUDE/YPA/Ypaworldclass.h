@@ -1894,6 +1894,25 @@ struct ypa_MovieData {
     UBYTE Name[NUM_MOVIES][256];
 };
 
+/*** Was hat sich im Netzspiel bezgl. der Spieler getan? ***/
+struct netplayerstatus {
+
+    ULONG   kind;       // Art des ereignisses
+    ULONG   time;       // ywd->Timestamp der Anmeldung
+    char    name[ STANDARD_NAMELEN ];   
+    char    data[ STANDARD_NAMELEN ];
+};
+
+#define NPS_NONE        0       // zur Zeit nix los
+#define NPS_YOUWIN      1       // der Spieler dieses Rechners hat gewonnen
+#define NPS_YOUKILLED   2       // der Spieler konnte die Station des Spielers
+                                // dessen Name in name steht, zerstoeren   
+#define NPS_WASKILLED   3       // einer (data) hat einen anderen (name) gekillt
+#define NPS_HASDIED     4       // name ist gestorben (also nicht durch direkten
+                                // Beschuss)
+#define NPS_HASLEFT     5       // name hat das Spiel (lebendig) verlassen                                
+
+
 /*-------------------------------------------------------------------
 **  Display-Auflösungs-Definitionen
 */
@@ -2231,6 +2250,7 @@ struct ypaworld_data {
     
     /*** die maximale Groesse des Waffenimpulses ***/
     FLOAT   max_impulse;
+    struct netplayerstatus netplayerstatus;
 };
 
 #define NETSTARTTIME    250000      // soviele Millisekunden warten wir auf
@@ -2509,6 +2529,7 @@ struct logmsg_msg {
 #define LOGMSG_NETWORK_YOUWIN           (91)
 
 #define LOGMSG_NETWORK_PARASITE_STOPPED (92)
+#define LOGMSG_CHAT                     (93)
 
 struct initplayer_msg {
     UBYTE *seq_filename;        // Filename eines SEQN-Files
