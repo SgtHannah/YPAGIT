@@ -477,7 +477,7 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                         break;
                     }
                 
-                GSR->confirm_modus = CONFIRM_NONE;
+                yw_CloseConfirmRequester( GSR );
                 break;
                 
             case GS_CONFIRMCANCEL:
@@ -520,7 +520,7 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                         break;
                     }
 
-                GSR->confirm_modus = CONFIRM_NONE;
+                yw_CloseConfirmRequester( GSR );
                 break;
             }
         } 
@@ -3847,9 +3847,14 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                         status[2] = 'h';
                     else
                         status[2] = ' ';
+                        
+                    /*** CD eingelegt ***/
+                    if( GSR->player2[ gpd.number ].cd ) 
+                        status[3] = 'i';
+                    else
+                        status[3] = ' ';
 
                     /*** Stringabschlusss ***/
-                    status[3]     = ' ';
                     status[4]     = ' ';
                     status[5]     = 0;
                     }
@@ -4751,7 +4756,9 @@ void yw_OKLevel( struct GameShellReq *GSR )
         cp.flags = NWFP_OWNPLAYER;
         if( _methoda( GSR->ywd->nwo, NWM_CREATEPLAYER, &cp ) ) {
 
-            LONG np;
+            LONG np, cd = 0;
+            struct ypamessage_cd cdm;
+            struct sendmessage_msg sm;
 
             /*** Ab jetzt müssen wir Messages empfangen ***/
             GSR->ywd->playing_network = TRUE;
@@ -4772,6 +4779,24 @@ void yw_OKLevel( struct GameShellReq *GSR )
             /*** Als Host bin ich immer "ready to start" ***/
             GSR->ReadyToStart                 = 1;
             GSR->player2[np-1].ready_to_start = 1;
+            
+            /* ----------------------------------------------------
+            ** CD handling. Als Host nur registrieren. weil ich
+            ** der erste bin, brauche ich keine Message zu schicken
+            ** --------------------------------------------------*/
+            GSR->player2[np-1].cd  = (UBYTE) cd; 
+            GSR->cd                = (UBYTE) cd;
+            
+            cdm.cd                 = GSR->cd;
+            cdm.generic.message_id = YPAM_CD;
+            cdm.generic.owner      = 0; // weil nicht feststehend
+
+            sm.data                = (char *) &cdm;
+            sm.data_size           = sizeof( cdm );
+            sm.receiver_kind       = MSG_ALL;
+            sm.receiver_id         = NULL;
+            sm.guaranteed          = TRUE;
+            _methoda( GSR->ywd->world, YWM_SENDMESSAGE, &sm);
             }
         }
 }
@@ -4877,7 +4902,7 @@ void yw_OKSessions( struct GameShellReq *GSR )
                 cp.flags = NWFP_OWNPLAYER;
                 if( _methoda( GSR->ywd->nwo, NWM_CREATEPLAYER, &cp ) ) {
 
-                    LONG np;
+                    LONG np, cd = 0;
 
                     /*** Ab jetzt müssen wir Messages empfangen ***/
                     GSR->ywd->playing_network = TRUE;
@@ -4894,6 +4919,14 @@ void yw_OKSessions( struct GameShellReq *GSR )
                     yw_StrUpper( GSR->player2[ np-1 ].name, cp.name);
 
                     yw_DoRaceInit( GSR );
+                    
+                    /* --------------------------------------------------
+                    ** CD handling. Als Host nur registrieren. weil ich
+                    ** mich einer Session anschliesse, muss ich die Leute
+                    ** ueber meinen CD Status informieren.
+                    ** ------------------------------------------------*/
+                    GSR->player2[np-1].cd             = (UBYTE) cd; 
+                    GSR->cd                           = (UBYTE) cd;
                     }
 
                 /*** ReadyButton zuruecksetzen ***/

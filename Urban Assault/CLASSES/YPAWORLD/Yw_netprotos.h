@@ -51,4 +51,5 @@ BOOL yw_OpenNetScript( void );
 void yw_SendCheckSum( struct ypaworld_data *ywd, ULONG Levelnum );
 void yw_TellAboutCheckSum( struct ypaworld_data *ywd );
 void yw_DisConnectFromRobo( struct ypaworld_data *ywd, struct OBNode *vehicle );
+char *yw_CorpsesInCellar( struct GameShellReq *GSR );
 

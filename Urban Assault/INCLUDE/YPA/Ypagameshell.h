@@ -264,7 +264,8 @@ struct playerdata2 {                // interne Nummer ist offset
                                     // gewählten Rassen gesetzt
     UBYTE  ready_to_start;          // von mir aus kanns losgehen
     UBYTE  welcomed;
-    UBYTE  p[3];
+    UBYTE  cd; 
+    UBYTE  p[2];
     LONG   waiting_for_update;      // ist eine Zeit, weil der Request ja verloren
                                     // gehen kann und dann fragen wir erneut
     LONG   checksum;                // derzeitige checksumme der files                                 
@@ -497,7 +498,7 @@ struct GameShellReq {
     LONG    latency_check;          // Zaehler fuer Latency Messages
     LONG    network_trouble_count;  // Zaehler fuer Problembearbeitung (max. Dauer)
     LONG    network_allok_count;    // Solange art der Loesung anzeigen
-                                    
+    LONG    corpse_check;           // Zaehler zum testen nicht beseitigter schattenvehicle                                
 
     /*** Playerdata 8 weil Eigentümer auch Offset !!! ***/
     struct playerdata player[ 8 ];  // offset ist der Eigentümer!
@@ -544,6 +545,7 @@ struct GameShellReq {
     /*** für Demos und Screenblanker ***/
     char    fn[ 32 ][ 256 ];    // Puffer für Filenamen
     WORD    fn_number;          // Anzahl derzeitiger Filenamen im Puffer
+    UBYTE   cd;                 // Kopie fuer schnellen Zugriff von player2
     ULONG   last_input_event;   // TimeStamp für das letzte Eingabeereignis
     ULONG   wait_til_demo;      // solange warten, bis Blanker startet
 

@@ -418,7 +418,7 @@ struct ypamessage_welcome {                     // von den Spielern, die schon
     //++++++++++++++++++++++++++++++++
     WORD   myrace;                              // hallo, hier sind rasse und
     UBYTE  ready_to_start;                      // startstatus 
-    UBYTE  p;
+    UBYTE  cd;                                  // ey, ich hab ne cd
 };
 
 
@@ -697,6 +697,17 @@ struct ypamessage_endtrouble {                // reason gibt Grund an
 #define ENDTROUBLE_UNKNOWN      (3)     // kein spezieller Wert --> somit kein text          
 
 
+#define YPAM_CD                 (YPAM_BASE+42)  // mein derzeitiger "CD-Bestitz-Status"
+struct ypamessage_cd {                         // hat sich geaendert   
+                                                
+    struct ypamessage_generic generic;
+    
+    //+++++++++++++++++++++++++++++++++++++
+    
+    UBYTE   cd;                                 // 0 oder nicht 0, je nachdem
+    UBYTE   p[3];
+};
+    
 #endif
 #endif
 

@@ -46,9 +46,7 @@ extern struct ConfigItem yw_ConfigItems[];
 /*** Global, um die nicht auf dem Stack zu haben ***/
 struct ypamessage_update upd;
 
-/*-----------------------------------------------------------------*/
 
-#ifdef __NETWORK__
 /*-----------------------------------------------------------------*/
 void yw_GetNetGemProtos( struct ypaworld_data *ywd, struct Wunderstein *gem,
                          WORD *vproto, WORD *bproto )
@@ -1206,5 +1204,80 @@ void yw_TellAboutCheckSum( struct ypaworld_data *ywd )
         }
 }
 
-#endif
+char *yw_CorpsesInCellar( struct GameShellReq *GSR )
+{
+/* -------------------------------------------------------
+** checkt aus, ob da Vehicle sind, die schon seit Urzeiten
+** nicht mehr upgedated wurden. Wenn dem so ist, dann
+** mal was zurueckgeben, damit ein Update angefordert
+** werden kann.
+** zurueckgegeben wird der Name desjenigen, dessen Vehicle
+** zu alt sind.
+** -----------------------------------------------------*/
+
+    struct OBNode *robo;
+    struct Bacterium *found = NULL;
+    LONG    time = 180000;
+    
+    /*** Ist es wiedermal an der Zeit, einen test zu machen? ***/
+    if( (GSR->ywd->TimeStamp - GSR->corpse_check) < 100000 )
+        return( NULL );
+        
+    GSR->corpse_check = GSR->ywd->TimeStamp; 
+    
+    robo = (struct OBNode *) GSR->ywd->CmdList.mlh_Head;
+    
+    while( robo->nd.mln_Succ ) {
+    
+        /*** Ein Schattenvehicle? ***/
+        if( (robo->bact->Owner != 0) &&
+            (robo->bact->Owner != GSR->NPlayerOwner) ) {
+            
+            struct OBNode *commander = (struct OBNode *) robo->bact->slave_list.mlh_Head;
+            while( commander->nd.mln_Succ ) {
+            
+                struct OBNode *slave = (struct OBNode *) commander->bact->slave_list.mlh_Head;
+                while( slave->nd.mln_Succ ) {
+                
+                    if( (GSR->ywd->TimeStamp - slave->bact->last_frame) > time ) {
+                    
+                        found = slave->bact;
+                        break;
+                        }
+                    slave = (struct OBNode *) slave->nd.mln_Succ;
+                    }
+                    
+                if( found ) break;
+                
+                if( (GSR->ywd->TimeStamp - commander->bact->last_frame) > time ) {
+                
+                    found = commander->bact;
+                    break;
+                    }
+                commander = (struct OBNode *) commander->nd.mln_Succ;
+                }
+                
+            if( found ) break;
+            
+            if( (GSR->ywd->TimeStamp - robo->bact->last_frame) > time ) {
+            
+                found = robo->bact;
+                break;
+                }
+            }
+        robo = (struct OBNode *) robo->nd.mln_Succ;
+        }
+             
+    /*** ein Problem gefunden? ***/            
+    if( found ) {
+    
+        /*** Welcher Name gehoert zu diesem Vehicle? ***/
+        char *name = GSR->player[ found->Owner ].name;
+        yw_NetLog("\n+++ CC: found old vehicle id %d, class %d, owner %d at time %d. Request update\n",
+                   found->ident, found->BactClassID, found->Owner, GSR->ywd->TimeStamp/1000 ); 
+        return( name );
+        }
+    else 
+        return( NULL );
+}         
 

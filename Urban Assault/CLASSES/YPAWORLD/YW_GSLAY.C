@@ -821,10 +821,10 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
                             strcpy( block_slow, "X" );    
                         }
                     else {   
-                        if( level->races & 2 )  strcat( block_plys, "Q" );
-                        if( level->races & 64 ) strcat( block_plys, "S" );
-                        if( level->races & 8 )  strcat( block_plys, "U" );
-                        if( level->races & 16 ) strcat( block_plys, "W" );
+                        if( level->races & 2 )  strcat( block_plys, "1" );
+                        if( level->races & 64 ) strcat( block_plys, "2" );
+                        if( level->races & 8 )  strcat( block_plys, "3" );
+                        if( level->races & 16 ) strcat( block_plys, "4" );
                         
                         if( level->slow_conn )
                             strcpy( block_slow, "Y" );    
@@ -967,7 +967,10 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
                     col[2].string      = block_plys;
                     //col[2].width       = (WORD)(fnt->fchars['P'].width * strlen( block_plys) + 6);
                     col[2].width       = (WORD)(fnt->fchars['P'].width * 4 + 6);
-                    col[2].font_id     = FONTID_GADGET;
+                    if( GSR->NSel == i )
+                        col[2].font_id = FONTID_MENUDOWN;
+                    else
+                        col[2].font_id = FONTID_GADGET;
                     col[2].space_chr   = space_chr;
                     col[2].prefix_chr  = prefix_chr;
                     col[2].postfix_chr = postfix_chr;
@@ -1233,12 +1236,10 @@ void yw_GameShellToolTips( struct GameShellReq *GSR, ULONG who )
             yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_OCSOUND );
             break;
 
-        #ifdef __NETWORK__
         case GSID_NET:
 
             yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_OCNET );
             break;
-        #endif
 
         case GSID_QUIT:
 
@@ -1285,7 +1286,7 @@ void yw_GameShellToolTips( struct GameShellReq *GSR, ULONG who )
  
         case GSID_PL_GOTOLOADSAVE:
 
-            //yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_PL_GOTOLOADSAVE );
+            yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_GOTOLOADSAVE );
             break;
             
 
@@ -1298,6 +1299,11 @@ void yw_GameShellToolTips( struct GameShellReq *GSR, ULONG who )
         case GSID_NETHELP:
 
             yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_HELP );
+            break;
+
+        case GSID_NETSEND:
+
+            yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_SENDMESSAGE );
             break;
 
         case GSID_NETOK:
@@ -1505,6 +1511,21 @@ void yw_GameShellToolTips( struct GameShellReq *GSR, ULONG who )
             yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_RESOLUTION );
             break;
 
+        case GSID_3DMENU_BUTTON:
+
+            yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_SETTINGS3D );
+            break;
+
+        case GSID_16BITTEXTURE:
+
+            yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_16BITTEXTURE );
+            break;
+
+        case GSID_DRAWPRIMITIVE:
+
+            yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_DRAWPRIMITIVE );
+            break;
+
         case GSID_SOUND_LR:
 
             yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_SOUNDLR );
@@ -1584,6 +1605,11 @@ void yw_GameShellToolTips( struct GameShellReq *GSR, ULONG who )
         case GSID_FORCEFEEDBACK:
 
             yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_FORCEFEEDBACK );
+            break;
+
+        case GSID_ALTJOYSTICK:
+
+            yw_Tooltip( GSR->ywd, TOOLTIP_SHELL_ALTJOYSTICK );
             break;
 
         /*** Der Lokalerequester ***/

@@ -315,6 +315,9 @@ _dispatcher(ULONG, yw_YWM_NETWORKLEVEL, struct createlevel_msg *msg)
     ywd->gsr->transfer_pckt_max  = 0;
     ywd->gsr->transfer_pckt_count= 0;
     ywd->gsr->transfer_pckt_avr  = 0;
+    
+    /*** erstmal 5 min Zeit geben, um messages reinzulassen ***/
+    ywd->gsr->corpse_check       = ywd->TimeStamp + 300000;
 
     /*** Weil die netzwerkauswertung ja von 0 anbeginnt ... ***/
     memset( ywd->GlobalStats, 0, sizeof( ywd->GlobalStats ));

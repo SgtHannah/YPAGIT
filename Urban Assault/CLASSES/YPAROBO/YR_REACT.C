@@ -1692,7 +1692,7 @@ void yr_BuildRobo( struct yparobo_data *yrd, struct trigger_logic_msg *msg)
                 ra->robo_id     = target.target.bact->CommandID;
                 ra->attacker_id = Commander->bact->CommandID;
                 }
-
+                
             /*** eventuelle Nachinitialisierungen ***/
             }
 
@@ -1969,16 +1969,18 @@ void yr_InitializeCommand( struct yparobo_data *yrd, struct OBNode *Commander )
                 }
             else {
 
-                /* -----------------------------------------------
+                /* -------------------------------------------------
                 ** Wenn das bacterienziel nicht mehr sichtbar ist,
                 ** dann machen wir den Sektor zum Ziel mit Aggr3,
                 ** den sonst stehen meistens grosse Robogeschwader
                 ** in der Landschaft rum.
-                ** ---------------------------------------------*/
+                ** Wir nehmen die Pos, wo der Robo zuletzt gesichtet
+                ** wurde. Die steht im Dock
+                ** -----------------------------------------------*/
                 if( !(target.target.bact->Sector->FootPrint & (1<<yrd->bact->Owner) )) {
 
-                    target.pos.x       = target.target.bact->pos.x;
-                    target.pos.z       = target.target.bact->pos.z;
+                    target.pos.x       = yrd->dtpos.x;
+                    target.pos.z       = yrd->dtpos.z;
                     target.target_type = TARTYPE_SECTOR;
                     yrd->dock_aggr     = AGGR_SECBACT;
                     }
@@ -2593,7 +2595,6 @@ switch( af->job ) {
 
         _methoda( yrd->bact->BactObject, YBM_ADDSLAVE, com );
 
-        #ifdef __NETWORK__
         /*** Id aktualisieren und Message losschicken ***/
         ywd = INST_DATA( ((struct nucleusdata *)yrd->world)->o_Class, yrd->world);
         if( ywd->playing_network ) {
@@ -2617,7 +2618,6 @@ switch( af->job ) {
             sm.guaranteed          = TRUE;
             _methoda( yrd->world, YWM_SENDMESSAGE, &sm );
             }
-        #endif
 
         /*** Docknutzung bekanntgeben ***/
         yrd->RoboState |= ROBO_DOCKINUSE;
@@ -2710,6 +2710,14 @@ switch( af->job ) {
         yrd->dtCommandID = af->commandID;
         yrd->dtpos       = af->target_pos;
         yrd->dock_aggr   = af->aggression;
+        
+        /* ------------------------------------------------------
+        ** Falls wir ein Bacterienziel haben, so merken wir uns
+        ** in pos seine derzeitige Position, um beim Verschwinden
+        ** aus dem Sichtfeld ein Sektorziel einzustellen
+        ** ----------------------------------------------------*/
+        if( TARTYPE_BACTERIUM == af->target_type ) 
+            yrd->dtpos = af->target_bact->pos; 
         }
     else {
 

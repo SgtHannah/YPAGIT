@@ -570,7 +570,7 @@ BOOL yw_PlayersOK( struct ypaworld_data *ywd)
 
             /*** Nun mal gucken ***/
             if( ywd->netgamestartet &&
-                (ywd->TLMsg.global_time - pd->lastmsgtime > 4000) ) {
+                (ywd->TLMsg.global_time - pd->lastmsgtime > MAX_LATENCY) ) {
 
                 /*** Datenrate reduzieren, um anderen nicht zuzumüllen ***/
                 REDUCE_DATA_RATE = TRUE;
@@ -586,7 +586,7 @@ BOOL yw_PlayersOK( struct ypaworld_data *ywd)
                     }
 
                 /*** Fuer Oberfläche ein Zeichen setzen ***/
-                ywd->gsr->trouble_count = 5000;
+                ywd->gsr->trouble_count = 4000;
 
                 pd->status        = NWS_TROUBLE;
                 pd->trouble_count = 5000;
@@ -1004,6 +1004,7 @@ void yw_HandleNetMessages( struct ypaworld_data *ywd )
         char   text[ 200 ], text2[ 100 ], error_sender[ 200 ];
         struct logmsg_msg log;
         BOOL   player_found;
+        char  *e = NULL;
 
         ywd->gsr->transfer_rcvcount += rm.size;
         msg_count++;
@@ -1019,14 +1020,14 @@ void yw_HandleNetMessages( struct ypaworld_data *ywd )
 
         /*** Kehrt hier langsam Chaos ein? ***/
         pl_num = _methoda( ywd->nwo, NWM_GETNUMPLAYERS, NULL );
-        if( msg_count > pl_num * 3 ) {
+        if( msg_count > pl_num * 5 ) {
 
             ywd->infooverkill = TRUE;
 
             /*** Troubleshooting durch weniger Messages ***/
             yw_NetLog("Info overkill !!! (msg-count %d at %ds)\n",
                      msg_count, ywd->TimeStamp/1000);
-            ywd->gsr->trouble_count = 10000;
+            ywd->gsr->trouble_count = 4000;
             }
         else
             ywd->infooverkill = FALSE;
@@ -1041,11 +1042,12 @@ void yw_HandleNetMessages( struct ypaworld_data *ywd )
                 wm.generic.owner      = 0; // egal...
                 wm.generic.message_id = YPAM_WELCOME;
                 wm.myrace             = ywd->gsr->SelRace;
+                wm.cd                 = ywd->gsr->cd;      
                     
-                /* --------------------------------------------
-                ** den Ready-To-Start-Staus brauchen alle wegen
+                /* ---------------------------------------------
+                ** den Ready-To-Start-Status brauchen alle wegen
                 ** den Zeichen im Menue
-                ** ------------------------------------------*/
+                ** -------------------------------------------*/
                 wm.ready_to_start     = GSR->ReadyToStart;
     
                 sm.data          = &wm;
@@ -1232,6 +1234,10 @@ void yw_HandleNetMessages( struct ypaworld_data *ywd )
                     else
                         rm.data = &( ((char *)rm.data)[ size ]);
                     }
+                    
+                /*** Auf leichen untersuchen ***/
+                if( e = yw_CorpsesInCellar( GSR ) )
+                    strcpy( error_sender, e );
 
                 break;
             }
@@ -3174,6 +3180,7 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
                     ywd->gsr->player2[ gpd.number ].race           = wm->myrace;
                     ywd->gsr->player2[ gpd.number ].ready_to_start = wm->ready_to_start;
                     ywd->gsr->player2[ gpd.number ].welcomed       = TRUE;
+                    ywd->gsr->player2[ gpd.number ].cd             = wm->cd;
                     break;
                     }
                 gpd.number++;
