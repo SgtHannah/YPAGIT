@@ -485,7 +485,7 @@ ULONG yw_ParseUserData( struct ScriptParser *parser )
                       if( d = strtok( NULL, "_ \t" )) {
                         ywd->GlobalStats[o].Kills = strtol( d, NULL, 0 );
                         if( d = strtok( NULL, "_ \t" )) {
-                          ywd->GlobalStats[o].Losses = strtol( d, NULL, 0 );
+                          ywd->GlobalStats[o].UserKills = strtol( d, NULL, 0 );
                           if( d = strtok( NULL, "_ \t" )) {
                             ywd->GlobalStats[o].Time = strtol( d, NULL, 0 );
                             if( d = strtok( NULL, "_ \t" )) {
@@ -1574,7 +1574,7 @@ BOOL yw_WriteUserData( FILE *ifile, char *name, struct GameShellReq *GSR)
 
         sprintf( str, "    playerstatus = %d_%d_%d_%d_%d_%d_%d_%d\n\0", i,
                       GSR->ywd->GlobalStats[ i ].Kills,
-                      GSR->ywd->GlobalStats[ i ].Losses,
+                      GSR->ywd->GlobalStats[ i ].UserKills,
                       GSR->ywd->GlobalStats[ i ].Time,
                       GSR->ywd->GlobalStats[ i ].SecCons,
                       GSR->ywd->GlobalStats[ i ].Score,
