@@ -86,7 +86,8 @@ _dispatcher(void, yt_YBM_AI_LEVEL3, struct trigger_logic_msg *msg)
     FLOAT  max_angle, tu_angle, distance;
     struct assesstarget_msg at1, at2;
     ULONG  rat1, rat2;
-    FLOAT  ttdist, ttstop, td;
+    FLOAT  ttdist, ttstop, td, tu_orig_angle;
+    BOOL   near_target;
 
     struct ypatank_data *ytd = INST_DATA( cl, o );
 
@@ -139,6 +140,12 @@ _dispatcher(void, yt_YBM_AI_LEVEL3, struct trigger_logic_msg *msg)
         NEARPRIMTARGET = TRUE;
     else
         NEARPRIMTARGET = FALSE;
+        
+    /*** fuer weitere Tests. nicht kleiner als 0.7 wegen Kompaktsektoren ***/    
+    if( betrag < (0.7 * SECTOR_SIZE) )
+        near_target = TRUE;
+    else
+        near_target = FALSE;
 
     direct_coll = FALSE;    // bis jetzt nirgendwo rangeknallt
 
@@ -203,6 +210,9 @@ _dispatcher(void, yt_YBM_AI_LEVEL3, struct trigger_logic_msg *msg)
                                  ytd->bact->dir.m33 * ytd->bact->dir.m33)/
                          nc_sqrt(ytd->bact->tar_unit.x * ytd->bact->tar_unit.x+
                                  ytd->bact->tar_unit.z * ytd->bact->tar_unit.z));
+            
+            /*** tu_angle wird nachbearbeitet, deshalb richtigen merken ***/
+            tu_orig_angle = tu_angle;
 
 
             /*** Sind wir in einer Kollisionsbearbeitungsphase? ***/
@@ -419,8 +429,9 @@ _dispatcher(void, yt_YBM_AI_LEVEL3, struct trigger_logic_msg *msg)
                 if( (tu_angle > 1.1) && (ytd->collway<=0.001) ) {
                 
                     /*** v auch 0, sonst fährt er dann rückwärts ***/
-                    ytd->bact->dof.v       = 0.0;
-                    ytd->bact->ExtraState &= ~EXTRA_MOVE;
+                    //ytd->bact->dof.v       = 0.0;
+                    //ytd->bact->ExtraState &= ~EXTRA_MOVE;
+                    ytd->bact->act_force *= (0.1/(time + 0.1));
                     }
 
                 if( (ytd->bact->dir.m31 * ytd->bact->tar_unit.z -
@@ -557,46 +568,52 @@ _dispatcher(void, yt_YBM_AI_LEVEL3, struct trigger_logic_msg *msg)
                 (ytd->collangle == 0.0) ) {
                 
                 FLOAT  iA, iB, iC;
+                FLOAT  rem_angle;
                 
                 /*** Weil PlaneParas sich bei Int. ändern können, merken ***/
                 iA = inter.sklt->PlanePool[ inter.pnum ].A;
                 iB = inter.sklt->PlanePool[ inter.pnum ].B;
                 iC = inter.sklt->PlanePool[ inter.pnum ].C;
     
-                /* -------------------------------------------------------
+                /* --------------------------------------------------------
                 ** Es gibt 2 Arten von Hindernissen. Einmal die, wo
                 ** wir stoppen, weil sie nah dran sind und dann die,
                 ** wo wir versuchen auszuweichen. Die ersteren beschreiben
                 ** sozusagen das klassische Verhalten.
                 ** Achtung, dass Ausweichen machen wir nur, wenn wir Zeit
-                ** dafuer haben!
-                ** -----------------------------------------------------*/
+                ** dafuer haben (SecTarget), wir nicht woanders hin muessen
+                ** (tu_angle), sich das Hindernis nicht drastisch geaendert
+                ** hat (rem_angle) und wir nicht in Hauptzielnaehe sind.
+                ** ------------------------------------------------------*/
+                rem_angle = 0;
                 
-//                if( (inter.t * ttdist > ttstop) &&
-//                    (tu_angle < 1.0) &&
-//                    (TARTYPE_NONE == ytd->bact->SecTargetType) ) {
+                if( (inter.t * ttdist > ttstop) &&
+                    (fabs(tu_orig_angle) < 1.0) &&
+                    (fabs(rem_angle) < 0.7) &&
+                    (FALSE == near_target) &&
+                    (TARTYPE_NONE == ytd->bact->SecTargetType) ) {
          
-//                    /* ---------------------------------------------------------
-//                    ** Wir drehen nur etwas zur Seite. Das machen wir wie folgt:
-//                    ** wir setzen collway auf etwas, weil damit das eindrehen
-//                   ** auf tarvec verhindert wird und ausserdem danach noch eine
-//                    ** Mindeststrecke gefahren wird.
-//                    ** Weiterhin drehen wir uns in die Richtung, in die wir uns
-//                    ** auch so drehen wuerden.
-//                    ** Drehen muss frame_time und speed-abhaengig sein.
-//                    ** -------------------------------------------------------*/
-//                    FLOAT ao_angle;
-//                    
-//                    ao_angle  = (FLOAT)(msg->frame_time) / 1000.0;
-//                   ao_angle *= ytd->bact->dof.v/ 10.0;
-//                           
-//                    if( (ytd->bact->dir.m31 * iC - ytd->bact->dir.m33 * iA) < 0 )
-//                        yt_rot_round_lokal_y( ytd->bact, ao_angle );
-//                    else
-//                        yt_rot_round_lokal_y( ytd->bact, -ao_angle );
-//                        
-//                    ytd->collway = 100;    
-//                    }
+                    /* ---------------------------------------------------------
+                    ** Wir drehen nur etwas zur Seite. Das machen wir wie folgt:
+                    ** wir setzen collway auf etwas, weil damit das eindrehen
+                    ** auf tarvec verhindert wird und ausserdem danach noch eine
+                    ** Mindeststrecke gefahren wird.
+                    ** Weiterhin drehen wir uns in die Richtung, in die wir uns
+                    ** auch so drehen wuerden.
+                    ** Drehen muss frame_time und speed-abhaengig sein.
+                    ** -------------------------------------------------------*/
+                    FLOAT ao_angle;
+                    
+                    ao_angle  = (FLOAT)(msg->frame_time) / 1000.0;
+                    ao_angle *= ytd->bact->dof.v/ 10.0;
+                           
+                    if( (ytd->bact->dir.m31 * iC - ytd->bact->dir.m33 * iA) < 0 )
+                        yt_rot_round_lokal_y( ytd->bact, ao_angle );
+                    else
+                        yt_rot_round_lokal_y( ytd->bact, -ao_angle );
+                        
+                    ytd->collway = inter.t * ttdist + 10;    
+                    }
                     
                 /*** Direkte Kollision? klassisch ***/    
                 if(inter.t * ttdist <= ttstop) {
@@ -766,21 +783,6 @@ _dispatcher(void, yt_YBM_AI_LEVEL3, struct trigger_logic_msg *msg)
                             wall_left = TRUE;
                         else
                             wall_left = FALSE;
-    
-                        /* --------------------------------------------------
-                        ** Neuer Hack: Weil viele probleme dadurch entstehen,
-                        ** weil fahrzeuge, die ein Ziel hinter einem Hinder-
-                        ** nis ansteuern, den kleinsten Winkel nehmen und so
-                        ** aufeinaanderzufahren, legen wir fest, dass sie
-                        ** bevorzugt nach links fahren.
-                        **
-                        ** BRINGT MEHR PROBLEME ALS ER LOEST.
-                        ** ------------------------------------------------*/
-                        //if( wall_left && (ytd->collangle > (PI/2-PREFERLEFT_ANGLE)) ) {
-    
-                        //    wall_left      = FALSE;
-                        //    ytd->collangle = PI - ytd->collangle;
-                        //    }
                         }
     
                     if( (ytd->collflags & TCF_WALL_L) && !wall_left ) {
