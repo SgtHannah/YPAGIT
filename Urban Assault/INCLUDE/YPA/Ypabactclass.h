@@ -565,7 +565,7 @@
 #define YBA_Aggression_DEF      (AGGR_SECBACT)  // prozentual
 #define YBA_Maximum_DEF         (10000)     // Volle Batterie
 #define YBA_Transfer_DEF        (0.5)       // Transfer fürs Aufladen
-#define YBA_MaxUserHeight_DEF   (1200)
+#define YBA_MaxUserHeight_DEF   (1600)
 #define YBA_ADist_Sector_DEF    (800.0)     // Strecke nach Ziel bevor neuer Anflug
 #define YBA_ADist_Bact_DEF      (650.0)
 #define YBA_SDist_Sector_DEF    (200.0)     // Strecke vor Ziel für Rückflug
