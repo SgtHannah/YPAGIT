@@ -2403,6 +2403,17 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
             size = sizeof( struct ypamessage_sectorenergy );
             if( ywd->gsr->player[ owner ].was_killed ) break;
 
+            robo = yw_GetRoboByOwner( ywd, se->generic.owner );
+
+            if( !robo ) {
+
+                yw_NetLog("\n+++ VE: Havent found robo with owner %d (%ds)\n",
+                         ve->generic.owner ,ywd->TimeStamp/1000 );
+                mse.hitman = NULL;
+                }
+            else
+                mse.hitman = yw_GetBactByID( robo->bact, se->hitman );
+
             mse.energy = se->energy;
             mse.pnt.x  = se->pos.x;
             mse.pnt.y  = se->pos.y;

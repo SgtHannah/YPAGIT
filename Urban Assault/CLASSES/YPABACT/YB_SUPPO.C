@@ -805,10 +805,7 @@ _dispatcher( void, yb_YBM_ORGANIZE, struct organize_msg *org )
                 /*** Einklinken ***/
                 _methoda( ybd->bact.robo, YBM_ADDSLAVE, ybd->bact.BactObject);
                 
-                /*** Ziel löschen ***/
-                target.target_type = TARTYPE_NONE;
-                target.priority    = 0;
-                _methoda( o, YBM_SETTARGET, &target );
+                /*** Ziel nicht löschen ***/
                 }
 
             _get( ybd->bact.robo, YRA_CommandCount, &cc );

@@ -3206,10 +3206,34 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
     swb.number  = GSID_PLAYERSTATUS4;
     _methoda( GSR->bnet, BTM_DISABLEBUTTON, &swb );
     
-    /*** Hilfstext fuer Sessionupdate bei serieller Verbindung ***/
-    if( (NM_SESSIONS == GSR->n_selmode) &&
-        (NWFC_SERIAL == _methoda( GSR->ywd->nwo, NWM_GETPROVIDERTYPE, NULL )) ) {
+    /* -------------------------------------------------------------
+    ** Hilfstext fuer Sessionupdate bei serieller Verbindung. Diesen
+    ** Button missbrauchen wir auch zur Anzeige der TCP/IP adresse 
+    ** -----------------------------------------------------------*/
+    if( ((NM_SESSIONS == GSR->n_selmode) &&
+        (NWFC_SERIAL == _methoda( GSR->ywd->nwo, NWM_GETPROVIDERTYPE, NULL ))) ||
+        (NM_PROVIDER == GSR->n_selmode) ) {
         
+        if( NM_PROVIDER == GSR->n_selmode) {
+        
+            char m[300];
+            if( GSR->ywd->local_addressstring[ 0 ] )
+                sprintf( m, "%s  %s", ypa_GetStr( GlobalLocaleHandle, STR_NGADGET_TCPIP, "YOUR TCP/IP ADDRESS"),
+                         GSR->ywd->local_addressstring );
+            else
+                strcpy( m, " ");
+            ss. unpressed_text = m;
+            }
+        else {
+        
+            ss.unpressed_text = ypa_GetStr( GlobalLocaleHandle, STR_NGADGET_REFRESHSESSIONS,
+                                            "PRESS SPACEBAR TO UPDATE SESSION LIST");
+            }
+            
+        ss.pressed_text   = NULL;
+        ss.number = GSID_REFRESHSESSIONS;
+        _methoda( GSR->bnet, BTM_SETSTRING, &ss );    
+            
         swb.number  = GSID_REFRESHSESSIONS;
         _methoda( GSR->bnet, BTM_ENABLEBUTTON, &swb );
         }

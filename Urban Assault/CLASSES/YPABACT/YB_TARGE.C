@@ -204,7 +204,8 @@ _dispatcher(void, yb_YBM_SETTARGET, struct settarget_msg *msg)
                 ** --------------------------------------------------*/
                 ybd->bact.PrimTargetType = TARTYPE_NONE;
                 ybd->bact.PrimaryTarget.Bact = NULL;
-                
+                ybd->bact.ExtraState   &= ~EXTRA_DOINGWAYPOINT;
+                ybd->bact.num_waypoints = 0;
                 break;
 
             case TARTYPE_SIMPLE:

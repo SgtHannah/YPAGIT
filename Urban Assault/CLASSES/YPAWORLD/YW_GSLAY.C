@@ -812,10 +812,10 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
                     
                     /*** Welche Rassen sind im Spiel? ***/
                     if( i != GSR->NSel ) {
-                        if( level->races & 2 )  strcat( block_plys, "P" );
-                        if( level->races & 64 ) strcat( block_plys, "R" );
-                        if( level->races & 8 )  strcat( block_plys, "T" );
-                        if( level->races & 16 ) strcat( block_plys, "V" );
+                        if( level->races & 2 )  strcat( block_plys, "5" );
+                        if( level->races & 64 ) strcat( block_plys, "6" );
+                        if( level->races & 8 )  strcat( block_plys, "7" );
+                        if( level->races & 16 ) strcat( block_plys, "8" );
                         
                         if( level->slow_conn )
                             strcpy( block_slow, "X" );    
@@ -965,12 +965,8 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
                     col[1].flags       = YPACOLF_ALIGNLEFT | YPACOLF_TEXT;
                     
                     col[2].string      = block_plys;
-                    //col[2].width       = (WORD)(fnt->fchars['P'].width * strlen( block_plys) + 6);
                     col[2].width       = (WORD)(fnt->fchars['P'].width * 4 + 6);
-                    if( GSR->NSel == i )
-                        col[2].font_id = FONTID_MENUDOWN;
-                    else
-                        col[2].font_id = FONTID_GADGET;
+                    col[2].font_id     = FONTID_MENUDOWN;
                     col[2].space_chr   = space_chr;
                     col[2].prefix_chr  = prefix_chr;
                     col[2].postfix_chr = postfix_chr;
@@ -978,6 +974,8 @@ void yw_DrawNetMenu(struct ypaworld_data *ywd, struct GameShellReq *GSR)
                     
                     col[3].string      = block_slow;
                     col[3].width       = (WORD)(fnt->fchars['P'].width );
+                    
+                    /*** Tricksen, weil leerzeichen in diesem Font nicht existieren ***/
                     col[3].font_id     = FONTID_GADGET;
                     col[3].space_chr   = space_chr;
                     col[3].prefix_chr  = prefix_chr;
