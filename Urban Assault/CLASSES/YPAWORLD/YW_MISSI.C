@@ -193,15 +193,9 @@ BOOL yw_MBLoadSet(struct ypaworld_data *ywd, ULONG set_num)
 */
 {
     Object *gfxo;
-    struct disp_pointer_msg dpm;
     UBYTE old_path[256];
     UBYTE set_path[256];
-
-    /*** Mousepointer disablen, Texturcache flushen  ***/
-    _OVE_GetAttrs(OVET_Object,&gfxo,TAG_DONE);
-    dpm.pointer = ywd->MousePtrBmp[YW_MOUSE_DISK];
-    dpm.type    = DISP_PTRTYPE_DISK;
-    _methoda(gfxo,DISPM_SetPointer,&dpm);
+    BOOL retval = TRUE;
 
     /*** Set-Pfad einstellen ***/
     strcpy(old_path,_GetAssign("rsrc"));
@@ -227,19 +221,19 @@ BOOL yw_MBLoadSet(struct ypaworld_data *ywd, ULONG set_num)
                 switch(j) {
                     case 0:
                         /*** visproto.base ***/
-                        if (!yw_LoadVPSet(ywd,child)) return(FALSE);
+                        if (!yw_LoadVPSet(ywd,child)) retval=FALSE;
                         break;
 
                     case 1:
                         /*** lego.base ***/
-                        if (!yw_LoadLegoSet(ywd,sdf,child))  return(FALSE);
-                        if (!yw_ReadSubSectorTypes(ywd,sdf)) return(FALSE);
-                        if (!yw_ReadSectorTypes(ywd,sdf))    return(FALSE);
+                        if (!yw_LoadLegoSet(ywd,sdf,child))  retval=FALSE;
+                        if (!yw_ReadSubSectorTypes(ywd,sdf)) retval=FALSE;
+                        if (!yw_ReadSectorTypes(ywd,sdf))    retval=FALSE;
                         break;
 
                     case 2:
                         /*** slurp.base ***/
-                        if (!yw_LoadSlurpSet(ywd,child)) return(FALSE);
+                        if (!yw_LoadSlurpSet(ywd,child)) retval=FALSE;
                         break;
                 };
             };
@@ -247,24 +241,19 @@ BOOL yw_MBLoadSet(struct ypaworld_data *ywd, ULONG set_num)
 
         } else {
             _LogMsg("Briefing: no set description file.\n");
-            return(FALSE);
+            retval = FALSE;
         };
 
     } else {
         _LogMsg("Briefing: No fat base object\n");
-        return(FALSE);
+        retval = FALSE;
     };
 
     /*** alten Resource-Pfad wiederherstellen ***/
     _SetAssign("rsrc",old_path);
 
-    /*** MousePointer enablen ***/
-    dpm.pointer = ywd->MousePtrBmp[YW_MOUSE_POINTER];
-    dpm.type    = DISP_PTRTYPE_NORMAL;
-    _methoda(gfxo,DISPM_SetPointer,&dpm);
-
     /*** und zurück ***/
-    return(TRUE);
+    return(retval);
 }
 
 /*-----------------------------------------------------------------*/
@@ -1348,6 +1337,7 @@ void yw_MBMapLoaded(struct ypaworld_data *ywd,
 **      23-Oct-97   floh    + Wuuusch Sound
 **      07-Apr-98   floh    + CD Player Control
 **      04-May-98   floh    + Bounding Rect ist jetzt woanders
+**      25-may-98   floh    + PreTextTimeStamp wird initialisiert
 */
 {
     struct LevelNode *ln = &(ywd->LevelNet->Levels[ywd->Level->Num]);
@@ -1396,6 +1386,10 @@ void yw_MBMapLoaded(struct ypaworld_data *ywd,
     mb->MapBlt.from.xmax = +1.0;
     mb->MapBlt.from.ymax = +1.0;
     mb->MapBlt.to = mb->MapBltStart;
+    
+    /*** TimeStamps ***/
+    mb->TextTimeStamp    = 0;
+    mb->PreTextTimeStamp = mb->TimeStamp;    
 }
 
 /*-----------------------------------------------------------------*/
@@ -1408,6 +1402,7 @@ void yw_MBMapScaling(struct ypaworld_data *ywd,
 **
 **  CHANGED
 **      18-Oct-96   floh    created
+**      25-May-98   floh    + setzt Waiting-Mauspointer
 */
 {
     struct rast_rect *r0  = &(mb->MapBltStart);
@@ -1427,8 +1422,12 @@ void yw_MBMapScaling(struct ypaworld_data *ywd,
 
     } else {
         /*** fertig skaliert, To-Blt-Koord fixieren ***/
+        struct disp_pointer_msg dpm;
         mb->MapBlt.to = mb->MapBltEnd;
-        mb->Status = MBSTATUS_MAPDONE;
+        mb->Status    = MBSTATUS_MAPDONE;
+        dpm.pointer   = ywd->MousePtrBmp[YW_MOUSE_DISK];
+        dpm.type      = DISP_PTRTYPE_DISK;
+        _methoda(ywd->GfxObject,DISPM_SetPointer,&dpm);
     };
 }
 
@@ -1444,6 +1443,8 @@ void yw_MBMapDone(struct ypaworld_data *ywd,
 **      18-Oct-96   floh    created
 */
 {
+    struct disp_pointer_msg dpm;
+
     /*** alles klar... also nächste Briefing-Stufe aktivieren ***/
     mb->FillElms      = TRUE;
     mb->ElmStoreIndex = 0;
@@ -1460,6 +1461,11 @@ void yw_MBMapDone(struct ypaworld_data *ywd,
         };
     };
     mb->Status = MBSTATUS_L1_START;
+
+    /*** MousePointer enablen ***/
+    dpm.pointer = ywd->MousePtrBmp[YW_MOUSE_POINTER];
+    dpm.type    = DISP_PTRTYPE_NORMAL;
+    _methoda(ywd->GfxObject,DISPM_SetPointer,&dpm);
 }
 
 /*-----------------------------------------------------------------*/
@@ -2397,6 +2403,24 @@ void yw_MBRLayoutItems(struct ypaworld_data *ywd, struct MissionBriefing *mb)
 
         /*** unteren Rand ***/
         str = yw_LVItemsPostLayout(ywd, &(MBR), str, FONTID_MAPCUR_4, "   ");
+
+    } else {
+        /*** ansonsten einen LOADING... String im Missionbriefing... ***/
+        LONG time_diff = mb->TimeStamp - mb->PreTextTimeStamp;
+        LONG rel_width;
+        UBYTE *txt = ypa_GetStr(ywd->LocHandle,STR_BRIEFING_LOADING,"LOADING MISSION OBJECTIVES...");
+        
+        if (time_diff < MBT_DUR_MAPSCALE) {
+            rel_width = (time_diff * 100) / MBT_DUR_MAPSCALE;
+            if (rel_width < 0)        rel_width = 0;
+            else if (rel_width > 100) rel_width = 100;
+        } else rel_width = 100;
+        if (rel_width > 0) {        
+            str = yw_LVItemsPreLayout(ywd, &(MBR), str, FONTID_MAPCUR_4, "   ");
+            dbcs_color(str,yw_Red(ywd,YPACOLOR_TEXT_TOOLTIP),yw_Green(ywd,YPACOLOR_TEXT_TOOLTIP),yw_Blue(ywd,YPACOLOR_TEXT_TOOLTIP));
+            str = yw_TextRelWidthItem(ywd->Fonts[FONTID_MAPCUR_4],str,txt,rel_width,YPACOLF_ALIGNLEFT);
+            str = yw_LVItemsPostLayout(ywd, &(MBR), str, FONTID_MAPCUR_4, "   ");
+        };
     };
     eos(str);
 }

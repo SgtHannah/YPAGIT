@@ -1753,6 +1753,7 @@ struct MissionBriefing {
     LONG StartTime;                 // ...der aktuellen Stufe
     LONG TimeStamp;                 // rel. zu InitMissionBriefing()
     LONG TextTimeStamp;             // Timestamp fuer Textrendering
+    LONG PreTextTimeStamp;          // Timestamp fuer Loading-String
     UBYTE *Title;                   // NULL oder Ptr auf String
     UBYTE *MissionText;             // optionaler Missiontext
 

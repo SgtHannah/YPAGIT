@@ -78,6 +78,7 @@ static UBYTE *ypa_GetStr(UBYTE **loc, ULONG id, UBYTE *def)
 #define STR_SUPERBOMB_NAME      (18)    // Name der Superbombe
 #define STR_SUPERWAVE_NAME      (19)    // Name der Superwave
 #define STR_HELP                (20)    // allgemeiner Helptext fuer alle Button
+#define STR_APPNAME             (21)    // der gerade aktuelle Applikations-Name
 
 /*** HUD Texte ***/
 #define STR_HUD_WPNDAMAGE       (32)
@@ -764,6 +765,9 @@ static UBYTE *ypa_GetStr(UBYTE **loc, ULONG id, UBYTE *def)
 #define STR_VGADGET_16BITTEXTURE        (2431)
 #define STR_VGADGET_DRAWPRIMITIVE       (2432)
 #define STR_IGADGET_ALTJOYSTICK         (2433)
+#define STR_CONFIRM_LOADANDOVERWRITE    (2434)
+#define STR_CONFIRM_NETSTARTALONE       (2435)
+#define STR_CONFIRM_SAVEANDOVERWRITE    (2436)
 
 #define STR_DEBRIEF_KILLS               (2450)
 #define STR_DEBRIEF_KILLSBYPLAYER       (2451)
@@ -781,6 +785,8 @@ static UBYTE *ypa_GetStr(UBYTE **loc, ULONG id, UBYTE *def)
 #define STR_DEBRIEF_TU_RADAR            (2463)
 #define STR_DEBRIEF_TU_BUILDANDVEHICLE  (2464)
 #define STR_DEBRIEF_TU_GENERIC          (2465)
+#define STR_CDREQUEST_BODYTEXT          (2466)
+#define STR_BRIEFING_LOADING            (2467)
 
 /*** Confirm-Req-Inhalt ***/
 #define STR_CONFIRM_EXIT                (2480)
@@ -788,9 +794,6 @@ static UBYTE *ypa_GetStr(UBYTE **loc, ULONG id, UBYTE *def)
 #define STR_CONFIRM_LOAD                (2482)
 #define STR_CONFIRM_RESTART             (2483)
 
-#define STR_CONFIRM_LOADANDOVERWRITE    (2466)
-#define STR_CONFIRM_NETSTARTALONE       (2467)
-#define STR_CONFIRM_SAVEANDOVERWRITE    (2468)
 
 /*** Anpassen! ***/
 #define STR_LAST_ITEM           (2600) 

@@ -534,7 +534,7 @@ long FAR PASCAL wdd_WinProc(HWND hWnd, UINT message,
 
     switch(message) {
         case WM_ACTIVATEAPP:
-            if (wdd) wdd_SetMouseImage(wdd,1,TRUE);
+            if (wdd) wdd_SetMouseImage(wdd,wdd->cur_ptr_type,TRUE);
             break;
 
         case WM_ERASEBKGND:
@@ -2620,6 +2620,8 @@ void wdd_EnableGDI(struct windd_data *wdd, unsigned long mode)
 **      04-Feb-98   floh    + More Hacks für Movieplayer
 **      26-Feb-98   floh    + für Movieplayer wird generell auf
 **                            640x480x16 geschaltet
+**      25-May-98   floh    + im Movieplayer-Modus wird Bildschirm
+**                            vorher geloescht.
 */
 {
     if (wdd->hWnd) {
@@ -2669,6 +2671,19 @@ void wdd_EnableGDI(struct windd_data *wdd, unsigned long mode)
                              SWP_SHOWWINDOW);
                 wdd_BltBgDC(wdd);
             } else {
+                
+                DDBLTFX ddbltfx;                
+                
+                /*** Movieplayer -> Surfaces loeschen ***/
+                ddbltfx.dwSize      = sizeof(ddbltfx);
+                ddbltfx.dwFillColor = 0;
+                ddrval = wdd->lpDDSPrim->lpVtbl->Blt(wdd->lpDDSPrim,
+                            NULL, NULL, NULL, DDBLT_COLORFILL|DDBLT_WAIT,
+                            &ddbltfx);
+                ddrval = wdd->lpDDSBack->lpVtbl->Blt(wdd->lpDDSBack,
+                            NULL, NULL, NULL, DDBLT_COLORFILL|DDBLT_WAIT,
+                            &ddbltfx);
+                                
                 /*** Movie-Player: Auflösung auf 640x480 ***/
                 ddrval = lpDD->lpVtbl->SetDisplayMode(lpDD, 640, 480, 16);
                 ddrval = lpDD->lpVtbl->SetCooperativeLevel(lpDD,wdd->hWnd,DDSCL_NORMAL);
@@ -2728,6 +2743,8 @@ void wdd_DisableGDI(struct windd_data *wdd, unsigned long mode)
         if ((wdd->flags & WINDDF_IsWindowed) == 0) {
 
             unsigned long switch_display = FALSE;
+            ddrval = lpDD->lpVtbl->SetCooperativeLevel(lpDD,wdd->hWnd,DDSCL_EXCLUSIVE|DDSCL_FULLSCREEN);
+
             if (mode == WINDD_GDIMODE_WINDOW){
                 if ((wdd_Data.Primary.dwWidth <= 400) ||
                     (wdd_Data.Primary.dwHeight <= 300))
@@ -2735,14 +2752,14 @@ void wdd_DisableGDI(struct windd_data *wdd, unsigned long mode)
                     switch_display = TRUE;
                 };
             } else {
-                /*** im Movie-Mode, Auflösung generell zurückschalten ***/
+                /*** im Movie-Mode, Auflösung generell zurückschalten und Buffer loeschen ***/
                 switch_display = TRUE;
             };
 
-            ddrval = lpDD->lpVtbl->SetCooperativeLevel(lpDD,wdd->hWnd,DDSCL_EXCLUSIVE|DDSCL_FULLSCREEN);
-
             /*** Auflösung wieder umschalten? ***/
             if (switch_display) {
+
+                /*** Displaymode umschalten ***/
                 ddrval = lpDD->lpVtbl->SetDisplayMode(lpDD,
                             wdd_Data.Primary.dwWidth,
                             wdd_Data.Primary.dwHeight,
@@ -2756,7 +2773,7 @@ void wdd_DisableGDI(struct windd_data *wdd, unsigned long mode)
             };
         };
         /*** Mousepointer mit Flush neu setzen ***/
-        wdd_SetMouseImage(wdd,1,TRUE);
+        wdd_SetMouseImage(wdd,wdd->cur_ptr_type,TRUE);
     };
 }
 

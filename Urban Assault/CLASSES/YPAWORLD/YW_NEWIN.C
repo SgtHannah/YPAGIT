@@ -965,6 +965,9 @@ BOOL yw_LoadSet(struct ypaworld_data *ywd, ULONG set_num)
 **      03-Apr-97   floh    + DISPM_BeginSession
 **      24-Feb-98   floh    + alternative Kollisionsskeletons
 **      13-Mar-98   floh    + Maus wird initialisiert
+**      25-May-98   floh    + Maus wird jetzt am Ende der Routine initialisiert,
+**                            damit irgendwelche Warte-Pointer nicht 
+**                            ueberschrieben werden.
 */
 {
     UBYTE *str;
@@ -975,9 +978,6 @@ BOOL yw_LoadSet(struct ypaworld_data *ywd, ULONG set_num)
     ULONG res;
 
     _OVE_GetAttrs(OVET_Object,&(ywd->GfxObject),TAG_DONE);
-
-    /*** Mauspointer initialisieren ***/
-    yw_InitMouse(ywd);
 
     /*** Set-Assign setzen ***/
     sprintf(set_path,"data:set%d",set_num);
@@ -1095,6 +1095,9 @@ BOOL yw_LoadSet(struct ypaworld_data *ywd, ULONG set_num)
     res = yw_LoadFontSet(ywd);
     if ((set_num!=46)&&(set_num!=42)) _SetAssign("rsrc",old_path);
     if (!res) return(FALSE);
+
+    /*** Mauspointer initialisieren ***/
+    yw_InitMouse(ywd);
 
     /*** ActSet-Slot "besetzen" ***/
     ywd->ActSet = set_num;
