@@ -1775,11 +1775,13 @@ ULONG yw_GetStrEnv(struct ypaworld_data *ywd, UBYTE *name, UBYTE *buf, ULONG buf
 /*
 **  CHANGED
 **      30-Jun-98   floh    created
+**      06-Jul-98   floh    + falls der UserName nicht initialisiert
+**                            war, wurde ein ungueltiger Pfad gesetzt 
 */
 {
     ULONG retval = FALSE;
     memset(buf,0,buf_size);
-    if (ywd->gsr) {
+    if (ywd->gsr && ywd->gsr->UserName[0]) {
         APTR fp;
         UBYTE fname[256];
         sprintf(fname, "save:%s/%s",ywd->gsr->UserName,name);
@@ -1798,10 +1800,12 @@ ULONG yw_PutStrEnv(struct ypaworld_data *ywd, UBYTE *name, UBYTE *str)
 /*
 **  CHANGED
 **      20-Jun-98   floh    created    
+**      06-Jul-98   floh    + falls UserName nicht gesetzt war,
+**                            wurde ein ungueltiger Pfad gesetzt
 */
 {
     ULONG retval = FALSE;
-    if (ywd->gsr) {
+    if (ywd->gsr && ywd->gsr->UserName[0]) {
         APTR fp;
         UBYTE fname[256];
         sprintf(fname, "save:%s/%s",ywd->gsr->UserName,name);
