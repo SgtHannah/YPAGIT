@@ -6,8 +6,8 @@ VpeMain
 WRect
 0
 0
-10240
-9840
+10160
+9600
 2
 MProject
 3
@@ -30,8 +30,8 @@ VComponent
 WRect
 0
 0
-5048
-4600
+4000
+4480
 0
 0
 9
@@ -39,5 +39,5 @@ WFileName
 6
 ua.tgt
 0
-4
+10
 7
