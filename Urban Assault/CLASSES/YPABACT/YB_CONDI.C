@@ -694,30 +694,33 @@ _dispatcher( void, yb_YBM_BREAKFREE, struct trigger_logic_msg *msg)
                     case BCLID_YPACAR:
 
                         /*** Speed hat keinen Sinn, einfach e bissel wegsetzen ***/
-                        ybd->bact.old_pos = ybd->bact.pos;
-                        ybd->bact.pos.x += -ybd->bact.dir.m31 * 10;
-                        ybd->bact.pos.y += -ybd->bact.dir.m32 * 10;
-                        ybd->bact.pos.z += -ybd->bact.dir.m33 * 10;
-                        _methoda( o, YBM_CORRECTPOSITION, NULL );
-
-                        /*** etwas drehen ***/
-                        yb_rot_round_lokal_y( &(ybd->bact), (FLOAT) 0.1 );
+                        if( !(ybd->bact.ExtraState & EXTRA_ATTACK)) {
                         
-                        /*** trotzdem ein test ***/
-                        inter.pnt.x = ybd->bact.old_pos.x;
-                        inter.pnt.y = ybd->bact.old_pos.y;
-                        inter.pnt.z = ybd->bact.old_pos.z;
-                        inter.vec.x = ybd->bact.pos.x - ybd->bact.old_pos.x;
-                        inter.vec.y = ybd->bact.pos.y - ybd->bact.old_pos.y;
-                        inter.vec.z = ybd->bact.pos.z - ybd->bact.old_pos.z;
-                        inter.flags = INTERSECTF_CHEAT; // da Bodenfahrzeug
-                        _methoda( ybd->world, YWM_INTERSECT, &inter );
-                        if( inter.insect ) {
-
-                            /*** etwas über ipnt setzen ***/
-                            ybd->bact.pos.x = inter.ipnt.x;
-                            ybd->bact.pos.y = inter.ipnt.y - 5;
-                            ybd->bact.pos.z = inter.ipnt.z;
+                            ybd->bact.old_pos = ybd->bact.pos;
+                            ybd->bact.pos.x += -ybd->bact.dir.m31 * 10;
+                            ybd->bact.pos.y += -ybd->bact.dir.m32 * 10;
+                            ybd->bact.pos.z += -ybd->bact.dir.m33 * 10;
+                            _methoda( o, YBM_CORRECTPOSITION, NULL );
+    
+                            /*** etwas drehen ***/
+                            yb_rot_round_lokal_y( &(ybd->bact), (FLOAT) 0.1 );
+                            
+                            /*** trotzdem ein test ***/
+                            inter.pnt.x = ybd->bact.old_pos.x;
+                            inter.pnt.y = ybd->bact.old_pos.y;
+                            inter.pnt.z = ybd->bact.old_pos.z;
+                            inter.vec.x = ybd->bact.pos.x - ybd->bact.old_pos.x;
+                            inter.vec.y = ybd->bact.pos.y - ybd->bact.old_pos.y;
+                            inter.vec.z = ybd->bact.pos.z - ybd->bact.old_pos.z;
+                            inter.flags = INTERSECTF_CHEAT; // da Bodenfahrzeug
+                            _methoda( ybd->world, YWM_INTERSECT, &inter );
+                            if( inter.insect ) {
+    
+                                /*** etwas über ipnt setzen ***/
+                                ybd->bact.pos.x = inter.ipnt.x;
+                                ybd->bact.pos.y = inter.ipnt.y - 5;
+                                ybd->bact.pos.z = inter.ipnt.z;
+                                }
                             }
                         break;
                     }

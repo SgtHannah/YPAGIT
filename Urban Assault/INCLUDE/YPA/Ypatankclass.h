@@ -108,6 +108,7 @@ struct ypatank_data {
     FLOAT  collangle;
     FLOAT  collway;
     UBYTE  collflags;
+    BOOL   free_lof;                // freie Sicht auf das Ziel?
 };
 
 

@@ -726,9 +726,17 @@ _dispatcher( ULONG, yb_YBM_ASSESSTARGET, struct assesstarget_msg *at )
             if( ybd->bact.Aggression >= AGGR_ALL ) {
 
                 /*** nicht Kämpfen, wenn schon da und Sektor auf 0 ***/
-                if( (sectorenergy <= 0) && (distance < TAR_DISTANCE) &&
-                    (sector->Owner == ybd->bact.Owner) )
-                    return( AT_REMOVE );
+                if( (sectorenergy <= 0) && (sector->Owner == ybd->bact.Owner) ) {
+           
+                    /* ----------------------------------------------
+                    ** eigentlich abmelden, aber Tanks erreichen beim
+                    ** Kampf den Punkt nicht. Deshalb hinfahren.
+                    ** --------------------------------------------*/
+                    if( distance < TAR_DISTANCE ) 
+                        return( AT_IGNORE );   // return( AT_REMOVE );
+                    else
+                        return( AT_GOTO );
+                    }
                 else
                     return( AT_FIGHT );
                 }

@@ -414,6 +414,7 @@ struct Bacterium {
 #define EXTRA_SETDIRECTLY       (1L<<29)   // hat nur im Netzwerk sinn, sagt, dass nicht
                                            // interpoliert wird, wird von InsertVD sofort wieder zurueckgesetzt
 #define EXTRA_ATTACK            (1L<<30)   // wir fahren auf ein zu bekaempfendes Ziel zu 
+ 
 
 /*** Bacterium.Prim/SecTargetType ***/
 #define TARTYPE_NONE            (0)     // aktuell kein Target

@@ -1655,7 +1655,7 @@ _dispatcher( BOOL, yb_YBM_CHECKAUTOFIREPOS, struct checkautofirepos_msg *msg)
 
     richtung.x /= distance;
     richtung.y /= distance;
-    richtung.z /= distance;
+    richtung.z /= distance;    
 
     /*** Waffeninformationen holen ***/
     _get( ybd->world, YWA_WeaponArray, &warray );

@@ -493,9 +493,11 @@ _dispatcher(void, yt_YBM_AI_LEVEL3, struct trigger_logic_msg *msg)
 
                 /* ---------------------------------------------------------
                 ** Bewegen eigentlich immer, es sei denn, wir fahren auf ein
-                ** zu bekaempfendes Ziel zu.
+                ** zu bekaempfendes Ziel zu, welches wir treffen koennen.
                 ** -------------------------------------------------------*/
-                if( !(ytd->bact->ExtraState & EXTRA_ATTACK )) {
+                if( ! ((ytd->bact->ExtraState & EXTRA_ATTACK) &&
+                       (ytd->free_lof) &&
+                       (0 == ytd->collflags)) ) {
                 
                     move.flags = 0;
                     move.t     = time;

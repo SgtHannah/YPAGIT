@@ -514,6 +514,7 @@ _dispatcher(void, yb_YBM_AI_LEVEL3, struct trigger_logic_msg *msg)
                     else
                         if( ybd->bact.PrimTargetType == (UBYTE)TARTYPE_SECTOR ){
                             fight.pos.x        = ybd->bact.PrimPos.x;
+                            fight.pos.y        = ybd->bact.PrimPos.y;
                             fight.pos.z        = ybd->bact.PrimPos.z;
                             fight.enemy.sector = ybd->bact.PrimaryTarget.Sector;
                             fight.priority     = 0;
