@@ -1253,7 +1253,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
     nb.disabled_font = FONTID_ENERGY;
     nb.modus         = BM_GADGET;
     nb.x             = GET_X_COORD(160);
-    nb.y             = GET_Y_COORD(300);
+    nb.y             = GET_Y_COORD(245);
     nb.w             = GET_X_COORD(80);
     nb.unpressed_text= ypa_GetStr( GlobalLocaleHandle, STR_OK, "OK");
     nb.pressed_text  = NULL;
@@ -1285,7 +1285,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
       nb.disabled_font = FONTID_MAPCUR_4;
       nb.modus         = BM_STRING;
       nb.x             = GET_X_COORD(160);
-      nb.y             = GET_Y_COORD(270);
+      nb.y             = GET_Y_COORD(225);
       nb.w             = GET_X_COORD(320);
       nb.unpressed_text= " ";
       nb.pressed_text  = NULL;
@@ -1294,7 +1294,7 @@ _dispatcher( BOOL, yw_YWM_OPENGAMESHELL, struct GameShellReq *GSR )
       nb.user_released = 0;
       nb.user_hold     = 0;
       nb.ID            = GSID_CONFIRMTEXT;
-      nb.flags         = BT_TEXT;
+      nb.flags         = BT_TEXT|BT_CENTRE;
       nb.red           = yw_Red(ywd,YPACOLOR_TEXT_DEFAULT);
       nb.green         = yw_Green(ywd,YPACOLOR_TEXT_DEFAULT);
       nb.blue          = yw_Blue(ywd,YPACOLOR_TEXT_DEFAULT);

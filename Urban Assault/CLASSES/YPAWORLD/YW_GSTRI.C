@@ -18,6 +18,7 @@
 #include <math.h>
 
 #include "nucleus/nucleus2.h"
+#include "nucleus/math.h"
 #include "engine/engine.h"
 #include "input/inputclass.h"
 #include "input/idevclass.h"
@@ -58,6 +59,9 @@ extern WORD NListWidth;
 #include "yw_protos.h"
 #include "yw_gsprotos.h"
 #include "yw_netprotos.h"
+
+#define GET_X_COORD(x) (FLOAT_TO_INT((((FLOAT)x)/640.0)*((FLOAT)ywd->DspXRes)))
+#define GET_Y_COORD(y) (FLOAT_TO_INT((((FLOAT)y)/480.0)*((FLOAT)ywd->DspYRes)))
 
 /*** Einheitszeug für Audiozeuch ***/
 struct flt_triple null_vec = {0.0, 0.0, 0.0};
@@ -174,8 +178,10 @@ _dispatcher( void, yw_YWM_TRIGGERGAMESHELL, struct GameShellReq *GSR )
     if( NM_PROVIDER != GSR->n_selmode) playing_network = TRUE;
     
     /*** Meldung, falls jemand bescheisst ***/
-    if( NM_MESSAGE == GSR->n_selmode)
+    if( NM_MESSAGE == GSR->n_selmode) {
         yw_TellAboutCheckSum( GSR->ywd );
+        yw_CheckCDStatus( GSR );
+        }
     
     if( yw_WasInputEvent( GSR->input ) ) GSR->last_input_event = GSR->global_time;
     if( ((GSR->global_time - GSR->last_input_event ) > GSR->wait_til_demo ) &&
@@ -471,6 +477,12 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                     
                         yw_EAR_Save( GSR );
                         break;
+                        
+                    case CONFIRM_MORECDS:
+                    
+                        /*** nur Bestaetigung. Nix machen ***/
+                        yw_CloseConfirmRequester( GSR );
+                        break;
                     }
                 
                 yw_CloseConfirmRequester( GSR );
@@ -513,6 +525,12 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                     case CONFIRM_SAVEANDOVERWRITE:
                     
                         yw_EAR_Save( GSR );
+                        break;
+                        
+                    case CONFIRM_MORECDS:
+                    
+                        /*** nur Bestaetigung. Nix machen ***/
+                        yw_CloseConfirmRequester( GSR );
                         break;
                     }
 
@@ -764,11 +782,11 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 if( yw_CheckOlderSaveGame( GSR ) ) 
                     yw_OpenConfirmRequester( GSR, CONFIRM_LOADFROMMAP, 
                         ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_LOADANDOVERWRITE, 
-                                    "DO YOU WANT TO LOAD >>>OLDER<<< SAVEGAME?") );
+                                    "DO YOU WANT TO LOAD >>>OLDER<<< SAVEGAME?"),0 );
                 else
                     yw_OpenConfirmRequester( GSR, CONFIRM_LOADFROMMAP, 
                         ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_LOAD, 
-                                    "DO YOU WANT TO LOAD INGAME SAVEGAME?") );
+                                    "DO YOU WANT TO LOAD INGAME SAVEGAME?"), 0 );
                 break;
                 
             case GS_PL_SETBACK:
@@ -1562,7 +1580,7 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                                 if( GSR->d_actualitem )
                                     yw_OpenConfirmRequester( GSR, CONFIRM_SAVEANDOVERWRITE,
                                     ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_SAVEANDOVERWRITE,
-                                    "DO YOU WANT TO OVERWRITE THIS PLAYER STATUS?"));
+                                    "DO YOU WANT TO OVERWRITE THIS PLAYER STATUS?"),0);
                                 else
                                     yw_EAR_Save( GSR );
                                 break;
@@ -1709,7 +1727,7 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                       if( GSR->d_actualitem )
                             yw_OpenConfirmRequester( GSR, CONFIRM_SAVEANDOVERWRITE,
                             ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_SAVEANDOVERWRITE,
-                            "DO YOU WANT TO OVERWRITE THIS PLAYER STATUS?"));
+                            "DO YOU WANT TO OVERWRITE THIS PLAYER STATUS?"),0);
                         else
                             yw_EAR_Save( GSR );
                         break;
@@ -2433,24 +2451,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
 
                         break;
 
-                    case GS_NETBACK:
-
-//                        /* -------------------------------------------
-//                        ** Zurück zu den Sessions. Vorher Session
-//                        ** schließen, sonst klappt das abfragen nicht!
-//                        ** -----------------------------------------*/
-//
-//                        if( _methoda( GSR->ywd->nwo, NWM_GETSESSION, &gs ) ) 
-//                            _methoda( GSR->ywd->nwo, NWM_CLOSESESSION, NULL );
-//                        
-//                        if( NWFC_MODEM != _methoda( GSR->ywd->nwo, NWM_GETPROVIDERTYPE, NULL ) )
-//                            _methoda( GSR->ywd->nwo, NWM_ASKSESSIONS, NULL );
-//
-//                        GSR->n_selmode        = NM_PROVIDER;
-//                        GSR->NSel             = -1;
-//                        GSR->nmenu.FirstShown = 0;
-                        break;
-
                     case GS_NETNEW:
 
                         /*** Hat nur bei SystemTextInput Sinn ***/
@@ -2506,20 +2506,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
 
                         break;
 
-                    case GS_NETBACK:
-
-//                        /* -------------------------------------------
-//                        ** Zurück zu den Providern. jedesmal suche ich
-//                        ** erneut, weil die Liste sich ändern kann.
-//                        ** -----------------------------------------*/
-//                        GSR->n_selmode        = NM_PLAYER;
-//                        GSR->NSel             = -1;
-//                        GSR->nmenu.FirstShown = 0;
-//                        GSR->NCursorPos       = 0;
-//                        strcpy( GSR->N_Name, GSR->NPlayerName );
-//                        GSR->NCursorPos       = strlen( GSR->N_Name );
-                        break;
-
                     case GS_HELP:
 
                         ywd->Url = ypa_GetStr( GlobalLocaleHandle,
@@ -2537,23 +2523,6 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                     case GS_NETOK:
 
                         yw_OKLevel( GSR );
-                        break;
-
-                    case GS_NETBACK:
-
-//                        /* -------------------------------------------
-//                        ** Zurück zur Sessionauswahl. Dabei fragen wir
-//                        ** erneut die Sessions ab! Dazu müssen wir die
-//                        ** alte schließen!
-//                        ** -----------------------------------------*/
-//                        if( _methoda( GSR->ywd->nwo, NWM_GETSESSION, &gs ) ) 
-//                            _methoda( GSR->ywd->nwo, NWM_CLOSESESSION, NULL );
-//
-//                        if( NWFC_MODEM != _methoda( GSR->ywd->nwo, NWM_GETPROVIDERTYPE, NULL ) )
-//                            _methoda( GSR->ywd->nwo, NWM_ASKSESSIONS, NULL );
-//                        GSR->NSel             = -1;
-//                        GSR->n_selmode        = NM_SESSIONS;
-//                        GSR->nmenu.FirstShown = 0;
                         break;
 
                     case GS_HELP:
@@ -2668,67 +2637,22 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                         if( GSR->is_host ) {
 
                             /*** Möglichkeit zum starten ***/
+                            char *t;
                             
                             /*** Wenn nur ein Spieler, dann Sicherheitsabfrage ***/
-                            if( 1 < _methoda( GSR->ywd->nwo, NWM_GETNUMPLAYERS, NULL ) )
-                                yw_StartNetGame( GSR );
+                            if( 1 < _methoda( GSR->ywd->nwo, NWM_GETNUMPLAYERS, NULL ) ) {
+                                
+                                /*** CD Check ***/
+                                if( t = yw_NotEnoughCDs( GSR ) ) 
+                                    yw_OpenConfirmRequester( GSR, CONFIRM_MORECDS, t, 1 );
+                                else
+                                    yw_StartNetGame( GSR );
+                                }
                             else
                                 yw_OpenConfirmRequester( GSR, CONFIRM_NETSTARTALONE,
                                     ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_NETSTARTALONE,
-                                                "DO YOU REALLY WANT TO START WITHOUT OTHER PLAYERS?"));      
+                                                "DO YOU REALLY WANT TO START WITHOUT OTHER PLAYERS?"), 0);      
                             }
-//                        else {
-//
-//                            /*** Fertig-Meldung ***/
-//
-//                            struct ypamessage_readytostart rts;
-//                            struct sendmessage_msg sm;
-//                            struct flushbuffer_msg fb;
-//                            
-//                            /*** mich im Playermenue suchen ***/
-//                            gpd.number  = 0;
-//                            gpd.askmode = GPD_ASKNUMBER;
-//                            while( _methoda( ywd->nwo, NWM_GETPLAYERDATA, &gpd) ) {
-//
-//                                /*** Nicht ganz wasserdicht...***/
-//                                if(stricmp( gpd.name, GSR->NPlayerName)==0)
-//                                    break;
-//
-//                                gpd.number++;
-//                                }
-//
-//                            if( GSR->ReadyToStart ) {
-//
-//                                /*** "Noch-Warten-Message" losschicken ***/
-//                                rts.ready_to_start = 0;
-//                                GSR->ReadyToStart  = 0;
-//                                GSR->player2[ gpd.number ].ready_to_start = 0;
-//                                }
-//                            else {
-//
-//                                /*** "Fertig"-Message losschicken ***/
-//                                rts.ready_to_start = 1;
-//                                GSR->ReadyToStart  = 1;
-//                                GSR->player2[ gpd.number ].ready_to_start = 1;
-//                                }
-//
-//                            rts.generic.message_id = YPAM_READYTOSTART;
-//                            rts.generic.owner      = 0; // weil noch nicht fest
-//
-//                            sm.data                = (char *) &rts;
-//                            sm.data_size           = sizeof( rts );
-//                            sm.receiver_kind       = MSG_ALL;
-//                            sm.receiver_id         = NULL;
-//                            sm.guaranteed          = TRUE;
-//                            _methoda( GSR->ywd->world, YWM_SENDMESSAGE, &sm);
-//
-//                            fb.sender_kind         = MSG_PLAYER;
-//                            fb.sender_id           = GSR->NPlayerName;
-//                            fb.receiver_kind       = MSG_ALL;
-//                            fb.receiver_id         = NULL;
-//                            fb.guaranteed          = TRUE;
-//                            _methoda( GSR->ywd->nwo, NWM_FLUSHBUFFER, &fb);
-//                            }
                         break;
 
                     case GS_NETBACK:
@@ -2854,29 +2778,12 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
                 case NM_PROVIDER:
 
                     gpn.number = GSR->NSel;
-//                    if( _methoda( ywd->nwo, NWM_GETPROVIDERNAME, &gpn ) )
-//                        yw_LocStrCpy( GSR->N_Name, gpn.name );
-//                    else
-//                        strcpy( GSR->N_Name, "???" );
                     GSR->N_InputMode = FALSE;
                     break;
 
                 case NM_SESSIONS:
 
                     gsn.number = GSR->NSel;
-//                    if( _methoda( ywd->nwo, NWM_GETSESSIONNAME, &gsn ) ) {
-//
-//                        /*** Aus Namen Host rausfiltern ***/
-//                        char session_name[ 300 ];
-//                        int  n;
-//
-//                        strcpy( session_name, gsn.name );
-//                        strtok( session_name, SEPHOSTFROMSESSION );
-//                        n = atoi( session_name );
-//                        yw_LocStrCpy( GSR->N_Name, GSR->ywd->LevelNet->Levels[ n ].title );
-//                        }
-//                    else
-//                        strcpy( GSR->N_Name, "???" );
                     GSR->N_InputMode = FALSE;
 
                     break;
@@ -4753,8 +4660,6 @@ void yw_OKLevel( struct GameShellReq *GSR )
         if( _methoda( GSR->ywd->nwo, NWM_CREATEPLAYER, &cp ) ) {
 
             LONG np, cd = 0;
-            struct ypamessage_cd cdm;
-            struct sendmessage_msg sm;
 
             /*** Ab jetzt müssen wir Messages empfangen ***/
             GSR->ywd->playing_network = TRUE;
@@ -4780,19 +4685,11 @@ void yw_OKLevel( struct GameShellReq *GSR )
             ** CD handling. Als Host nur registrieren. weil ich
             ** der erste bin, brauche ich keine Message zu schicken
             ** --------------------------------------------------*/
+            cd = yw_CheckCD( FALSE, FALSE, NULL, NULL );
+            
             GSR->player2[np-1].cd  = (UBYTE) cd; 
             GSR->cd                = (UBYTE) cd;
-            
-            cdm.cd                 = GSR->cd;
-            cdm.generic.message_id = YPAM_CD;
-            cdm.generic.owner      = 0; // weil nicht feststehend
-
-            sm.data                = (char *) &cdm;
-            sm.data_size           = sizeof( cdm );
-            sm.receiver_kind       = MSG_ALL;
-            sm.receiver_id         = NULL;
-            sm.guaranteed          = TRUE;
-            _methoda( GSR->ywd->world, YWM_SENDMESSAGE, &sm);
+            GSR->last_cdcheck = GSR->global_time;
             }
         }
 }
@@ -4855,6 +4752,8 @@ void yw_OKSessions( struct GameShellReq *GSR )
 
                 char buffer[ 200 ];
                 struct createplayer_msg cp;
+                struct ypamessage_cd cdm;
+                struct sendmessage_msg sm;
 
                 GSR->N_Name[ 0 ] = 0;
                 GSR->NCursorPos  = 0;
@@ -4921,8 +4820,22 @@ void yw_OKSessions( struct GameShellReq *GSR )
                     ** mich einer Session anschliesse, muss ich die Leute
                     ** ueber meinen CD Status informieren.
                     ** ------------------------------------------------*/
-                    GSR->player2[np-1].cd             = (UBYTE) cd; 
-                    GSR->cd                           = (UBYTE) cd;
+                    cd = yw_CheckCD( FALSE, FALSE, NULL, NULL );
+                    
+                    GSR->player2[np-1].cd  = (UBYTE) cd; 
+                    GSR->cd                = (UBYTE) cd;
+                    GSR->last_cdcheck = GSR->global_time;
+
+                    cdm.cd                 = GSR->cd;
+                    cdm.generic.message_id = YPAM_CD;
+                    cdm.generic.owner      = 0; // weil nicht feststehend
+        
+                    sm.data                = (char *) &cdm;
+                    sm.data_size           = sizeof( cdm );
+                    sm.receiver_kind       = MSG_ALL;
+                    sm.receiver_id         = NULL;
+                    sm.guaranteed          = TRUE;
+                    _methoda( GSR->ywd->world, YWM_SENDMESSAGE, &sm);
                     }
 
                 /*** ReadyButton zuruecksetzen ***/
@@ -6031,7 +5944,7 @@ void yw_CloseConfirmRequester( struct GameShellReq *GSR )
 
 
 
-void yw_OpenConfirmRequester( struct GameShellReq *GSR, ULONG modus, char *text )
+void yw_OpenConfirmRequester( struct GameShellReq *GSR, ULONG modus, char *text, ULONG type )
 {
 /*
 **  FUNCTION    Oeffnet einen Requester um eine Aktion zu bestaetigen. Dieser
@@ -6048,13 +5961,40 @@ void yw_OpenConfirmRequester( struct GameShellReq *GSR, ULONG modus, char *text 
     struct switchpublish_msg sp;
     struct switchbutton_msg sb;
     struct setstring_msg ss;
+    struct setbuttonpos_msg sbp;
+    struct ypaworld_data *ywd;
     
     GSR->confirm_modus = modus;
+    ywd = GSR->ywd;
 
     sb.number  = GSID_CONFIRMOK;
     _methoda( GSR->confirm, BTM_ENABLEBUTTON, &sb );
-    sb.number  = GSID_CONFIRMCANCEL;
-    _methoda( GSR->confirm, BTM_ENABLEBUTTON, &sb );
+    
+    if( 0 == type ) {
+    
+        /*** dann 2ButtonRequester ***/
+        sb.number  = GSID_CONFIRMCANCEL;
+        _methoda( GSR->confirm, BTM_ENABLEBUTTON, &sb );
+
+        sbp.number = GSID_CONFIRMOK;
+        sbp.x      = GET_X_COORD(160);
+        sbp.y      = -1;
+        sbp.w      = -1;
+        sbp.h      = -1;
+        _methoda( GSR->confirm, BTM_SETBUTTONPOS, &sbp);
+        sbp.number = GSID_CONFIRMCANCEL;
+        sbp.x      = GET_X_COORD(400); 
+        _methoda( GSR->confirm, BTM_SETBUTTONPOS, &sbp);
+        }
+    else {
+    
+        sbp.number = GSID_CONFIRMOK;
+        sbp.x      = GET_X_COORD(280);
+        sbp.y      = -1;
+        sbp.w      = -1;
+        sbp.h      = -1;
+        _methoda( GSR->confirm, BTM_SETBUTTONPOS, &sbp);
+        }
 
     ss.unpressed_text = text;
     ss.pressed_text   = NULL;
@@ -6123,5 +6063,85 @@ void yw_StartNetGame( struct GameShellReq *GSR )
 
     /*** Letzte Infos rausschreiben ***/
     yw_PrintNetworkInfoStart( GSR );
-}    
+}  
 
+
+void yw_CheckCDStatus( struct GameShellReq *GSR )
+{
+/* ------------------------------------------------------
+** testet zyklisch, ob eine CD eingelegt ist. Somit kann
+** waehrend des spieles noch eine Cd eingelegt werden.
+** ausserdem ist man beim Starten des programmes manchmal
+** schneller als das CD-Rom ueberprueft werden kann.
+** ----------------------------------------------------*/
+    
+    LONG cd;
+    struct ypamessage_cd cdm;
+    struct sendmessage_msg sm;
+    struct getplayerdata_msg gpd;
+    
+    /*** ist es wirklich schon so spaet? ***/  
+    if( (GSR->global_time - GSR->last_cdcheck) < 1500 )
+        return;
+        
+    GSR->last_cdcheck = GSR->global_time;
+    
+    /*** testen ... ***/
+    cd = yw_CheckCD( FALSE, FALSE, NULL, NULL );    
+    
+    /*** ... Eintragen ... ***/
+    gpd.number  = 0;
+    gpd.askmode = GPD_ASKNUMBER;
+    while( _methoda( GSR->ywd->nwo, NWM_GETPLAYERDATA, &gpd) ) {
+
+        /*** Nicht ganz wasserdicht...***/
+        if(stricmp( gpd.name, GSR->NPlayerName)==0) {
+            GSR->player2[ gpd.number ].cd = (UBYTE) cd;
+            break;
+            }
+
+        gpd.number++;
+        }
+    
+    GSR->cd                = (UBYTE) cd;
+    
+    /*** ... und merken ***/
+    cdm.cd                 = GSR->cd;
+    cdm.generic.message_id = YPAM_CD;
+    cdm.generic.owner      = 0; // weil nicht feststehend
+
+    sm.data                = (char *) &cdm;
+    sm.data_size           = sizeof( cdm );
+    sm.receiver_kind       = MSG_ALL;
+    sm.receiver_id         = NULL;
+    sm.guaranteed          = TRUE;
+    _methoda( GSR->ywd->world, YWM_SENDMESSAGE, &sm);
+}
+
+
+char *yw_NotEnoughCDs( struct GameShellReq *GSR )
+{
+    /* ----------------------------------------------
+    ** Sieht nach, ob die CDs reichen. Gibt NULL oder
+    ** gleich den ErrorString zurueck 
+    ** --------------------------------------------*/
+    ULONG num_cds, num_players, i;
+        
+    num_players = _methoda( GSR->ywd->nwo, NWM_GETNUMPLAYERS, NULL );
+    
+    num_cds = 0;
+    for( i = 0; i < num_players; i++ )
+        if( GSR->player2[ i ].cd )
+            num_cds++;
+            
+    if( (num_players > 3) && (num_cds < 2) )
+        return( ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_NEED2CD, 
+                 "YOU NEED 2 CD TO START 4 PLAYER GAME")); 
+        
+    if( num_cds < 1 )
+        return( ypa_GetStr( GlobalLocaleHandle, STR_CONFIRM_NEEDCD, 
+                 "YOU NEED A CD TO START THIS GAME")); 
+
+    return( NULL );
+}        
+        

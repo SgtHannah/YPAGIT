@@ -1800,9 +1800,9 @@ void yw_RenderConfirmRequester( struct GameShellReq *GSR )
     
     if( CONFIRM_NONE == GSR->confirm_modus )
         return;
-        
+                
     /*** irgendwie Hintergrund malen ***/
-    yw_PaintRect( GSR, GET_X_COORD(150), GET_Y_COORD(250), GET_X_COORD(340), GET_Y_COORD(100) );
+    yw_PaintRect( GSR, GET_X_COORD(150), GET_Y_COORD(200), GET_X_COORD(340), GET_Y_COORD(80) );
             
     _methoda( GSR->confirm, BTM_PUBLISH, NULL );
 }

@@ -87,10 +87,15 @@ _dispatcher(void, yb_YBM_DIE, void *nix)
     dm.new_master         = NULL;
     dm.landed             = 0;
     dm.class              = ybd->bact.BactClassID;
-    if( ybd->bact.killer )
+    if( ybd->bact.killer ) {
+        dm.killer         = ybd->bact.killer->ident;
         dm.killerowner    = ybd->bact.killer->Owner;
-    else
+        }
+    else {
         dm.killerowner    = 0;
+        dm.killer         = 0L;
+        }
+          
     ywd = INST_DATA( ((struct nucleusdata *)ybd->world)->o_Class, ybd->world);
     #endif
 
@@ -636,6 +641,7 @@ _dispatcher( void, yb_YBM_REINCARNATE, void *nix )
     ybd->bact.salve_count    = 0;
     ybd->bact.kill_after_shot= FALSE;
     ybd->bact.vpactive       = 0;
+    ybd->bact.mt_commandid   = 0;
 
     /*** Defaultmäßig sind's erstmal alles Lander ***/
     ybd->flags |= YBF_LandWhileWait;

@@ -1401,6 +1401,7 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
     struct ypamessage_answerlatency *al, sal;
     struct ypamessage_starttrouble *st;
     struct ypamessage_endtrouble *et;
+    struct ypamessage_cd *cdm;
     struct ypamessage_race rcm2;
     struct createbuilding_msg cb;
     struct createvehicle_msg cv;
@@ -2282,6 +2283,14 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
 
                 /*** Kennzeichnen ***/
                 dv->ExtraState |= EXTRA_LOGICDEATH;
+                
+                /*** Killer ermitteln. Der kann schon weg sein ***/
+                if( dm->killerowner ) {
+                
+                    struct OBNode *killer_robo;
+                    killer_robo = yw_GetRoboByOwner( ywd, dm->killerowner );
+                    dv->killer  = yw_GetBactByID( killer_robo->bact, dm->killer );
+                    } 
 
                 /*** (FIXME FLOH) Meldung ans statistische Amt ***/
                 if (dv->killer) {
@@ -2824,6 +2833,14 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
             ** angewendet. Und dann geht ja hier bei der Auswertung schon
             ** was los...
             ** --------------------------------------------------------*/
+            /*** Killer ermitteln. Der kann schon weg sein ***/
+            if( rd->killerowner ) {
+            
+                struct OBNode *killer_robo;
+                killer_robo         = yw_GetRoboByOwner( ywd, rd->killerowner );
+                robo->bact->killer  = yw_GetBactByID( killer_robo->bact, rd->killer );
+                } 
+
             if (robo->bact->killer) {
                 ULONG is_user;
                 ko = robo->bact->killer->Owner;
@@ -4045,6 +4062,25 @@ ULONG yw_HandleThisMessage( struct ypaworld_data *ywd,
             
             /*** probleme haben aufgehoert ***/
             ywd->gsr->network_trouble = NETWORKTROUBLE_NONE;
+            break;
+            
+        case YPAM_CD:
+            
+            cdm = (struct ypamessage_cd *)( rm->data );
+            size = sizeof( struct ypamessage_cd );
+            if( ywd->gsr->player[ owner ].was_killed ) break;
+            
+            gpd.number  = 0;
+            gpd.askmode = GPD_ASKNUMBER;
+            while( _methoda( ywd->nwo, NWM_GETPLAYERDATA, &gpd ) ) {
+
+                if( stricmp( rm->sender_id, gpd.name ) == 0 ) {
+                    ywd->gsr->player2[ gpd.number ].cd = cdm->cd;
+                    break;
+                    }
+                gpd.number++;
+                }   
+
             break;
             
         default:
