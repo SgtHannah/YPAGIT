@@ -1568,7 +1568,9 @@ void yw_HandleGameShell( struct ypaworld_data *ywd, struct GameShellReq *GSR )
         ** als "NEW" ausgewertet.
         ** -----------------------------------------------------------------*/
 
-        if( GSR->input->NormKey || GSR->input->AsciiKey ) {
+        if( ((GSR->input->NormKey >  0)    && (GSR->input->NormKey < 129)) ||
+            ((GSR->input->NormKey >= 0xa0) && (GSR->input->NormKey < 0xff)) || 
+              GSR->input->AsciiKey ) {
 
             if( DIM_NONE != GSR->D_InputMode ) {
 
