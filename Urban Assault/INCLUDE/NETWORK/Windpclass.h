@@ -98,9 +98,9 @@
 
     #ifdef __BETA__
     // die Beta 2 GUID
-    // {017C7740-FAD4-11d1-9C03-00A0C90832CD}
-    DEFINE_GUID(YPA_GUID, 0x17c7740, 0xfad4, 0x11d1, 0x9c, 0x3, 0x0, 0xa0, 0xc9, 
-                          0x8, 0x32, 0xcd);
+    // {381f0620-fc68-11d0-8af9-0020aff04466}
+    DEFINE_GUID( YPA_GUID, 0x381f0620, 0xfc68, 0x11d0, 0x8a, 0xf9, 0x0,
+                           0x20, 0xaf, 0xf0, 0x44, 0x66 );
     #else
     
         #ifdef __TRIAL__
@@ -110,9 +110,9 @@
                               0xc9, 0x8, 0x32, 0xcd);
         #else
         // Die globale Applikation-GUID
-        // {381f0620-fc68-11d0-8af9-0020aff04466}
-        DEFINE_GUID( YPA_GUID, 0x381f0620, 0xfc68, 0x11d0, 0x8a, 0xf9, 0x0,
-                               0x20, 0xaf, 0xf0, 0x44, 0x66 );
+        // {017C7740-FAD4-11d1-9C03-00A0C90832CD}
+        DEFINE_GUID(YPA_GUID, 0x17c7740, 0xfad4, 0x11d1, 0x9c, 0x3, 0x0, 0xa0, 0xc9, 
+                              0x8, 0x32, 0xcd);
         #endif
     #endif
 
