@@ -49,16 +49,26 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     if (hMutex) {
         DWORD last_error = GetLastError();
         if (last_error == ERROR_ALREADY_EXISTS) {
-            /*** ok, wir sind schon da, evtl. Window aktivieren ***/
-            HWND old_hwnd;            
-            old_hwnd = FindWindow("UA Window Class","Urban Assault");
-            if (old_hwnd) {
-                /*** jo, alte Instanz aktivieren, und selbst beenden ***/
-                ShowWindow(old_hwnd,SW_RESTORE);
-                SetForegroundWindow(old_hwnd);
-                CloseHandle(hMutex);
-                return(0);
-            };
+            
+            CloseHandle(hMutex);
+            return(0);
+            
+            //--- klappt nicht mit Movieplayer --- 
+            //            
+            // /*** ok, wir sind schon da, evtl. Window aktivieren ***/
+            //HWND old_hwnd;
+            //
+            ///*** ansonsten gucken, ob im "normalen" Zustand ***/            
+            //old_hwnd = FindWindow("UA Window Class","Urban Assault");
+            //if (old_hwnd) {
+            //    /*** dann alte Instanz aktivieren, und selbst beenden ***/
+            //    if (IsIconic(old_hwnd)) {
+            //       ShowWindow(old_hwnd,SW_RESTORE);
+            //       SetForegroundWindow(old_hwnd);
+            //    };
+            //    CloseHandle(hMutex);
+            //    return(0);
+            //};
         };
     };
         
